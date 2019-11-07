@@ -8,8 +8,8 @@
     "lint": "eslint $npm_package_config_lint",
     "lint:fix": "eslint $npm_package_config_lint",
     "lint:watch": "esw --watch $npm_package_config_lint",
-    "prettier": "prettier --write $npm_package_config_prettier",
-    "prettier:check": "prettier --list-different $npm_package_config_prettier",
+    "prettier": "prettier --write .babelrc.js *.json *.md *.ts '{src,test}/**/*.{js,ts}'",
+    "prettier:check": "prettier --list-different .babelrc.js *.json *.md *.ts '{src,test}/**/*.{js,ts}'",
     "tsc": "tsc --noEmit",
     "tsc:watch": "npm run tsc -- --watch",
     "clean": "rimraf es lib $(cd src; ls) *.js *.d.ts",
@@ -25,9 +25,8 @@
     "semantic-release": "semantic-release"
   },
   "config": {
-    "lint": "--cache --ext .ts src test",
-    "prettier": ".babelrc.js *.json *.md *.ts '{src,test}/**/*.ts'",
-    "mocha": "-r @babel/register test/configure.ts 'test/**/*.ts' 'src/**/*.spec.ts'",
+    "lint": "--cache --ext .js,.ts src test",
+    "mocha": "-r test/configure.js 'src/**/*.spec.ts'",
     "commitizen": {
       "path": "cz-conventional-changelog"
     }
