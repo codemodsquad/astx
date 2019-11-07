@@ -1,0 +1,144 @@
+{
+  "name": "typescript-library-skeleton",
+  "version": "0.0.0-development",
+  "description": "my personal ES2015 library project skeleton",
+  "main": "index.js",
+  "sideEffects": false,
+  "scripts": {
+    "lint": "eslint $npm_package_config_lint",
+    "lint:fix": "eslint $npm_package_config_lint",
+    "lint:watch": "esw --watch $npm_package_config_lint",
+    "prettier": "prettier --write $npm_package_config_prettier",
+    "prettier:check": "prettier --list-different $npm_package_config_prettier",
+    "tsc": "tsc --noEmit",
+    "tsc:watch": "npm run tsc -- --watch",
+    "clean": "rimraf es lib $(cd src; ls) *.js *.d.ts",
+    "build": "npm run clean && npm run build:types && npm run build:js",
+    "build:types": "tsc --emitDeclarationOnly",
+    "build:js": "babel src --out-dir es --extensions \".ts\" --source-maps inline && cross-env BABEL_ENV=es5 babel src --out-dir . --extensions \".ts\"",
+    "test": "cross-env NODE_ENV=test BABEL_ENV=es5 mocha $npm_package_config_mocha && cross-env NODE_ENV=test BABEL_ENV=coverage nyc --reporter=lcov --reporter=text mocha $npm_package_config_mocha",
+    "test:watch": "cross-env NODE_ENV=test BABEL_ENV=test mocha --watch $npm_package_config_mocha",
+    "test:debug": "cross-env NODE_ENV=test BABEL_ENV=test mocha --inspect-brk $npm_package_config_mocha",
+    "codecov": "nyc report --reporter=text-lcov > coverage.lcov; codecov",
+    "prepublishOnly": "npm run clean && npm run prettier:check && npm run lint && npm test && npm run build",
+    "open:coverage": "open coverage/lcov-report/index.html",
+    "semantic-release": "semantic-release"
+  },
+  "config": {
+    "lint": "--cache --ext .ts src test",
+    "prettier": ".babelrc.js *.json *.md *.ts '{src,test}/**/*.ts'",
+    "mocha": "-r @babel/register test/configure.ts 'test/**/*.ts' 'src/**/*.spec.ts'",
+    "commitizen": {
+      "path": "cz-conventional-changelog"
+    }
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged && npm run lint && npm run tsc",
+      "commit-msg": "commitlint -e $GIT_PARAMS",
+      "pre-push": "npm test"
+    }
+  },
+  "lint-staged": {
+    "*.{js,ts,json,css,md}": [
+      "prettier --write",
+      "git add"
+    ]
+  },
+  "commitlint": {
+    "extends": [
+      "@jedwards1211/commitlint-config"
+    ]
+  },
+  "prettier": {
+    "semi": false,
+    "singleQuote": true,
+    "trailingComma": "es5"
+  },
+  "nyc": {
+    "include": [
+      "src/**/*.ts"
+    ],
+    "require": [
+      "@babel/register"
+    ],
+    "sourceMap": false,
+    "instrument": false
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jedwards1211/typescript-library-skeleton.git"
+  },
+  "keywords": [
+    "typescript"
+  ],
+  "author": "Andy Edwards",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jedwards1211/typescript-library-skeleton/issues"
+  },
+  "homepage": "https://github.com/jedwards1211/typescript-library-skeleton#readme",
+  "devDependencies": {
+    "@babel/cli": "^7.1.5",
+    "@babel/core": "^7.1.6",
+    "@babel/plugin-proposal-class-properties": "^7.1.0",
+    "@babel/plugin-proposal-export-default-from": "^7.0.0",
+    "@babel/plugin-proposal-export-namespace-from": "^7.0.0",
+    "@babel/plugin-proposal-object-rest-spread": "^7.0.0",
+    "@babel/plugin-syntax-dynamic-import": "^7.0.0",
+    "@babel/plugin-transform-runtime": "^7.1.0",
+    "@babel/preset-env": "^7.1.6",
+    "@babel/preset-typescript": "^7.7.2",
+    "@babel/register": "^7.0.0",
+    "@commitlint/cli": "^6.0.2",
+    "@commitlint/config-conventional": "^6.0.2",
+    "@jedwards1211/commitlint-config": "^1.0.0",
+    "@jedwards1211/eslint-config": "^2.0.0",
+    "@types/chai": "^4.2.0",
+    "@types/mocha": "^5.2.7",
+    "@types/node": "^12.12.6",
+    "@typescript-eslint/eslint-plugin": "^2.6.1",
+    "@typescript-eslint/parser": "^2.6.1",
+    "@typescript-eslint/typescript-estree": "^2.6.1",
+    "babel-eslint": "^10.0.1",
+    "babel-plugin-istanbul": "^5.1.0",
+    "chai": "^4.2.0",
+    "codecov": "^3.1.0",
+    "copy": "^0.3.2",
+    "cross-env": "^5.2.0",
+    "eslint": "^5.9.0",
+    "eslint-config-prettier": "^3.3.0",
+    "eslint-watch": "^4.0.2",
+    "husky": "^1.1.4",
+    "istanbul": "^0.4.5",
+    "lint-staged": "^8.0.4",
+    "mocha": "^6.2.1",
+    "nyc": "^13.1.0",
+    "prettier": "^1.15.2",
+    "prettier-eslint": "^8.8.2",
+    "rimraf": "^2.6.0",
+    "semantic-release": "^15.1.4",
+    "typescript": "^3.7.2"
+  },
+  "dependencies": {
+    "@babel/runtime": "^7.1.5"
+  },
+  "renovate": {
+    "extends": [
+      ":separateMajorReleases",
+      ":combinePatchMinorReleases",
+      ":ignoreUnstable",
+      ":prImmediately",
+      ":renovatePrefix",
+      ":updateNotScheduled",
+      ":preserveSemverRanges",
+      ":semanticPrefixFixDepsChoreOthers",
+      ":automergeDisabled",
+      "group:monorepos"
+    ],
+    "automerge": true,
+    "major": {
+      "automerge": false
+    }
+  }
+}
