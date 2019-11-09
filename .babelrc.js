@@ -13,6 +13,7 @@ module.exports = function(api) {
         ? { forceAllTransforms: true }
         : { targets: { node: 'current' } },
     ],
+    '@babel/preset-typescript',
   ]
 
   if (api.env(['test', 'coverage', 'es5'])) {
