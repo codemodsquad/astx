@@ -58,6 +58,9 @@
     "include": [
       "src/**/*.ts"
     ],
+    "exclude": [
+      "src/**/*.spec.ts"
+    ],
     "require": [
       "@babel/register"
     ],
