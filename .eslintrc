@@ -1,13 +1,6 @@
 {
   "extends": [
-    "@jedwards1211/eslint-config",
-    "eslint-config-prettier",
-    "plugin:@typescript-eslint/eslint-recommended",
-    "plugin:@typescript-eslint/recommended"
-  ],
-  "parser": "@typescript-eslint/parser",
-  "plugins": ["@typescript-eslint/eslint-plugin"],
-  "env": {
-    "es6": true
-  }
+    "@jedwards1211/eslint-config-typescript",
+    "eslint-config-prettier"
+  ]
 }

@@ -1,5 +1,7 @@
 /* eslint-env mocha */
 
 describe('test setup', () => {
-  it('works', () => {})
+  it('works', () => {
+    // fill me out!
+  })
 })
