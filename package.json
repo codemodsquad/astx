@@ -7,7 +7,6 @@
   "scripts": {
     "lint": "eslint $npm_package_config_lint",
     "lint:fix": "eslint $npm_package_config_lint",
-    "lint:watch": "esw --watch $npm_package_config_lint",
     "prettier": "prettier --write .babelrc.js *.json *.md *.ts '{src,test}/**/*.{js,ts}'",
     "prettier:check": "prettier --list-different .babelrc.js *.json *.md *.ts '{src,test}/**/*.{js,ts}'",
     "tsc": "tsc --noEmit",
@@ -40,8 +39,7 @@
   },
   "lint-staged": {
     "*.{js,ts,json,css,md}": [
-      "prettier --write",
-      "git add"
+      "prettier --write"
     ]
   },
   "commitlint": {
@@ -94,9 +92,9 @@
     "@babel/preset-env": "^7.1.6",
     "@babel/preset-typescript": "^7.7.2",
     "@babel/register": "^7.0.0",
-    "@commitlint/cli": "^6.0.2",
-    "@commitlint/config-conventional": "^6.0.2",
-    "@jedwards1211/commitlint-config": "^1.0.0",
+    "@commitlint/cli": "^11.0.0",
+    "@commitlint/config-conventional": "^11.0.0",
+    "@jedwards1211/commitlint-config": "^1.0.1",
     "@jedwards1211/eslint-config-typescript": "^1.0.0",
     "@types/chai": "^4.2.0",
     "@types/mocha": "^5.2.7",
@@ -109,16 +107,15 @@
     "cross-env": "^5.2.0",
     "eslint": "^5.9.0",
     "eslint-config-prettier": "^3.3.0",
-    "eslint-watch": "^4.0.2",
-    "husky": "^1.1.4",
+    "husky": "^4.3.0",
     "istanbul": "^0.4.5",
-    "lint-staged": "^8.0.4",
+    "lint-staged": "^10.4.0",
     "mocha": "^6.2.1",
     "nyc": "^13.1.0",
     "prettier": "^1.15.2",
     "prettier-eslint": "^8.8.2",
     "rimraf": "^2.6.0",
-    "semantic-release": "^15.1.4",
+    "semantic-release": "^17.1.2",
     "typescript": "^3.7.2"
   },
   "dependencies": {

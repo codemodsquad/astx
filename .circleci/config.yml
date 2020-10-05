@@ -2,31 +2,19 @@ version: 2
 jobs:
   build:
     docker:
-      - image: circleci/node:10
+      - image: circleci/node:12
 
     steps:
       - checkout
-      - restore_cache:
-          name: Restore Yarn Package Cache
-          keys:
-            - v1-yarn-packages-{{ checksum "yarn.lock" }}
-
       - run:
           name: Setup NPM Token
           command: |
             yarn config set registry "https://registry.npmjs.org/"
             echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > .npmrc
             echo "registry=https://registry.npmjs.org/" >> .npmrc
-
       - run:
           name: Install Dependencies
           command: yarn install --frozen-lockfile
-      - save_cache:
-          name: Save Yarn Package Cache
-          key: v1-yarn-packages-{{ checksum "yarn.lock" }}
-          paths:
-            - ~/.cache/yarn
-
       - run:
           name: build
           command: yarn run prepublishOnly
