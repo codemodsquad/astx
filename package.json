@@ -1,7 +1,7 @@
 {
-  "name": "typescript-library-skeleton",
+  "name": "astx",
   "version": "0.0.0-development",
-  "description": "my personal ES2015 library project skeleton",
+  "description": "JS/TS find and replace API/CLI for jscodeshift",
   "main": "index.js",
   "sideEffects": false,
   "scripts": {
@@ -25,7 +25,7 @@
   },
   "config": {
     "lint": "--cache --ext .js,.ts src test",
-    "mocha": "test/configure.js 'src/**/*.spec.ts'",
+    "mocha": "test/configure.js 'test/**/*.ts'",
     "commitizen": {
       "path": "cz-conventional-changelog"
     }
@@ -67,17 +67,21 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/jedwards1211/typescript-library-skeleton.git"
+    "url": "https://github.com/codemodsquad/astx.git"
   },
   "keywords": [
-    "typescript"
+    "ast",
+    "find-and-replace",
+    "refactor",
+    "refactoring",
+    "jscodeshift"
   ],
   "author": "Andy Edwards",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/jedwards1211/typescript-library-skeleton/issues"
+    "url": "https://github.com/codemodsquad/astx/issues"
   },
-  "homepage": "https://github.com/jedwards1211/typescript-library-skeleton#readme",
+  "homepage": "https://github.com/codemodsquad/astx#readme",
   "devDependencies": {
     "@babel/cli": "^7.1.5",
     "@babel/core": "^7.1.6",
@@ -97,6 +101,7 @@
     "@jedwards1211/commitlint-config": "^1.0.1",
     "@jedwards1211/eslint-config-typescript": "^1.0.0",
     "@types/chai": "^4.2.0",
+    "@types/jscodeshift": "^0.7.1",
     "@types/mocha": "^5.2.7",
     "@types/node": "^12.12.6",
     "babel-eslint": "^10.0.1",
@@ -110,16 +115,19 @@
     "husky": "^4.3.0",
     "istanbul": "^0.4.5",
     "lint-staged": "^10.4.0",
+    "lodash": "^4.17.20",
     "mocha": "^6.2.1",
     "nyc": "^13.1.0",
     "prettier": "^1.15.2",
     "prettier-eslint": "^8.8.2",
+    "require-glob": "^3.2.0",
     "rimraf": "^2.6.0",
     "semantic-release": "^17.1.2",
     "typescript": "^3.7.2"
   },
   "dependencies": {
-    "@babel/runtime": "^7.1.5"
+    "@babel/runtime": "^7.1.5",
+    "jscodeshift": "^0.11.0"
   },
   "renovate": {
     "extends": [

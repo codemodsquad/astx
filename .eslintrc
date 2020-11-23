@@ -2,5 +2,8 @@
   "extends": [
     "@jedwards1211/eslint-config-typescript",
     "eslint-config-prettier"
-  ]
+  ],
+  "rules": {
+    "@typescript-eslint/no-explicit-any": 0,
+  }
 }
