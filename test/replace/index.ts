@@ -5,7 +5,7 @@ import jscodeshift, { ASTNode } from 'jscodeshift'
 import replace from '../../src/replace'
 import requireGlob from 'require-glob'
 import { Match } from '../../src/find'
-import parseFindOrReplace from '../util/parseFindOrReplace'
+import parseFindOrReplace from '../../src/util/parseFindOrReplace'
 
 type Fixture = {
   input: string

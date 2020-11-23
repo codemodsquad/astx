@@ -5,7 +5,7 @@ import jscodeshift, { ASTPath } from 'jscodeshift'
 import find from '../../src/find'
 import requireGlob from 'require-glob'
 import mapValues from '../../src/util/mapValues'
-import parseFindOrReplace from '../util/parseFindOrReplace'
+import parseFindOrReplace from '../../src/util/parseFindOrReplace'
 
 type Fixture = {
   input: string
