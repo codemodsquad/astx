@@ -1,6 +1,5 @@
 import j, { ASTPath, ASTNode, Collection } from 'jscodeshift'
 import t from 'ast-types'
-import * as recast from 'recast'
 import mapValues from './util/mapValues'
 import isEmpty from './util/isEmpty'
 
@@ -80,7 +79,7 @@ function matchAgainstQuery<Node extends ASTNode>(
   }
 }
 
-function getNodeType(query: ASTNode): recast.Type<any> {
+function getNodeType(query: ASTNode): any {
   switch (query.type) {
     case 'FunctionDeclaration':
     case 'FunctionExpression':

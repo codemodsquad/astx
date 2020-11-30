@@ -10,6 +10,7 @@ import inquirer from 'inquirer'
 import parseFindOrReplace from '../util/parseFindOrReplace'
 import replace from '../replace'
 import * as astx from '../index'
+import { ASTNode } from 'jscodeshift'
 
 const argv = yargs.option('transform', {
   alias: 't',
@@ -28,7 +29,7 @@ const j = transform.parser
   ? jscodeshift.withParser(transform.parser)
   : jscodeshift
 
-let parsedFind, parsedReplace
+let parsedFind, parsedReplace: any
 if (transform.find) {
   try {
     parsedFind = parseFindOrReplace(j, transform.find)
@@ -73,7 +74,30 @@ for (const file of files) {
   } else if (parsedFind && parsedReplace) {
     const code = fs.readFileSync(file, 'utf8')
     const root = j(code)
-    replace(root, parsedFind, parsedReplace)
+    replace(
+      root,
+      parsedFind,
+      typeof parsedReplace === 'function'
+        ? (match: astx.Match<any>): ASTNode =>
+            parsedReplace(
+              match,
+              {
+                source,
+                path: file,
+              },
+              {
+                jscodeshift: transform.parser
+                  ? jscodeshift.withParser(transform.parser)
+                  : jscodeshift,
+                // eslint-disable-next-line @typescript-eslint/no-empty-function
+                stats: () => {},
+                report: (msg: any) => reports.push(msg),
+                astx,
+              },
+              {}
+            )
+        : parsedReplace
+    )
     result = root.toSource()
   }
   if (source !== result) results[file] = result

@@ -1,5 +1,6 @@
 import j, { ASTNode, ASTPath, Collection } from 'jscodeshift'
 import find, { Match } from './find'
+import cloneDeep from 'lodash/cloneDeep'
 
 export function replaceCaptures(
   path: ASTPath<any>,
@@ -22,7 +23,7 @@ export function replaceMatches<Node extends ASTNode>(
 ): void {
   for (const match of matches) {
     const [replaced] = match.path.replace(
-      typeof replace === 'function' ? replace(match) : replace
+      typeof replace === 'function' ? replace(match) : cloneDeep(replace)
     )
     if (match.captures) replaceCaptures(replaced, match.captures)
   }
