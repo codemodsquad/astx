@@ -5,3 +5,166 @@
 [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
 [![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
 [![npm version](https://badge.fury.io/js/astx.svg)](https://badge.fury.io/js/astx)
+
+structural search and replace for JavaScript and TypeScript, using jscodeshift
+
+# Table of Contents
+
+<!-- toc -->
+
+- [Introduction](#introduction)
+- [Prior art and philosophy](#prior-art-and-philosophy)
+- [API](#api)
+  - [class Astx](#class-astx)
+    - [`constructor(jscodeshift: JSCodeshift, root: Collection)`](#constructorjscodeshift-jscodeshift-root-collection)
+    - [`.on(root: Collection)`](#onroot-collection)
+    - [`.find()`](#find)
+    - [`.find().replace()`](#findreplace)
+  - [Match](#match)
+    - [`.path`](#path)
+    - [`.node`](#node)
+    - [`.captures`](#captures)
+    - [`.pathCaptures`](#pathcaptures)
+  - [class MatchArray](#class-matcharray)
+
+<!-- tocstop -->
+
+# Introduction
+
+If you've ever refactored a function, and had to go through and change all the calls to that function by hand one by one, you know
+how much time it can take. For example, let's say you decided to move an optional boolean `force` argument to your `rmdir` function
+into an options hash argument:
+
+```js
+// before:
+rmdir('old/stuff')
+rmdir('new/stuff', true)
+
+// after:
+rmdir('old/stuff')
+rmdir('new/stuff', { force: true })
+```
+
+Changing a bunch of calls to `rmdir` by hand would suck. Now you can do this automatically using `astx`!
+
+```js
+astx.find`rmdir($path, $force)`.replace`rmdir($path, { force: $force })`
+```
+
+What's going on here? Find and replace must be valid JS expressions or statements. `astx` parses them
+into AST (Abstract Syntax Tree) nodes, and then looks for matching AST nodes in your code.
+`astx` treats any identifier in starting with `$` in the find or replace expression as a placeholder - in this case, `$path` and `$force`.
+(You can use `$$` as an escape, for instance `$$foo` will match literal identifier `$foo` in your code).
+
+When it gets to a function call, it checks that the function name matches `rmdir`, and that it has the same number of arguments.
+Then it checks if the arguments match.
+Our patterns for both arguments (`$path`, `$force`) are placeholders, so they automatically match and capture the corresponding AST nodes
+of the two arguments in your code.
+
+Then `astx` replaces that function call it found with the replacement expression. When it finds placeholders in the replacement expression,
+it substitutes the corresponding values that were captured for those placeholders (`$path` captured `'new/stuff'` and `$force` captured `true`).
+
+# Prior art and philosophy
+
+While I was thinking about making this I discovered [grasp](https://www.graspjs.com/), a similar tool that inspired the `$` capture syntax.
+There are several reasons I decided to make `astx` anyway:
+
+- Grasp uses the Acorn parser, which doesn't support TypeScript or Flow code AFAIK
+- Hasn't been updated in 4 years
+- Grasp's replace pattern syntax is clunkier, placeholders don't match the find pattern syntax:
+  `grasp -e 'setValue($k, $v, true)' -R 'setValueSilently({{k}}, {{v}})' file.js`
+- It has its own DSL (SQuery) that's pretty limited and has a slight learning curve
+- I wanted to leverage the power of jscodeshift for advanced use cases that are probably awkward/impossible in Grasp
+
+So the philosophy of `astx` is:
+
+- **Provide a simple, clear find and replace API that's ideal for simple cases**
+- **Use javascript + jscodeshift for anything more complex, so that you have unlimited flexibility**
+
+Jscodeshift has a learning curve, but it's worth learning if you want to do any nontrivial codemods.
+Paste your code into [AST Explorer](https://astexplorer.net/) if you need to learn about the structure of the AST.
+
+# API
+
+Note: the identifier `j` in all code examples is an instance of `jscodeshift`, as per convention.
+
+## class Astx
+
+```ts
+import { Astx } from 'astx'
+import j from 'jscodeshift'
+
+const astx = new Astx(j, j('your code here'))
+```
+
+### `constructor(jscodeshift: JSCodeshift, root: Collection)`
+
+`jscodeshift` must be configured with your desired parser for methods to work correctly.
+For instance, if you're using TypeScript, it could be `require('jscodeshift').withParser('ts')`.
+
+`root` is the JSCodeshift Collection you want to operate on.
+
+### `.on(root: Collection)`
+
+Returns a different `Astx` instance for the given `root`. Use this if you want to filter down which nodes to operate on.
+
+### `.find()`
+
+Finds matches for the given pattern within `root`, and returns a `MatchArray` containing the matches.
+
+There are several different ways you can call `.find`:
+
+- `` .find`pattern`(options?: FindOptions) ``
+- `.find(pattern: string, options?: FindOptions)`
+- `.find(pattern: ASTNode, options?: FindOptions)`
+
+If you give the pattern as a string, it must be a valid expression or statement as parsed by the `jscodeshift` instance. Otherwise it should be a valid
+AST node you already parsed or constructed.
+You can interpolate AST nodes in the tagged template literal; it uses `jscodeshift.template.expression` or `jscodeshift.template.statement` under the hood.
+
+For example you could do `` astx.find`${j.identifier('foo')} + 3`() ``
+
+### `.find().replace()`
+
+Finds and replaces matches for the given pattern within `root`.
+
+There are several different ways you can call `.replace`. Note that you can omit the `()` after `` .find`pattern` `` if you're calling `.replace`.
+And you can call `.find` in any way described above in place of `` .find`pattern` ``.
+
+- `` .find`pattern`.replace`replacement` ``
+- `` .find`pattern`.replace(replacement: string) ``
+- `` .find`pattern`.replace(replacement: ASTNode) ``
+- `` .find`pattern`.replace(replacement: (match: Match<any>, parse: ParseTag) => ASTNode) ``
+
+If you give the replacement as a string, it must be a valid expression or statement as parsed by the `jscodeshift` instance.
+You can give the replacement as an AST node you already parsed or constructed.
+Or you can give a replacement function, which will be called with each match and must return an `ASTNode` (you can use the `parse` tagged template string function provided as the second argument to parse code into a string).
+For example, you could uppercase the function names in all zero-argument function calls (`foo(); bar()` becomes `FOO(); BAR()`) with this:
+
+```
+astx
+  .find`$fn()`
+  .replace(({ captures: { $fn } }, parse) => parse`${j.identifier($fn.name.toUpperCase())}()`)
+```
+
+## Match
+
+### `.path`
+
+The `ASTPath` of the matched node.
+
+### `.node`
+
+The matched `ASTNode`.
+
+### `.captures`
+
+The `ASTNode`s captured from placeholders in the match pattern. For example if the pattern was `foo($bar)`, `.captures.$bar` will be the `ASTNode` of the first argument.
+
+### `.pathCaptures`
+
+The `ASTPath`s captured from placeholders in the match pattern. For example if the pattern was `foo($bar)`, `.pathCaptures.$bar` will be the `ASTPath` of the first argument.
+
+## class MatchArray
+
+Returned by [`.find()`](#find). Just an array of [`Match`](#match)es plus the [`.replace()`](#findreplace) method.

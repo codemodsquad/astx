@@ -1,7 +1,7 @@
 {
   "name": "astx",
   "version": "0.0.0-development",
-  "description": "JS/TS find and replace API/CLI for jscodeshift",
+  "description": "structural search and replace for JavaScript and TypeScript, using jscodeshift",
   "bin": {
     "astx": "cli/index.js"
   },
@@ -75,7 +75,10 @@
   },
   "keywords": [
     "ast",
+    "codemod",
+    "codemods",
     "find-and-replace",
+    "search-and-replace",
     "refactor",
     "refactoring",
     "jscodeshift"

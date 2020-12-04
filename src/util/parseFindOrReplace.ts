@@ -2,20 +2,24 @@ import { ASTNode, JSCodeshift } from 'jscodeshift'
 
 export default function parseFindOrReplace(
   j: JSCodeshift,
-  code: string
+  strings: TemplateStringsArray,
+  ...quasis: any[]
 ): ASTNode {
   const { expression, statement } = j.template
   try {
-    return expression([code])
+    return expression(strings, ...quasis)
   } catch (error) {
     // ignore
   }
-  if (/\bawait\b/.test(code)) {
+  if (strings.find(s => s.indexOf('await') >= 0)) {
     try {
-      return expression([`async () => ${code}`]).body
+      return expression(
+        [`async () => ${strings[0]}`, ...strings.slice(1)],
+        ...quasis
+      ).body
     } catch (error) {
       // ignore
     }
   }
-  return statement([code])
+  return statement(strings, ...quasis)
 }

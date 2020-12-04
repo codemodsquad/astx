@@ -1,11 +1,11 @@
 import { describe, it } from 'mocha'
 import { expect } from 'chai'
 import path from 'path'
-import jscodeshift, { ASTPath } from 'jscodeshift'
-import find, { FindOptions } from '../../src/find'
+import jscodeshift, { ASTPath, JSCodeshift } from 'jscodeshift'
+import { FindOptions, Match } from '../../src/find'
+import Astx from '../../src/Astx'
 import requireGlob from 'require-glob'
 import mapValues from '../../src/util/mapValues'
-import parseFindOrReplace from '../../src/util/parseFindOrReplace'
 
 type Fixture = {
   input: string
@@ -16,6 +16,23 @@ type Fixture = {
     captures?: Record<string, string>
   }[]
   parser?: string
+}
+
+export function formatMatches(
+  j: JSCodeshift,
+  matches: Match<any>[]
+): { node: string; captures?: Record<string, string> }[] {
+  function toSource(path: ASTPath<any>): string {
+    return j([path]).toSource()
+  }
+  return matches.map(({ path, pathCaptures }) =>
+    pathCaptures
+      ? {
+          node: toSource(path),
+          captures: mapValues(pathCaptures, toSource),
+        }
+      : { node: toSource(path) }
+  )
 }
 
 describe(`find`, function() {
@@ -30,20 +47,10 @@ describe(`find`, function() {
       if (parser) j = j.withParser(parser || 'babylon')
       const root = j(input)
 
-      function toSource(path: ASTPath<any>): string {
-        return j([path]).toSource()
-      }
+      const astx = new Astx(j, root)
 
-      const matches = find(root, parseFindOrReplace(j, _find), { where })
-      const actual = matches.map(({ path, pathCaptures }) =>
-        pathCaptures
-          ? {
-              node: toSource(path),
-              captures: mapValues(pathCaptures, toSource),
-            }
-          : { node: toSource(path) }
-      )
-      expect(actual).to.deep.equal(expected)
+      const matches = astx.find(_find, { where })
+      expect(formatMatches(j, matches)).to.deep.equal(expected)
     })
   }
 })

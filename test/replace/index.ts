@@ -35,10 +35,10 @@ describe(`replace`, function() {
 
       replace(
         root,
-        parseFindOrReplace(j, _find),
+        parseFindOrReplace(j, [_find] as any),
         typeof _replace === 'function'
           ? _replace
-          : parseFindOrReplace(j, _replace),
+          : parseFindOrReplace(j, [_replace] as any),
         { where }
       )
       const actual = root.toSource()
