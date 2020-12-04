@@ -2,7 +2,7 @@ import { describe, it } from 'mocha'
 import { expect } from 'chai'
 import path from 'path'
 import jscodeshift, { ASTPath } from 'jscodeshift'
-import find from '../../src/find'
+import find, { FindOptions } from '../../src/find'
 import requireGlob from 'require-glob'
 import mapValues from '../../src/util/mapValues'
 import parseFindOrReplace from '../../src/util/parseFindOrReplace'
@@ -10,6 +10,7 @@ import parseFindOrReplace from '../../src/util/parseFindOrReplace'
 type Fixture = {
   input: string
   find: string
+  where?: FindOptions['where']
   expected: {
     node: string
     captures?: Record<string, string>
@@ -21,7 +22,9 @@ describe(`find`, function() {
   const fixtures = requireGlob.sync(`./fixtures/*${path.extname(__filename)}`)
   for (const key in fixtures) {
     it(path.basename(key).replace(/\.[^.]+$/, ''), function() {
-      const { input, find: _find, expected, parser } = fixtures[key] as Fixture
+      const { input, find: _find, expected, parser, where } = fixtures[
+        key
+      ] as Fixture
 
       let j = jscodeshift
       if (parser) j = j.withParser(parser || 'babylon')
@@ -31,7 +34,7 @@ describe(`find`, function() {
         return j([path]).toSource()
       }
 
-      const matches = find(root, parseFindOrReplace(j, _find))
+      const matches = find(root, parseFindOrReplace(j, _find), { where })
       const actual = matches.map(({ path, pathCaptures }) =>
         pathCaptures
           ? {

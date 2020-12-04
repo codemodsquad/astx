@@ -10,13 +10,6 @@ export type Match<Node extends ASTNode> = {
   captures?: Record<string, ASTNode>
 }
 
-const ignoredFields = new Set([
-  'loc',
-  'leadingComments',
-  'trailingComments',
-  'innerComments',
-])
-
 function isCompatibleType(path: ASTPath<any>, query: ASTNode): boolean {
   if (t.namedTypes.Function.check(query)) {
     return t.namedTypes.Function.check(path.node)
@@ -26,7 +19,8 @@ function isCompatibleType(path: ASTPath<any>, query: ASTNode): boolean {
 
 function matchAgainstQuery<Node extends ASTNode>(
   path: ASTPath<any>,
-  query: Node
+  query: Node,
+  options?: FindOptions
 ): Match<Node> | void {
   const captures: Record<string, ASTPath<any>> = {}
   function helper(path: ASTPath<any>, query: ASTNode | ASTNode[]): boolean {
@@ -38,9 +32,11 @@ function matchAgainstQuery<Node extends ASTNode>(
       }
       return true
     } else if (query.type === 'Identifier') {
-      const captureMatch = /^\$([a-z0-9]+)/i.exec(query.name)
+      const captureMatch = /^\$[a-z0-9]+/i.exec(query.name)
       if (captureMatch) {
-        captures[captureMatch[1]] = path
+        const whereCondition = options?.where?.[captureMatch[0]]
+        if (whereCondition && !whereCondition(path)) return false
+        captures[captureMatch[0]] = path
         return true
       } else {
         return (
@@ -52,17 +48,16 @@ function matchAgainstQuery<Node extends ASTNode>(
       path.node?.type === query.type ||
       isCompatibleType(path, query)
     ) {
-      for (const key in query) {
-        if (ignoredFields.has(key)) continue
+      for (const key of t.getFieldNames(path.node)) {
+        if (key === 'type') continue
         const value = (query as any)[key]
-        if (
-          typeof value !== 'object' ||
-          value == null ||
-          (!Array.isArray(value) && !value.hasOwnProperty('type'))
-        ) {
-          continue
+        if (typeof value !== 'object' || value == null) {
+          if (value !== path.node[key]) {
+            return false
+          }
+        } else if (!helper(path.get(key), value)) {
+          return false
         }
-        if (!helper(path.get(key), value)) return false
       }
       return true
     } else {
@@ -89,16 +84,21 @@ function getNodeType(query: ASTNode): any {
   }
 }
 
+export type FindOptions = {
+  where?: { [captureName: string]: (path: ASTPath<any>) => boolean }
+}
+
 export default function find<Node extends ASTNode>(
   root: Collection,
-  query: Node
+  query: Node,
+  options?: FindOptions
 ): Array<Match<Node>> {
   const nodeType = getNodeType(query)
 
   const matches: Array<Match<Node>> = []
 
   root.find(nodeType).forEach((path: ASTPath<any>) => {
-    const match = matchAgainstQuery(path, query)
+    const match = matchAgainstQuery(path, query, options)
     if (match) matches.push(match)
   })
 

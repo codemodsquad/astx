@@ -8,6 +8,7 @@ import jscodeshift from 'jscodeshift'
 import yargs from 'yargs'
 import inquirer from 'inquirer'
 import parseFindOrReplace from '../util/parseFindOrReplace'
+import chooseJSCodeshiftParser from 'jscodeshift-choose-parser'
 import replace from '../replace'
 import * as astx from '../index'
 import { ASTNode } from 'jscodeshift'
@@ -25,32 +26,32 @@ const transform = require(path.resolve(argv.transform))
 
 const results: Record<string, string> = {}
 
-const j = transform.parser
-  ? jscodeshift.withParser(transform.parser)
-  : jscodeshift
-
-let parsedFind, parsedReplace: any
-if (transform.find) {
-  try {
-    parsedFind = parseFindOrReplace(j, transform.find)
-  } catch (error) {
-    console.error(`failed to parse find: ${error.message}`)
-    process.exit(1)
-  }
-}
-if (transform.replace) {
-  try {
-    parsedReplace =
-      typeof transform.replace === 'function'
-        ? transform.replace
-        : parseFindOrReplace(j, transform.replace)
-  } catch (error) {
-    console.error(`failed to parse replace: ${error.message}`)
-    process.exit(1)
-  }
-}
-
 for (const file of files) {
+  const j = jscodeshift.withParser(
+    transform.parser || chooseJSCodeshiftParser(file)
+  )
+
+  let parsedFind, parsedReplace: any
+  if (transform.find) {
+    try {
+      parsedFind = parseFindOrReplace(j, transform.find)
+    } catch (error) {
+      console.error(`failed to parse find: ${error.message}`)
+      process.exit(1)
+    }
+  }
+  if (transform.replace) {
+    try {
+      parsedReplace =
+        typeof transform.replace === 'function'
+          ? transform.replace
+          : parseFindOrReplace(j, transform.replace)
+    } catch (error) {
+      console.error(`failed to parse replace: ${error.message}`)
+      process.exit(1)
+    }
+  }
+
   const source = fs.readFileSync(file, 'utf8')
   let result
   const reports: any[] = []
@@ -61,9 +62,7 @@ for (const file of files) {
         path: file,
       },
       {
-        jscodeshift: transform.parser
-          ? jscodeshift.withParser(transform.parser)
-          : jscodeshift,
+        jscodeshift: j,
         // eslint-disable-next-line @typescript-eslint/no-empty-function
         stats: () => {},
         report: (msg: any) => reports.push(msg),
@@ -86,9 +85,7 @@ for (const file of files) {
                 path: file,
               },
               {
-                jscodeshift: transform.parser
-                  ? jscodeshift.withParser(transform.parser)
-                  : jscodeshift,
+                jscodeshift: j,
                 // eslint-disable-next-line @typescript-eslint/no-empty-function
                 stats: () => {},
                 report: (msg: any) => reports.push(msg),

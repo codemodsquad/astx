@@ -9,11 +9,14 @@ export function replaceCaptures(
   j([path])
     .find(j.Identifier)
     .forEach((path: ASTPath<any>) => {
-      const captureMatch = /^\$([a-z0-9]+)/i.exec(path.node.name)
-      if (!captureMatch) return
-      const capture = captures[captureMatch[1]]
-      if (!capture) return
-      path.replace(capture)
+      const captureMatch = /^\$[a-z0-9]+/i.exec(path.node.name)
+      const capture = captureMatch ? captures[captureMatch[0]] : null
+      if (capture) {
+        path.replace(capture)
+      } else {
+        const escaped = path.node.name.replace(/^\$\$/, '$')
+        if (escaped !== path.node.name) path.replace(j.identifier(escaped))
+      }
     })
 }
 
@@ -29,11 +32,16 @@ export function replaceMatches<Node extends ASTNode>(
   }
 }
 
+export type ReplaceOptions = {
+  where?: { [captureName: string]: (path: ASTPath<any>) => boolean }
+}
+
 export default function replace<Node extends ASTNode>(
   root: Collection,
   query: Node,
-  replace: ASTNode | ((match: Match<Node>) => ASTNode)
+  replace: ASTNode | ((match: Match<Node>) => ASTNode),
+  options?: ReplaceOptions
 ): void {
-  const matches = find(root, query)
+  const matches = find(root, query, options)
   replaceMatches(matches, replace)
 }
