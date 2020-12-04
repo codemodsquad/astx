@@ -7,10 +7,11 @@ export type ParseTag = (
   strings: TemplateStringsArray,
   ...quasis: any[]
 ) => ASTNode
+
 export type GetReplacement<Node extends ASTNode> = (
   match: Match<Node>,
   parse: ParseTag
-) => ASTNode
+) => string | ASTNode
 
 export class MatchArray<Node extends ASTNode> extends Array<Match<Node>> {
   private jscodeshift: JSCodeshift
@@ -31,7 +32,15 @@ export class MatchArray<Node extends ASTNode> extends Array<Match<Node>> {
     ...quasis: any[]
   ): void {
     if (typeof arg0 === 'function') {
-      replaceMatches(this, (match: Match<Node>) => arg0(match, this.parseTag))
+      replaceMatches(
+        this,
+        (match: Match<Node>): ASTNode => {
+          const result = arg0(match, this.parseTag)
+          return typeof result === 'string'
+            ? parseFindOrReplace(this.jscodeshift, [result] as any)
+            : result
+        }
+      )
     } else if (typeof arg0 === 'string') {
       replaceMatches(this, parseFindOrReplace(this.jscodeshift, [arg0] as any))
     } else {

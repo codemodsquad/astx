@@ -78,7 +78,8 @@ There are several reasons I decided to make `astx` anyway:
 
 So the philosophy of `astx` is:
 
-- **Provide a simple, clear find and replace API that's ideal for simple cases**
+- **Use jscodeshift (and recast) as a solid foundation**
+- **Provide a simple find and replace API that's ideal for simple cases and has minimum learning curve**
 - **Use javascript + jscodeshift for anything more complex, so that you have unlimited flexibility**
 
 Jscodeshift has a learning curve, but it's worth learning if you want to do any nontrivial codemods.
@@ -134,17 +135,19 @@ And you can call `.find` in any way described above in place of `` .find`pattern
 - `` .find`pattern`.replace`replacement` ``
 - `` .find`pattern`.replace(replacement: string) ``
 - `` .find`pattern`.replace(replacement: ASTNode) ``
+- `` .find`pattern`.replace(replacement: (match: Match<any>, parse: ParseTag) => string) ``
 - `` .find`pattern`.replace(replacement: (match: Match<any>, parse: ParseTag) => ASTNode) ``
 
 If you give the replacement as a string, it must be a valid expression or statement as parsed by the `jscodeshift` instance.
 You can give the replacement as an AST node you already parsed or constructed.
-Or you can give a replacement function, which will be called with each match and must return an `ASTNode` (you can use the `parse` tagged template string function provided as the second argument to parse code into a string).
+Or you can give a replacement function, which will be called with each match and must return a string or `ASTNode` (you can use the `parse` tagged template string function provided as the second argument to parse code into a string
+via `jscodeshift.template.expression` or `jscodeshift.template.statement`).
 For example, you could uppercase the function names in all zero-argument function calls (`foo(); bar()` becomes `FOO(); BAR()`) with this:
 
 ```
 astx
   .find`$fn()`
-  .replace(({ captures: { $fn } }, parse) => parse`${j.identifier($fn.name.toUpperCase())}()`)
+  .replace(({ captures: { $fn } }) => `${$fn.name.toUpperCase()}()`)
 ```
 
 ## Match

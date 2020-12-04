@@ -67,6 +67,13 @@ describe(`Astx`, function() {
     )
     expect(root.toSource()).to.equal(`foo + 1; bar + 3`)
   })
+  it(`.replace function returning string works`, function() {
+    const root = j(`1 + FOO; 3 + BAR`)
+    new Astx(j, root).find`$a + $b`.replace(
+      match => `${(match.captures.$b as any).name.toLowerCase()} + $a`
+    )
+    expect(root.toSource()).to.equal(`foo + 1; bar + 3`)
+  })
   it(`.replace called with string works`, function() {
     const root = j(`1 + 2; 3 + 4`)
     new Astx(j, root).find('$a + $b').replace('$b + $a')
