@@ -1,6 +1,5 @@
 import j, { ASTPath, ASTNode, Collection } from 'jscodeshift'
 import mapValues from './util/mapValues'
-import isEmpty from './util/isEmpty'
 import match from './match/index'
 
 export type Match<Node extends ASTNode> = {
