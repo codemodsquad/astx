@@ -17,6 +17,8 @@ function isCompatibleType(path: ASTPath<any>, query: ASTNode): boolean {
   return false
 }
 
+const ignoreFieldNames = new Set(['type', 'extra'])
+
 function matchAgainstQuery<Node extends ASTNode>(
   path: ASTPath<any>,
   query: Node,
@@ -49,7 +51,7 @@ function matchAgainstQuery<Node extends ASTNode>(
       isCompatibleType(path, query)
     ) {
       for (const key of t.getFieldNames(path.node)) {
-        if (key === 'type') continue
+        if (ignoreFieldNames.has(key)) continue
         const value = (query as any)[key]
         if (typeof value !== 'object' || value == null) {
           if (value !== path.node[key]) {
