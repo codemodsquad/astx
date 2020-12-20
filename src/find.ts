@@ -1,7 +1,7 @@
 import j, { ASTPath, ASTNode, Collection } from 'jscodeshift'
 import mapValues from './util/mapValues'
 import isEmpty from './util/isEmpty'
-import matchAgainstQuery from './matchAgainstQuery/index'
+import match from './match/index'
 
 export type Match<Node extends ASTNode> = {
   path: ASTPath<Node>
@@ -36,7 +36,7 @@ export default function find<Node extends ASTNode>(
   root.find(nodeType).forEach((path: ASTPath<any>) => {
     const pathCaptures: Record<string, ASTPath<any>> = {}
     if (
-      matchAgainstQuery(path, query, {
+      match(path, query, {
         ...options,
         onCapture: (identifier, path) => (pathCaptures[identifier] = path),
       })

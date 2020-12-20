@@ -8,7 +8,7 @@ import StringLiteral from './StringLiteral'
 import __debug from 'debug'
 import { memoize } from 'lodash'
 
-const _debug = __debug('matchAgainstQuery')
+const _debug = __debug('astx:match')
 
 let indent = 0
 const getIndent = memoize(indent => ' '.repeat(indent * 2))
@@ -39,7 +39,7 @@ export type Options = {
   onCapture: (identifier: string, path: ASTPath<any>) => void
 }
 
-export default function matchAgainstQuery(
+export default function match(
   path: ASTPath<any>,
   query: ASTNode | ASTNode[],
   options: Options
@@ -64,7 +64,7 @@ export default function matchAgainstQuery(
       for (let i = 0; i < query.length; i++) {
         debug('[%d]', i)
         indent++
-        if (!matchAgainstQuery(path.get(i), query[i], options)) return false
+        if (!match(path.get(i), query[i], options)) return false
         indent--
       }
       return true
@@ -121,7 +121,7 @@ export default function matchAgainstQuery(
           } else {
             debug('%s === %s', value, path.node[key])
           }
-        } else if (!matchAgainstQuery(path.get(key), value, options)) {
+        } else if (!match(path.get(key), value, options)) {
           return false
         }
         indent--
