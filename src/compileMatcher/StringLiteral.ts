@@ -1,9 +1,9 @@
 import { ASTPath, StringLiteral } from 'jscodeshift'
-import { CompiledMatcher } from './index'
+import { NonCapturingMatcher } from './index'
 
 export default function matchStringLiteral(
   query: StringLiteral
-): CompiledMatcher {
+): NonCapturingMatcher {
   return (path: ASTPath<any>): boolean => {
     const { node } = path
     return node.type === 'StringLiteral' && query.value === node.value

@@ -12,20 +12,19 @@ export type CompileOptions = {
   debugIndent?: string
 }
 
-export type MatchOptions = {
-  onCapture: (identifier: string, path: ASTPath<any>) => void
-}
+type Captures = Record<string, ASTPath<any>>
 
-export type CompiledMatcher = (
-  path: ASTPath<any>,
-  options: MatchOptions
-) => boolean
+export type MatchResult = { captures?: Captures } | null
+
+export type NonCapturingMatcher = (path: ASTPath<any>) => boolean
+
+export type CompiledMatcher = (path: ASTPath<any>) => MatchResult
 
 const _debug = __debug('astx:match')
 
 const nodeMatchers: Record<
   string,
-  (query: any, options: CompileOptions) => CompiledMatcher
+  (query: any, options: CompileOptions) => CompiledMatcher | NonCapturingMatcher
 > = {
   BooleanLiteral,
   Literal,
@@ -55,11 +54,13 @@ export default function compileMatcher(
         debugIndent: debugIndent + '    ',
       })
     )
-    return (path: ASTPath, options: MatchOptions): boolean => {
+    return (path: ASTPath): MatchResult => {
+      let captures: Captures | undefined
+
       debug('Array')
       if (!Array.isArray(path.value)) {
         debug('  path.value is not an array')
-        return false
+        return null
       }
       if (path.value.length !== query.length) {
         debug(
@@ -67,53 +68,60 @@ export default function compileMatcher(
           path.value.length,
           query.length
         )
-        return false
+        return null
       }
       for (let i = 0; i < elemMatchers.length; i++) {
         debug('  [%d]', i)
-        if (!elemMatchers[i](path.get(i), options)) return false
+        const result = elemMatchers[i](path.get(i))
+        if (!result) return null
+        if (result.captures) {
+          if (!captures) captures = {}
+          Object.assign(captures, result.captures)
+        }
       }
-      return true
+      return { captures }
     }
   } else if (query.type === 'Identifier') {
-    return (path: ASTPath, options: MatchOptions): boolean => {
+    return (path: ASTPath): MatchResult => {
       debug('identifier', query.name)
       const captureMatch = /^\$[a-z0-9]+/i.exec(query.name)
       if (captureMatch) {
         const whereCondition = compileOptions?.where?.[captureMatch[0]]
         if (whereCondition && !whereCondition(path)) {
           debug('  where condition returned false')
-          return false
+          return null
         }
-        options.onCapture(captureMatch[0], path)
         debug('  captured as %s', captureMatch[0])
-        return true
+        return { captures: { [captureMatch[0]]: path } }
       } else {
         if (
           path.node?.type === 'Identifier' &&
           path.node.name === query.name.replace(/^\$\$/g, '$')
         ) {
           debug('  matched')
-          return true
+          return {}
         } else {
           debug(`  didn't match`)
-          return false
+          return null
         }
       }
     }
   } else if (nodeMatchers[query.type]) {
-    const compiled: CompiledMatcher = nodeMatchers[query.type](query, {
+    const compiled: CompiledMatcher | NonCapturingMatcher = nodeMatchers[
+      query.type
+    ](query, {
       ...compileOptions,
       debugIndent: debugIndent + '    ',
     })
-    return (path: ASTPath<any>, options: MatchOptions) => {
+    return (path: ASTPath<any>): MatchResult => {
       debug('%s (specific)', query.type)
-      if (compiled(path, options)) {
+      const result = compiled(path)
+      if (result) {
         debug('  matched')
-        return true
+        return typeof result === 'object' ? result : {}
       } else {
         debug(`  didn't match`)
-        return false
+        return null
       }
     }
   } else {
@@ -126,13 +134,13 @@ export default function compileMatcher(
           if (typeof value !== 'object' || value == null) {
             return [
               key,
-              (path: ASTPath<any>): boolean => {
+              (path: ASTPath<any>): MatchResult => {
                 if (value !== path.node[key]) {
                   debug('    %s !== %s', value, path.node[key])
-                  return false
+                  return null
                 } else {
                   debug('    %s === %s', value, path.node[key])
-                  return true
+                  return {}
                 }
               },
             ]
@@ -148,22 +156,29 @@ export default function compileMatcher(
         })
     )
 
-    return (path: ASTPath<any>, options: MatchOptions): boolean => {
+    return (path: ASTPath<any>): MatchResult => {
+      let captures: Captures | undefined
+
       debug('%s (generic)', query.type)
       if (path.node?.type === query.type || isCompatibleType(path, query)) {
         for (const key in keyMatchers) {
           debug('  .%s', key)
           const matcher = keyMatchers[key]
-          if (!matcher(path.get(key), options)) return false
+          const result = matcher(path.get(key))
+          if (!result) return null
+          if (result.captures) {
+            if (!captures) captures = {}
+            Object.assign(captures, result.captures)
+          }
         }
-        return true
+        return { captures }
       } else {
         debug(
           '  path.node?.type (%s) is not compatible with query.type (%s)',
           path.node?.type,
           query.type
         )
-        return false
+        return null
       }
     }
   }

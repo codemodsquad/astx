@@ -29,25 +29,15 @@ export default function find<Node extends ASTNode>(
   options?: FindOptions
 ): Array<Match<Node>> {
   const nodeType = getNodeType(query)
-
-  const matches: Array<Match<Node>> = []
-
   const match = compileMatcher(query, options)
 
+  const matches: Array<Match<Node>> = []
   root.find(nodeType).forEach((path: ASTPath<any>) => {
-    let captures: Record<string, ASTPath<any>> | null = null
-    if (
-      match(path, {
-        ...options,
-        onCapture: (identifier, path) => {
-          if (!captures) captures = {}
-          captures[identifier] = path
-        },
-      })
-    ) {
+    const result = match(path)
+    if (result) {
       const match: Match<Node> = { path, node: path.node }
-      if (captures) {
-        const pathCaptures: Record<string, ASTPath<any>> = captures
+      const { captures: pathCaptures } = result
+      if (pathCaptures) {
         match.pathCaptures = pathCaptures
         match.captures = mapValues(
           pathCaptures,

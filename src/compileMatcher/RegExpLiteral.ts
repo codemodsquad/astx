@@ -1,10 +1,10 @@
 import { ASTPath, RegExpLiteral } from 'jscodeshift'
 import sortFlags from './sortFlags'
-import { CompiledMatcher } from './index'
+import { NonCapturingMatcher } from './index'
 
 export default function matchRegExpLiteral(
   query: RegExpLiteral
-): CompiledMatcher {
+): NonCapturingMatcher {
   return (path: ASTPath<any>): boolean => {
     const { node } = path
     return (

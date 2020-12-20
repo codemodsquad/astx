@@ -1,8 +1,8 @@
 import { ASTPath, Literal } from 'jscodeshift'
-import { CompiledMatcher } from './index'
+import { NonCapturingMatcher } from './index'
 import sortFlags from './sortFlags'
 
-export default function matchLiteral(query: Literal): CompiledMatcher {
+export default function matchLiteral(query: Literal): NonCapturingMatcher {
   return (path: ASTPath<any>): boolean => {
     const { node } = path
     if (node.type !== 'Literal') return false

@@ -1,9 +1,9 @@
 import { ASTPath, BooleanLiteral } from 'jscodeshift'
-import { CompiledMatcher } from './index'
+import { NonCapturingMatcher } from './'
 
 export default function matchBooleanLiteral(
   query: BooleanLiteral
-): CompiledMatcher {
+): NonCapturingMatcher {
   return (path: ASTPath<any>): boolean => {
     const { node } = path
     return node.type === 'BooleanLiteral' && query.value === node.value
