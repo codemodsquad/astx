@@ -1,6 +1,6 @@
 import j, { ASTPath, ASTNode, Collection } from 'jscodeshift'
-import mapValues from './util/mapValues'
-import match from './match/index'
+import mapValues from 'lodash/mapValues'
+import compileMatcher from './compileMatcher'
 
 export type Match<Node extends ASTNode> = {
   path: ASTPath<Node>
@@ -32,10 +32,12 @@ export default function find<Node extends ASTNode>(
 
   const matches: Array<Match<Node>> = []
 
+  const match = compileMatcher(query, options)
+
   root.find(nodeType).forEach((path: ASTPath<any>) => {
     let captures: Record<string, ASTPath<any>> | null = null
     if (
-      match(path, query, {
+      match(path, {
         ...options,
         onCapture: (identifier, path) => {
           if (!captures) captures = {}
@@ -47,7 +49,10 @@ export default function find<Node extends ASTNode>(
       if (captures) {
         const pathCaptures: Record<string, ASTPath<any>> = captures
         match.pathCaptures = pathCaptures
-        match.captures = mapValues(pathCaptures, path => path.node)
+        match.captures = mapValues(
+          pathCaptures,
+          (path: ASTPath<any>) => path.node
+        )
       }
       matches.push(match)
     }

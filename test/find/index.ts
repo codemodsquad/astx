@@ -5,7 +5,7 @@ import jscodeshift, { ASTPath, JSCodeshift } from 'jscodeshift'
 import { FindOptions, Match } from '../../src/find'
 import Astx from '../../src/Astx'
 import requireGlob from 'require-glob'
-import mapValues from '../../src/util/mapValues'
+import mapValues from 'lodash/mapValues'
 
 type Fixture = {
   input: string
@@ -37,7 +37,7 @@ export function formatMatches(
   )
 }
 
-describe(`find`, function() {
+describe(`find`, function () {
   const fixtures = requireGlob.sync(`./fixtures/*${path.extname(__filename)}`)
 
   const groups = {}
@@ -55,14 +55,14 @@ describe(`find`, function() {
   for (const parser in groups) {
     const group = groups[parser]
 
-    describe(`with parser: ${parser}`, function() {
+    describe(`with parser: ${parser}`, function () {
       for (const key in group) {
         const { input, find: _find, expected, where, only, skip } = fixtures[
           key
         ] as Fixture
         ;(skip ? it.skip : only ? it.only : it)(
           path.basename(key).replace(/\.[^.]+$/, ''),
-          function() {
+          function () {
             let j = jscodeshift
             if (parser) j = j.withParser(parser)
             const root = j(input)

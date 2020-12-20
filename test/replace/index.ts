@@ -18,7 +18,7 @@ type Fixture = {
   skip?: boolean
 }
 
-describe(`replace`, function() {
+describe(`replace`, function () {
   const fixtures: Record<string, Fixture> = requireGlob.sync(
     `./fixtures/*${path.extname(__filename)}`
   )
@@ -38,7 +38,7 @@ describe(`replace`, function() {
   for (const parser in groups) {
     const group = groups[parser]
 
-    describe(`with parser: ${parser}`, function() {
+    describe(`with parser: ${parser}`, function () {
       for (const key in group) {
         const {
           input,
@@ -51,7 +51,7 @@ describe(`replace`, function() {
         } = fixtures[key] as Fixture
         ;(skip ? it.skip : only ? it.only : it)(
           path.basename(key).replace(/\.[^.]+$/, ''),
-          function() {
+          function () {
             let j = jscodeshift
             if (parser) j = j.withParser(parser)
             const root = j(input)

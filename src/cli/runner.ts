@@ -24,6 +24,7 @@ const transform = require(path.resolve(argv.transform))
 const results: Record<string, string> = {}
 
 for (const file of files) {
+  if (typeof file !== 'string') continue
   const j = jscodeshift.withParser(
     transform.parser || chooseJSCodeshiftParser(file)
   )
@@ -68,7 +69,7 @@ ${file}
 Reports
 -------
 `)
-    reports.forEach(r => console.error(...r))
+    reports.forEach((r) => console.error(...r))
   }
 }
 
