@@ -1,5 +1,4 @@
 import { ASTPath, ASTNode } from 'jscodeshift'
-import t from 'ast-types'
 import BooleanLiteral from './BooleanLiteral'
 import Identifier from './Identifier'
 import Literal from './Literal'
