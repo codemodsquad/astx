@@ -34,23 +34,23 @@ export default function find<Node extends ASTNode>(
   const matches: Array<Match<Node>> = []
 
   root.find(nodeType).forEach((path: ASTPath<any>) => {
-    const pathCaptures: Record<string, ASTPath<any>> = {}
+    let captures: Record<string, ASTPath<any>> | null = null
     if (
       match(path, query, {
         ...options,
-        onCapture: (identifier, path) => (pathCaptures[identifier] = path),
+        onCapture: (identifier, path) => {
+          if (!captures) captures = {}
+          captures[identifier] = path
+        },
       })
     ) {
       const match: Match<Node> = { path, node: path.node }
-      matches.push(
-        isEmpty(pathCaptures)
-          ? match
-          : {
-              ...match,
-              pathCaptures,
-              captures: mapValues(pathCaptures, path => path.node),
-            }
-      )
+      if (captures) {
+        const pathCaptures: Record<string, ASTPath<any>> = captures
+        match.pathCaptures = pathCaptures
+        match.captures = mapValues(pathCaptures, path => path.node)
+      }
+      matches.push(match)
     }
   })
 
