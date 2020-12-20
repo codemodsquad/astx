@@ -15,7 +15,9 @@ type Fixture = {
     node: string
     captures?: Record<string, string>
   }[]
-  parser?: string
+  parsers?: string[]
+  only?: boolean
+  skip?: boolean
 }
 
 export function formatMatches(
@@ -37,20 +39,41 @@ export function formatMatches(
 
 describe(`find`, function() {
   const fixtures = requireGlob.sync(`./fixtures/*${path.extname(__filename)}`)
+
+  const groups = {}
+
   for (const key in fixtures) {
-    it(path.basename(key).replace(/\.[^.]+$/, ''), function() {
-      const { input, find: _find, expected, parser, where } = fixtures[
-        key
-      ] as Fixture
+    const fixture = fixtures[key]
+    const { parsers = ['babylon', 'flow', 'ts'] } = fixture
 
-      let j = jscodeshift
-      if (parser) j = j.withParser(parser || 'babylon')
-      const root = j(input)
+    for (const parser of parsers) {
+      const group = groups[parser] || (groups[parser] = {})
+      group[key] = fixtures[key]
+    }
+  }
 
-      const astx = new Astx(j, root)
+  for (const parser in groups) {
+    const group = groups[parser]
 
-      const matches = astx.find(_find, { where })
-      expect(formatMatches(j, matches)).to.deep.equal(expected)
+    describe(`with parser: ${parser}`, function() {
+      for (const key in group) {
+        const { input, find: _find, expected, where, only, skip } = fixtures[
+          key
+        ] as Fixture
+        ;(skip ? it.skip : only ? it.only : it)(
+          path.basename(key).replace(/\.[^.]+$/, ''),
+          function() {
+            let j = jscodeshift
+            if (parser) j = j.withParser(parser)
+            const root = j(input)
+
+            const astx = new Astx(j, root)
+
+            const matches = astx.find(_find, { where })
+            expect(formatMatches(j, matches)).to.deep.equal(expected)
+          }
+        )
+      }
     })
   }
 })
