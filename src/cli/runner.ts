@@ -7,11 +7,8 @@ import printDiff from 'print-diff'
 import jscodeshift from 'jscodeshift'
 import yargs from 'yargs'
 import inquirer from 'inquirer'
-import parseFindOrReplace from '../util/parseFindOrReplace'
 import chooseJSCodeshiftParser from 'jscodeshift-choose-parser'
-import replace from '../replace'
 import * as astx from '../index'
-import { ASTNode } from 'jscodeshift'
 
 const argv = yargs.option('transform', {
   alias: 't',
@@ -31,27 +28,6 @@ for (const file of files) {
     transform.parser || chooseJSCodeshiftParser(file)
   )
 
-  let parsedFind, parsedReplace: any
-  if (transform.find) {
-    try {
-      parsedFind = parseFindOrReplace(j, transform.find)
-    } catch (error) {
-      console.error(`failed to parse find: ${error.message}`)
-      process.exit(1)
-    }
-  }
-  if (transform.replace) {
-    try {
-      parsedReplace =
-        typeof transform.replace === 'function'
-          ? transform.replace
-          : parseFindOrReplace(j, transform.replace)
-    } catch (error) {
-      console.error(`failed to parse replace: ${error.message}`)
-      process.exit(1)
-    }
-  }
-
   const source = fs.readFileSync(file, 'utf8')
   let result
   const reports: any[] = []
@@ -70,31 +46,10 @@ for (const file of files) {
       },
       {}
     )
-  } else if (parsedFind && parsedReplace) {
+  } else if (transform.find && transform.replace) {
     const code = fs.readFileSync(file, 'utf8')
     const root = j(code)
-    replace(
-      root,
-      parsedFind,
-      typeof parsedReplace === 'function'
-        ? (match: astx.Match<any>): ASTNode =>
-            parsedReplace(
-              match,
-              {
-                source,
-                path: file,
-              },
-              {
-                jscodeshift: j,
-                // eslint-disable-next-line @typescript-eslint/no-empty-function
-                stats: () => {},
-                report: (msg: any) => reports.push(msg),
-                astx,
-              },
-              {}
-            )
-        : parsedReplace
-    )
+    new astx.Astx(j, root).find(transform.find).replace(transform.replace)
     result = root.toSource()
   }
   if (source !== result) results[file] = result
