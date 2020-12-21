@@ -1,6 +1,5 @@
 import { ASTNode, ASTPath } from 'jscodeshift'
 import compileMatcher, {
-  Captures,
   CompiledMatcher,
   CompileOptions,
   MatchResult,

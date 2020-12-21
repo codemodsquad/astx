@@ -25,7 +25,11 @@ structural search and replace for JavaScript and TypeScript, using jscodeshift
     - [`.node`](#node)
     - [`.captures`](#captures)
     - [`.pathCaptures`](#pathcaptures)
+    - [`.arrayCaptures`](#arraycaptures)
+    - [`.arrayPathCaptures`](#arraypathcaptures)
   - [class MatchArray](#class-matcharray)
+- [Match Patterns](#match-patterns)
+  - [Object Matching](#object-matching)
 
 <!-- tocstop -->
 
@@ -168,6 +172,31 @@ The `ASTNode`s captured from placeholders in the match pattern. For example if t
 
 The `ASTPath`s captured from placeholders in the match pattern. For example if the pattern was `foo($bar)`, `.pathCaptures.$bar` will be the `ASTPath` of the first argument.
 
+### `.arrayCaptures`
+
+The `ASTNode[]`s captured from array placeholders in the match pattern. For example if the pattern was `foo({ ...$bar })`, `.arrayCaptures.$bar` will be the `ASTNode[]`s of the object properties.
+
+### `.arrayPathCaptures`
+
+The `ASTPath[]`s captured from array placeholders in the match pattern. For example if the pattern was `foo({ ...$bar })`, `.pathArrayCaptures.$bar` will be the `ASTPath[]`s of the object properties.
+
 ## class MatchArray
 
 Returned by [`.find()`](#find). Just an array of [`Match`](#match)es plus the [`.replace()`](#findreplace) method.
+
+# Match Patterns
+
+## Object Matching
+
+An `ObjectExpression` (aka object literal) pattern will match any `ObjectExpression` in your code with the same properties in any order.
+It will not match if there are missing or additional properties. For example, `{ foo: 1, bar: $bar }` will match `{ foo: 1, bar: 2 }` or `{ bar: 'hello', foo: 1 }`
+but not `{ foo: 1 }` or `{ foo: 1, bar: 2, baz: 3 }`.
+
+You can match additional properties by using `...$captureName`, for example `{ foo: 1, ...$rest }` will match `{ foo: 1 }`, `{ foo: 1, bar: 2 }`, `{ foo: 1, bar: 2, ...props }` etc.
+The additional properties will be captured in `match.arrayCaptures`/`match.arrayPathCaptures`, and can be spread in replacement expressions. For example,
+`` astx.find`{ foo: 1, ...$rest }`.replace`{ bar: 1, ...$rest }` `` will transform `{ foo: 1, qux: {}, ...props }` into `{ bar: 1, qux: {}, ...props }`.
+
+A spread property that isn't of the form `/^\$[a-z0-9]+$/i` is not a capture variable, for example `{ ...foo }` will only match `{ ...foo }` and `{ ...$$foo }` will only
+match `{ ...$foo }` (leading `$$` is an escape for `$`).
+
+There is currently no way to match properties in a specific order, but it could be added in the future.

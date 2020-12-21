@@ -9,7 +9,7 @@ const a = {
     d: 4,
     ...qlom,
   },
-  ...qux,
+  ...$qux,
 }
 
 const a1 = {
@@ -49,7 +49,7 @@ const c = {
 }
 `
 
-export const find = `{foo: 'bar', 'baz-age': $baz, ...qux, [$a + $b]: {a: 1, b: 2, ...$inner$}}`
+export const find = `{foo: 'bar', 'baz-age': $baz, ...$$qux, [$a + $b]: {a: 1, b: 2, ...$inner}}`
 
 export const expected = [
   {
@@ -63,11 +63,11 @@ export const expected = [
     d: 4,
     ...qlom,
   },
-  ...qux,
+  ...$qux,
 }`,
     captures: { $baz: "'qux'", $a: '1', $b: '2' },
     arrayCaptures: {
-      $inner$: ['c: 3', 'd: 4', '...qlom'],
+      $inner: ['c: 3', 'd: 4', '...qlom'],
     },
   },
 ]

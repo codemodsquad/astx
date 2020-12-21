@@ -21,7 +21,7 @@ const b = {
 }
 `
 
-export const find = `{foo: 'bar', glorm: {a: 1, b: 2, ...$inner$}, ...$outer$}`
+export const find = `{foo: 'bar', glorm: {a: 1, b: 2, ...$inner}, ...$outer}`
 
 export const expected = [
   {
@@ -37,8 +37,8 @@ export const expected = [
   }
 }`,
     arrayCaptures: {
-      $inner$: ['c: 3', 'd: 4', '...qlom'],
-      $outer$: ["baz: 'qux'"],
+      $inner: ['c: 3', 'd: 4', '...qlom'],
+      $outer: ["baz: 'qux'"],
     },
   },
 ]

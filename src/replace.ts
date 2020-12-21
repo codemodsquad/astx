@@ -27,10 +27,13 @@ export function replaceArrayCaptures(
   j([path])
     .find(j.Identifier)
     .forEach((path: ASTPath<any>) => {
-      const {parent} = path
-      if (parent.node.type !== 'SpreadElement' && parent.node.type !== 'SpreadProperty')
+      const { parent } = path
+      if (
+        parent.node.type !== 'SpreadElement' &&
+        parent.node.type !== 'SpreadProperty'
+      )
         return
-      const captureMatch = /^\$[a-z0-9]+\$/i.exec(path.node.name)
+      const captureMatch = /^\$[a-z0-9]+/i.exec(path.node.name)
       const capture = captureMatch ? arrayCaptures[captureMatch[0]] : null
       if (!capture) return
       for (const replacement of capture) {

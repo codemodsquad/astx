@@ -19,9 +19,9 @@ const b = {
 }
 `
 
-export const find = `{foo: 'bar', glorm: {a: 1, b: 2, ...$inner$}, ...$outer$}`
+export const find = `{foo: 'bar', glorm: {a: 1, b: 2, ...$inner}, ...$outer}`
 
-export const replace = `{foo: 'bar', ...$outer$, glorm: {a: 5, ...$inner$}}`
+export const replace = `{foo: 'bar', ...$outer, glorm: {a: 5, ...$inner}}`
 
 export const expected = `
 const a = {

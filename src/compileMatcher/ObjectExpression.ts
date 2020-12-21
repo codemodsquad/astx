@@ -9,7 +9,6 @@ import {
 } from 'jscodeshift'
 import indentDebug from './indentDebug'
 import compileMatcher, {
-  Captures,
   CompiledMatcher,
   CompileOptions,
   MatchResult,
@@ -54,7 +53,7 @@ function getCaptureRestVariable(
     return undefined
   const { argument } = property
   if (argument.type !== 'Identifier') return undefined
-  const captureMatch = /^\$[a-z0-9]+\$/i.exec(argument.name)
+  const captureMatch = /^\$[a-z0-9]+/i.exec(argument.name)
   return captureMatch?.[0]
 }
 
