@@ -21,7 +21,7 @@ export class MatchArray<Node extends ASTNode> extends Array<Match<Node>> {
     super()
     this.jscodeshift = jscodeshift
     for (const key in matches) this[key] = matches[key]
-    this.parseTag = parseFindOrReplace.bind(undefined, jscodeshift)
+    this.parseTag = parseFindOrReplace.bind(undefined, jscodeshift) as any
   }
 
   replace(code: string): void
@@ -37,16 +37,19 @@ export class MatchArray<Node extends ASTNode> extends Array<Match<Node>> {
         (match: Match<Node>): ASTNode => {
           const result = arg0(match, this.parseTag)
           return typeof result === 'string'
-            ? parseFindOrReplace(this.jscodeshift, [result] as any)
+            ? (parseFindOrReplace(this.jscodeshift, [result] as any) as any)
             : result
         }
       )
     } else if (typeof arg0 === 'string') {
-      replaceMatches(this, parseFindOrReplace(this.jscodeshift, [arg0] as any))
+      replaceMatches(
+        this,
+        parseFindOrReplace(this.jscodeshift, [arg0] as any) as any
+      )
     } else {
       replaceMatches(
         this,
-        parseFindOrReplace(this.jscodeshift, arg0, ...quasis)
+        parseFindOrReplace(this.jscodeshift, arg0, ...quasis) as any
       )
     }
   }
@@ -93,7 +96,7 @@ export default class Astx {
         this.jscodeshift,
         find(
           this.root,
-          parseFindOrReplace(this.jscodeshift, [arg0] as any),
+          parseFindOrReplace(this.jscodeshift, [arg0] as any) as any,
           quasis[0]
         )
       )
@@ -106,7 +109,7 @@ export default class Astx {
       return bindFind(
         this.jscodeshift,
         this.root,
-        parseFindOrReplace(this.jscodeshift, arg0 as any, ...quasis)
+        parseFindOrReplace(this.jscodeshift, arg0 as any, ...quasis) as any
       )
     }
   }

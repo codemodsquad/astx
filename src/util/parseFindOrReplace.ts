@@ -1,24 +1,14 @@
-import { ASTNode, JSCodeshift } from 'jscodeshift'
+import { Expression, JSCodeshift, Statement } from 'jscodeshift'
+import template from './template'
 
 export default function parseFindOrReplace(
   j: JSCodeshift,
   strings: TemplateStringsArray,
   ...quasis: any[]
-): ASTNode {
-  const { expression, statement } = j.template
+): Expression | Statement {
+  const { expression, statement } = template(j)
   try {
-    return expression(
-      [`async () => ${strings[0]}`, ...strings.slice(1)],
-      ...quasis
-    ).body
-  } catch (error) {
-    // ignore
-  }
-  try {
-    return expression(
-      [`async () => (${strings[0]})`, ...strings.slice(1)],
-      ...quasis
-    ).body
+    return expression(strings, ...quasis)
   } catch (error) {
     // ignore
   }

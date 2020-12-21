@@ -27,6 +27,7 @@ export const expected = `
 const a = {
   foo: "bar",
   baz: 'qux',
+
   glorm: {
     a: 5,
     c: 3
