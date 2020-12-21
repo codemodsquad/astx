@@ -20,6 +20,26 @@ export function replaceCaptures(
     })
 }
 
+export function replaceArrayCaptures(
+  path: ASTPath<any>,
+  arrayCaptures: Record<string, ASTNode[]>
+): void {
+  j([path])
+    .find(j.Identifier)
+    .forEach((path: ASTPath<any>) => {
+      const {parent} = path
+      if (parent.node.type !== 'SpreadElement' && parent.node.type !== 'SpreadProperty')
+        return
+      const captureMatch = /^\$[a-z0-9]+\$/i.exec(path.node.name)
+      const capture = captureMatch ? arrayCaptures[captureMatch[0]] : null
+      if (!capture) return
+      for (const replacement of capture) {
+        parent.insertBefore(replacement)
+      }
+      parent.prune()
+    })
+}
+
 export function replaceMatches<Node extends ASTNode>(
   matches: Match<Node>[],
   replace: ASTNode | ((match: Match<Node>) => ASTNode)
@@ -28,6 +48,7 @@ export function replaceMatches<Node extends ASTNode>(
     const [replaced] = match.path.replace(
       typeof replace === 'function' ? replace(match) : cloneDeep(replace)
     )
+    if (match.arrayCaptures) replaceArrayCaptures(replaced, match.arrayCaptures)
     if (match.captures) replaceCaptures(replaced, match.captures)
   }
 }

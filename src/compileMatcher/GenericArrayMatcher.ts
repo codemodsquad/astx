@@ -4,6 +4,7 @@ import compileMatcher, {
   CompiledMatcher,
   CompileOptions,
   MatchResult,
+  mergeCaptures,
 } from './'
 import indentDebug from './indentDebug'
 
@@ -19,7 +20,7 @@ export default function compileGenericArrayMatcher(
     })
   )
   return (path: ASTPath): MatchResult => {
-    let captures: Captures | undefined
+    let captures: MatchResult = null
 
     debug('Array')
     if (!Array.isArray(path.value)) {
@@ -38,11 +39,8 @@ export default function compileGenericArrayMatcher(
       debug('  [%d]', i)
       const result = elemMatchers[i](path.get(i))
       if (!result) return null
-      if (result.captures) {
-        if (!captures) captures = {}
-        Object.assign(captures, result.captures)
-      }
+      captures = mergeCaptures(captures, result)
     }
-    return { captures }
+    return captures || {}
   }
 }

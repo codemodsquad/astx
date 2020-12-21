@@ -3,6 +3,7 @@ import BooleanLiteral from './BooleanLiteral'
 import Identifier from './Identifier'
 import Literal from './Literal'
 import NumericLiteral from './NumericLiteral'
+import ObjectExpression from './ObjectExpression'
 import RegExpLiteral from './RegExpLiteral'
 import StringLiteral from './StringLiteral'
 import __debug, { Debugger } from 'debug'
@@ -23,8 +24,32 @@ export type CompileOptions = {
 }
 
 export type Captures = Record<string, ASTPath<any>>
+export type ArrayCaptures = Record<string, ASTPath<any>[]>
 
-export type MatchResult = { captures?: Captures } | null
+export type MatchResult = {
+  captures?: Captures
+  arrayCaptures?: ArrayCaptures
+} | null
+
+export function mergeCaptures(
+  current: MatchResult,
+  ...results: MatchResult[]
+): MatchResult {
+  for (const result of results) {
+    if (!result) continue
+    if (result.captures) {
+      if (!current) current = {}
+      if (!current.captures) current.captures = {}
+      Object.assign(current.captures, result.captures)
+    }
+    if (result.arrayCaptures) {
+      if (!current) current = {}
+      if (!current.arrayCaptures) current.arrayCaptures = {}
+      Object.assign(current.arrayCaptures, result.arrayCaptures)
+    }
+  }
+  return current
+}
 
 export type NonCapturingMatcher = (path: ASTPath<any>) => boolean
 
@@ -38,6 +63,7 @@ const nodeMatchers: Record<
   Identifier,
   Literal,
   NumericLiteral,
+  ObjectExpression,
   RegExpLiteral,
   StringLiteral,
 }
@@ -54,7 +80,7 @@ export default function compileMatcher(
       query.type
     ](query, {
       ...compileOptions,
-      debug: indentDebug(debug, 2),
+      debug: indentDebug(debug, 1),
     })
     return (path: ASTPath<any>): MatchResult => {
       debug('%s (specific)', query.type)

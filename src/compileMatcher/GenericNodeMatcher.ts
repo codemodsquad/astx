@@ -3,7 +3,7 @@ import compileMatcher, {
   CompiledMatcher,
   CompileOptions,
   MatchResult,
-  Captures,
+  mergeCaptures,
 } from './index'
 import t from 'ast-types'
 import indentDebug from './indentDebug'
@@ -52,7 +52,7 @@ export default function compileGenericNodeMatcher(
   )
 
   return (path: ASTPath<any>): MatchResult => {
-    let captures: Captures | undefined
+    let captures: MatchResult = null
 
     debug('%s (generic)', query.type)
     if (path.node?.type === query.type || isCompatibleType(path, query)) {
@@ -61,12 +61,9 @@ export default function compileGenericNodeMatcher(
         const matcher = keyMatchers[key]
         const result = matcher(path.get(key))
         if (!result) return null
-        if (result.captures) {
-          if (!captures) captures = {}
-          Object.assign(captures, result.captures)
-        }
+        captures = mergeCaptures(captures, result)
       }
-      return { captures }
+      return captures || {}
     } else {
       debug(
         '  path.node?.type (%s) is not compatible with query.type (%s)',

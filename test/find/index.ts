@@ -14,6 +14,7 @@ type Fixture = {
   expected: {
     node: string
     captures?: Record<string, string>
+    arrayCaptures?: Record<string, string[]>
   }[]
   parsers?: string[]
   only?: boolean
@@ -23,18 +24,27 @@ type Fixture = {
 export function formatMatches(
   j: JSCodeshift,
   matches: Match<any>[]
-): { node: string; captures?: Record<string, string> }[] {
+): {
+  node: string
+  captures?: Record<string, string>
+  arrayCaptures?: Record<string, string[]>
+}[] {
   function toSource(path: ASTPath<any>): string {
     return j([path]).toSource()
   }
-  return matches.map(({ path, pathCaptures }) =>
-    pathCaptures
-      ? {
-          node: toSource(path),
-          captures: mapValues(pathCaptures, toSource),
-        }
-      : { node: toSource(path) }
-  )
+  return matches.map(({ path, pathCaptures, arrayPathCaptures }) => {
+    const result: {
+      node: string
+      captures?: Record<string, string>
+      arrayCaptures?: Record<string, string[]>
+    } = { node: toSource(path) }
+    if (pathCaptures) result.captures = mapValues(pathCaptures, toSource)
+    if (arrayPathCaptures)
+      result.arrayCaptures = mapValues(arrayPathCaptures, (paths) =>
+        paths.map(toSource)
+      )
+    return result
+  })
 }
 
 describe(`find`, function () {

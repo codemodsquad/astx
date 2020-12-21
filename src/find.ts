@@ -7,6 +7,8 @@ export type Match<Node extends ASTNode> = {
   node: Node
   pathCaptures?: Record<string, ASTPath<any>>
   captures?: Record<string, ASTNode>
+  arrayPathCaptures?: Record<string, ASTPath<any>[]>
+  arrayCaptures?: Record<string, ASTNode[]>
 }
 
 function getNodeType(query: ASTNode): any {
@@ -36,12 +38,22 @@ export default function find<Node extends ASTNode>(
     const result = match(path)
     if (result) {
       const match: Match<Node> = { path, node: path.node }
-      const { captures: pathCaptures } = result
+      const {
+        captures: pathCaptures,
+        arrayCaptures: arrayPathCaptures,
+      } = result
       if (pathCaptures) {
         match.pathCaptures = pathCaptures
         match.captures = mapValues(
           pathCaptures,
           (path: ASTPath<any>) => path.node
+        )
+      }
+      if (arrayPathCaptures) {
+        match.arrayPathCaptures = arrayPathCaptures
+        match.arrayCaptures = mapValues(
+          arrayPathCaptures,
+          (paths: ASTPath<any>[]) => paths.map((path) => path.node)
         )
       }
       matches.push(match)
