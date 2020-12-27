@@ -1,6 +1,6 @@
 import memoize from 'lodash/memoize'
 
-const sortFlags = memoize((flags: string): string => {
-  return flags.split('').sort().join('')
-})
+const sortFlags = memoize((flags: string): string =>
+  flags.split('').sort().join('')
+)
 export default sortFlags
