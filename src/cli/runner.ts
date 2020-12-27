@@ -72,6 +72,19 @@ async function go() {
 
     let result
     const reports: any[] = []
+
+    if (
+      typeof transform !== 'function' &&
+      typeof transform.astx !== 'function' &&
+      transform.find &&
+      transform.replace
+    ) {
+      transform.astx = ({ astx }) =>
+        astx
+          .find(transform.find as any, { where: transform.where })
+          .replace(transform.replace as any)
+    }
+
     if (typeof transform === 'function') {
       // jscodeshift CLI passes source/path separately from other options, which is dumb
       result = await (transform as Transform)(
@@ -112,14 +125,6 @@ async function go() {
         const config = await prettier.resolveConfig(file)
         result = prettier.format(result, config)
       }
-    } else if (transform.find && transform.replace) {
-      const code = fs.readFileSync(file, 'utf8')
-      const root = j(code)
-      const { where } = transform
-      new astx.Astx(j, root)
-        .find(transform.find as any, { where })
-        .replace(transform.replace as any)
-      result = root.toSource()
     }
     if (result && source !== result) {
       results[file] = result
