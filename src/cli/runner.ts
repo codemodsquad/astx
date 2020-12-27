@@ -40,12 +40,19 @@ const results: Record<string, string> = {}
 const getPrettier = memoize(
   async (path: string): Promise<any> => {
     try {
-      return require(await resolve('prettier', {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const prettier = require(await resolve('prettier', {
         basedir: path,
       }))
+      if (
+        typeof prettier.format === 'function' &&
+        typeof prettier.resolveConfig === 'function'
+      )
+        return prettier
     } catch (error) {
-      return null
+      // ignore
     }
+    return null
   }
 )
 
