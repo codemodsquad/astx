@@ -6,26 +6,30 @@ export default function compileIdentifierMatcher(
   compileOptions: CompileOptions
 ): CompiledMatcher {
   const { debug } = compileOptions
-  return (path: ASTPath): MatchResult => {
-    debug('identifier', query.name)
-    const captureMatch = /^\$[a-z0-9]+/i.exec(query.name)
-    if (captureMatch) {
-      const whereCondition = compileOptions?.where?.[captureMatch[0]]
+  const captureName = /^\$[a-z0-9]+/i.exec(query.name)?.[0]
+  if (captureName) {
+    const whereCondition = compileOptions?.where?.[captureName]
+    return (path: ASTPath): MatchResult => {
+      debug('Placeholder', query.name)
       if (whereCondition && !whereCondition(path)) {
         debug('  where condition returned false')
         return null
       }
-      debug('  captured as %s', captureMatch[0])
-      return { captures: { [captureMatch[0]]: path } }
-    } else {
-      if (
-        path.node?.type === 'Identifier' &&
-        path.node.name === query.name.replace(/^\$\$/g, '$')
-      ) {
-        debug('  matched')
+      debug('  captured as %s', captureName)
+      return { captures: { [captureName]: path } }
+    }
+  } else {
+    const escaped = query.name.replace(/^\$\$/g, '$')
+    return (path: ASTPath): MatchResult => {
+      debug('Identifier', escaped)
+      if (path.node?.type !== 'Identifier') {
+        debug(`  node is a %s`, path.node?.type)
+        return null
+      } else if (path.node.name === escaped) {
+        debug('  %s === %s', path.node.name, escaped)
         return {}
       } else {
-        debug(`  didn't match`)
+        debug(`  %s !== %s`, path.node.name, escaped)
         return null
       }
     }
