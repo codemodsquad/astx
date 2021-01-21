@@ -85,9 +85,8 @@ export const runTransformOnFile = (transform: Transform) => async (
 ): Promise<TransformResult> => {
   try {
     const source = await fs.readFile(file, 'utf8')
-    const j = jscodeshift.withParser(
-      transform.parser || chooseJSCodeshiftParser(file)
-    )
+    const parser = transform.parser || chooseJSCodeshiftParser(file)
+    const j = jscodeshift.withParser(parser)
     const template = makeTemplate(j)
 
     let transformed
@@ -146,7 +145,8 @@ export const runTransformOnFile = (transform: Transform) => async (
         typeof transformed === 'string' &&
         transformed !== source
       ) {
-        const config = await prettier.resolveConfig(file)
+        const config = (await prettier.resolveConfig(file)) || {}
+        if (/tsx?$/.test(parser)) config.parser = 'typescript'
         transformed = prettier.format(transformed, config)
       }
     }

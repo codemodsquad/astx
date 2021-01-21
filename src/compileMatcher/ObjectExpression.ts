@@ -89,70 +89,73 @@ export default function compileObjectExpressionMatcher(
     }
     otherProperties.push(compileMatcher(property, propertyCompileOptions))
   }
-  return (path: ASTPath<any>): MatchResult => {
-    let captures: MatchResult = null
+  return {
+    match: (path: ASTPath<any>): MatchResult => {
+      let captures: MatchResult = null
 
-    const { node } = path
-    if (node.type !== query.type) return null
-    const remainingSimpleProperties = new Map(simpleProperties.entries())
-    const remainingOtherProperties = new Set(otherProperties)
-    const capturedRestProperties:
-      | ASTPath<any>[]
-      | undefined = captureRestVariable ? [] : undefined
-    for (let i = 0; i < node.properties.length; i++) {
-      const property = node.properties[i]
-      const propertyPath = path.get('properties', i)
-      const simpleKey = getSimpleKey(property)
-      let matched = false
-      if (simpleKey) {
-        debug(simpleKey)
-        const matcher = remainingSimpleProperties.get(simpleKey)
-        if (matcher) {
-          const result = matcher(propertyPath)
-          if (!result) return null
-          matched = true
-          remainingSimpleProperties.delete(simpleKey)
-          captures = mergeCaptures(captures, result)
-        }
-      } else {
-        debug('(other)')
-        for (const otherMatcher of remainingOtherProperties) {
-          const result = otherMatcher(propertyPath)
-          if (!result) continue
-          matched = true
-          remainingOtherProperties.delete(otherMatcher)
-          captures = mergeCaptures(captures, result)
-        }
-      }
-      if (!matched) {
-        if (capturedRestProperties) {
-          debug(`  captured in ${captureRestVariable}`)
-          capturedRestProperties.push(propertyPath)
+      const { node } = path
+      if (node.type !== query.type) return null
+      const remainingSimpleProperties = new Map(simpleProperties.entries())
+      const remainingOtherProperties = new Set(otherProperties)
+      const capturedRestProperties:
+        | ASTPath<any>[]
+        | undefined = captureRestVariable ? [] : undefined
+      for (let i = 0; i < node.properties.length; i++) {
+        const property = node.properties[i]
+        const propertyPath = path.get('properties', i)
+        const simpleKey = getSimpleKey(property)
+        let matched = false
+        if (simpleKey) {
+          debug(simpleKey)
+          const matcher = remainingSimpleProperties.get(simpleKey)
+          if (matcher) {
+            const result = matcher.match(propertyPath)
+            if (!result) return null
+            matched = true
+            remainingSimpleProperties.delete(simpleKey)
+            captures = mergeCaptures(captures, result)
+          }
         } else {
-          debug(`  not found in pattern`)
-          return null
+          debug('(other)')
+          for (const otherMatcher of remainingOtherProperties) {
+            const result = otherMatcher.match(propertyPath)
+            if (!result) continue
+            matched = true
+            remainingOtherProperties.delete(otherMatcher)
+            captures = mergeCaptures(captures, result)
+          }
+        }
+        if (!matched) {
+          if (capturedRestProperties) {
+            debug(`  captured in ${captureRestVariable}`)
+            capturedRestProperties.push(propertyPath)
+          } else {
+            debug(`  not found in pattern`)
+            return null
+          }
         }
       }
-    }
-    if (remainingSimpleProperties.size) {
-      debug(
-        `missing properties from pattern: %s`,
-        [...remainingSimpleProperties.keys()].join(', ')
-      )
-      return null
-    }
-    if (remainingOtherProperties.size) {
-      debug(
-        `missing ${remainingOtherProperties.size} other properties from pattern`
-      )
-      return null
-    }
+      if (remainingSimpleProperties.size) {
+        debug(
+          `missing properties from pattern: %s`,
+          [...remainingSimpleProperties.keys()].join(', ')
+        )
+        return null
+      }
+      if (remainingOtherProperties.size) {
+        debug(
+          `missing ${remainingOtherProperties.size} other properties from pattern`
+        )
+        return null
+      }
 
-    if (captureRestVariable && capturedRestProperties) {
-      captures = mergeCaptures(captures, {
-        arrayCaptures: { [captureRestVariable]: capturedRestProperties },
-      })
-    }
-    return captures || {}
+      if (captureRestVariable && capturedRestProperties) {
+        captures = mergeCaptures(captures, {
+          arrayCaptures: { [captureRestVariable]: capturedRestProperties },
+        })
+      }
+      return captures || {}
+    },
+    nodeType: 'ObjectExpression',
   }
 }

@@ -11,16 +11,6 @@ export type Match<Node extends ASTNode> = {
   arrayCaptures?: Record<string, ASTNode[]>
 }
 
-function getNodeType(query: ASTNode): any {
-  switch (query.type) {
-    case 'FunctionDeclaration':
-    case 'FunctionExpression':
-      return j.Function
-    default:
-      return j[query.type] as any
-  }
-}
-
 export type FindOptions = {
   where?: { [captureName: string]: (path: ASTPath<any>) => boolean }
 }
@@ -30,35 +20,43 @@ export default function find<Node extends ASTNode>(
   query: Node,
   options?: FindOptions
 ): Array<Match<Node>> {
-  const nodeType = getNodeType(query)
-  const match = compileMatcher(query, options)
+  const matcher = compileMatcher(query, options)
 
   const matches: Array<Match<Node>> = []
-  root.find(nodeType).forEach((path: ASTPath<any>) => {
-    const result = match(path)
-    if (result) {
-      const match: Match<Node> = { path, node: path.node }
-      const {
-        captures: pathCaptures,
-        arrayCaptures: arrayPathCaptures,
-      } = result
-      if (pathCaptures) {
-        match.pathCaptures = pathCaptures
-        match.captures = mapValues(
-          pathCaptures,
-          (path: ASTPath<any>) => path.node
-        )
+
+  const nodeTypes = Array.isArray(matcher.nodeType)
+    ? matcher.nodeType
+    : matcher.nodeType
+    ? [matcher.nodeType]
+    : ['Node']
+
+  for (const nodeType of nodeTypes) {
+    root.find(j[nodeType]).forEach((path: ASTPath<any>) => {
+      const result = matcher.match(path)
+      if (result) {
+        const match: Match<Node> = { path, node: path.node }
+        const {
+          captures: pathCaptures,
+          arrayCaptures: arrayPathCaptures,
+        } = result
+        if (pathCaptures) {
+          match.pathCaptures = pathCaptures
+          match.captures = mapValues(
+            pathCaptures,
+            (path: ASTPath<any>) => path.node
+          )
+        }
+        if (arrayPathCaptures) {
+          match.arrayPathCaptures = arrayPathCaptures
+          match.arrayCaptures = mapValues(
+            arrayPathCaptures,
+            (paths: ASTPath<any>[]) => paths.map((path) => path.node)
+          )
+        }
+        matches.push(match)
       }
-      if (arrayPathCaptures) {
-        match.arrayPathCaptures = arrayPathCaptures
-        match.arrayCaptures = mapValues(
-          arrayPathCaptures,
-          (paths: ASTPath<any>[]) => paths.map((path) => path.node)
-        )
-      }
-      matches.push(match)
-    }
-  })
+    })
+  }
 
   return matches
 }

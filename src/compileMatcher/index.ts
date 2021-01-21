@@ -1,4 +1,5 @@
 import { ASTPath, ASTNode } from 'jscodeshift'
+import t from 'ast-types'
 import BooleanLiteral from './BooleanLiteral'
 import Identifier from './Identifier'
 import Literal from './Literal'
@@ -51,9 +52,15 @@ export function mergeCaptures(
   return current
 }
 
-export type NonCapturingMatcher = (path: ASTPath<any>) => boolean
+export type NonCapturingMatcher = {
+  match: (path: ASTPath<any>) => boolean
+  nodeType?: keyof typeof t.namedTypes
+}
 
-export type CompiledMatcher = (path: ASTPath<any>) => MatchResult
+export interface CompiledMatcher {
+  match: (path: ASTPath<any>) => MatchResult
+  nodeType?: keyof typeof t.namedTypes
+}
 
 const nodeMatchers: Record<
   string,
@@ -82,16 +89,24 @@ export default function compileMatcher(
       ...compileOptions,
       debug: indentDebug(debug, 1),
     })
-    return (path: ASTPath<any>): MatchResult => {
-      debug('%s (specific)', query.type)
-      const result = compiled(path)
-      if (result) {
-        if (result === true) debug('  matched')
-        return typeof result === 'object' ? result : {}
-      } else {
-        if (result === false) debug(`  didn't match`)
-        return null
-      }
+    return {
+      match: (path: ASTPath<any>): MatchResult => {
+        debug('%s (specific)', query.type)
+        const result = compiled.match(path)
+        if (result) {
+          if (result === true) debug('  matched')
+          return typeof result === 'object' ? result : {}
+        } else {
+          if (result === false) debug(`  didn't match`)
+          return null
+        }
+      },
+      nodeType: query.type,
+    }
+  } else if (t.namedTypes.Function.check(query)) {
+    return {
+      ...compileGenericNodeMatcher(query, { ...compileOptions, debug }),
+      nodeType: 'Function',
     }
   } else {
     return compileGenericNodeMatcher(query, { ...compileOptions, debug })

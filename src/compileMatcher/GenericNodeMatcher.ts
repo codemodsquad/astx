@@ -29,14 +29,16 @@ export default function compileGenericNodeMatcher(
         if (typeof value !== 'object' || value == null) {
           return [
             key,
-            (path: ASTPath<any>): MatchResult => {
-              if (value !== path.node[key]) {
-                debug('    %s !== %s', value, path.node[key])
-                return null
-              } else {
-                debug('    %s === %s', value, path.node[key])
-                return {}
-              }
+            {
+              match: (path: ASTPath<any>): MatchResult => {
+                if (value !== path.node[key]) {
+                  debug('    %s !== %s', value, path.node[key])
+                  return null
+                } else {
+                  debug('    %s === %s', value, path.node[key])
+                  return {}
+                }
+              },
             },
           ]
         } else {
@@ -51,26 +53,29 @@ export default function compileGenericNodeMatcher(
       })
   )
 
-  return (path: ASTPath<any>): MatchResult => {
-    let captures: MatchResult = null
+  return {
+    match: (path: ASTPath<any>): MatchResult => {
+      let captures: MatchResult = null
 
-    debug('%s (generic)', query.type)
-    if (path.node?.type === query.type || isCompatibleType(path, query)) {
-      for (const key in keyMatchers) {
-        debug('  .%s', key)
-        const matcher = keyMatchers[key]
-        const result = matcher(path.get(key))
-        if (!result) return null
-        captures = mergeCaptures(captures, result)
+      debug('%s (generic)', query.type)
+      if (path.node?.type === query.type || isCompatibleType(path, query)) {
+        for (const key in keyMatchers) {
+          debug('  .%s', key)
+          const matcher = keyMatchers[key]
+          const result = matcher.match(path.get(key))
+          if (!result) return null
+          captures = mergeCaptures(captures, result)
+        }
+        return captures || {}
+      } else {
+        debug(
+          '  path.node?.type (%s) is not compatible with query.type (%s)',
+          path.node?.type,
+          query.type
+        )
+        return null
       }
-      return captures || {}
-    } else {
-      debug(
-        '  path.node?.type (%s) is not compatible with query.type (%s)',
-        path.node?.type,
-        query.type
-      )
-      return null
-    }
+    },
+    nodeType: query.type,
   }
 }
