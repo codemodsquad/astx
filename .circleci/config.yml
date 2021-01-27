@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: circleci/node:12
+      - image: circleci/node:14
 
     steps:
       - checkout
@@ -20,7 +20,7 @@ jobs:
           command: yarn run prepublishOnly
       - run:
           name: upload test coverage
-          command: yarn codecov || true
+          command: yarn codecov
       - run:
           name: release
-          command: yarn run semantic-release || true
+          command: yarn run semantic-release

@@ -3,7 +3,6 @@
 !**/*.js.flow
 !**/*.d.ts
 !/*.md
-!yarn.lock
 /src
 /test
 /coverage
