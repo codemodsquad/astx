@@ -7,38 +7,39 @@
   "scripts": {
     "lint": "eslint $npm_package_config_lint",
     "lint:fix": "eslint $npm_package_config_lint",
-    "prettier": "prettier --write .babelrc.js *.json *.md '{src,test}/**/*.{js,ts}'",
-    "prettier:check": "prettier --list-different .babelrc.js *.json *.md '{src,test}/**/*.{js,ts}'",
+    "prettier": "prettier --write $npm_package_config_prettier",
+    "prettier:check": "prettier --list-different $npm_package_config_prettier",
     "tsc": "tsc",
     "tsc:watch": "npm run tsc -- --watch",
-    "clean": "rimraf es lib $(cd src; ls) *.js *.d.ts",
+    "clean": "rimraf es lib $(cd src; ls) *.js *.d.ts *.js.flow",
     "build": "npm run clean && npm run build:types && npm run build:js",
-    "build:types": "tsc -p tsconfig.build.json",
+    "build:types": "tsc -p tsconfig.build.json && tsc -p tsconfig.build.json --outDir es && copy 'src/**/*.js.flow' . && copy 'src/**/*.js.flow' es",
     "build:js": "babel src --out-dir es --extensions \".ts\" --source-maps inline && cross-env BABEL_ENV=es5 babel src --out-dir . --extensions \".ts\"",
     "test": "cross-env NODE_ENV=test BABEL_ENV=es5 mocha $npm_package_config_mocha && cross-env NODE_ENV=test BABEL_ENV=coverage nyc --reporter=lcov --reporter=text mocha $npm_package_config_mocha",
     "test:watch": "cross-env NODE_ENV=test BABEL_ENV=test mocha $npm_package_config_mocha --watch --watch-extensions js,ts",
     "test:debug": "cross-env NODE_ENV=test BABEL_ENV=test mocha --inspect-brk $npm_package_config_mocha",
     "codecov": "nyc report --reporter=text-lcov > coverage.lcov; codecov",
-    "prepublishOnly": "npm run clean && npm run prettier:check && npm run lint && npm test && npm run build",
+    "prepublishOnly": "npm run clean && npm run prettier:check && npm run lint && flow && npm test && npm run build",
     "open:coverage": "open coverage/lcov-report/index.html",
     "semantic-release": "semantic-release"
   },
   "config": {
     "lint": "--cache --ext .js,.ts src test",
     "mocha": "test/configure.js 'src/**/*.spec.ts' 'test/**/*.ts'",
+    "prettier": ".babelrc.js *.{json,md} {src,test}/**/*.{js,ts,flow}",
     "commitizen": {
       "path": "cz-conventional-changelog"
     }
   },
   "husky": {
     "hooks": {
-      "pre-commit": "lint-staged && npm run lint && npm run tsc",
+      "pre-commit": "lint-staged && npm run lint && npm run tsc && flow",
       "commit-msg": "commitlint -e $GIT_PARAMS",
       "pre-push": "npm test"
     }
   },
   "lint-staged": {
-    "*.{js,ts,json,css,md}": [
+    "*.{js,ts,json,css,md,flow}": [
       "prettier --write"
     ]
   },
@@ -111,6 +112,7 @@
     "cross-env": "^7.0.3",
     "eslint": "^7.18.0",
     "eslint-config-prettier": "^7.2.0",
+    "flow-bin": "^0.144.0",
     "husky": "^4.3.8",
     "istanbul": "^0.4.5",
     "lint-staged": "^10.5.3",
