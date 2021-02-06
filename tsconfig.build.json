@@ -1,6 +1,6 @@
 {
   "extends": "./tsconfig.json",
-  "include": ["./src/index.ts"],
+  "include": ["./src"],
   "exclude": ["node_modules", "./src/**/*.spec.ts", "./test"],
   "compilerOptions": {
     "declaration": true /* Generates corresponding '.d.ts' file. */,
