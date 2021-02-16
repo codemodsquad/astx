@@ -16,7 +16,7 @@
     "build:types": "tsc -p tsconfig.build.json && tsc -p tsconfig.build.json --outDir es && copy 'src/**/*.js.flow' . && copy 'src/**/*.js.flow' es",
     "build:js": "babel src --out-dir es --extensions \".ts\" --source-maps inline && cross-env BABEL_ENV=es5 babel src --out-dir . --extensions \".ts\"",
     "test": "cross-env NODE_ENV=test BABEL_ENV=es5 mocha $npm_package_config_mocha && cross-env NODE_ENV=test BABEL_ENV=coverage nyc --reporter=lcov --reporter=text mocha $npm_package_config_mocha",
-    "test:watch": "cross-env NODE_ENV=test BABEL_ENV=test mocha $npm_package_config_mocha --watch --watch-extensions js,ts",
+    "test:watch": "cross-env NODE_ENV=test BABEL_ENV=test mocha $npm_package_config_mocha --watch",
     "test:debug": "cross-env NODE_ENV=test BABEL_ENV=test mocha --inspect-brk $npm_package_config_mocha",
     "codecov": "nyc report --reporter=text-lcov > coverage.lcov; codecov",
     "prepublishOnly": "npm run clean && npm run prettier:check && npm run lint && flow && npm test && npm run build",
@@ -25,7 +25,7 @@
   },
   "config": {
     "lint": "--cache --ext .js,.ts src test",
-    "mocha": "test/configure.js 'src/**/*.spec.ts' 'test/**/*.ts'",
+    "mocha": "--extension js --extension ts test/configure.js 'src/**/*.spec.ts' 'test/**/*.ts'",
     "prettier": ".babelrc.js *.{json,md} {src,test}/**/*.{js,ts,flow}",
     "commitizen": {
       "path": "cz-conventional-changelog"
