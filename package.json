@@ -115,6 +115,7 @@
     "@types/mocha": "^8.2.0",
     "@types/node": "^14.14.14",
     "@types/resolve": "^1.17.1",
+    "@types/shallowequal": "^1.1.1",
     "@types/yargs": "^15.0.12",
     "babel-eslint": "^10.0.1",
     "babel-plugin-istanbul": "^6.0.0",
@@ -149,6 +150,7 @@
     "lodash": "^4.17.20",
     "print-diff": "^1.0.0",
     "resolve": "^1.19.0",
+    "shallowequal": "^1.1.0",
     "smart-restart": "^2.5.0",
     "yargs": "^16.2.0"
   },

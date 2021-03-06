@@ -90,7 +90,7 @@ export default function compileObjectExpressionMatcher(
     otherProperties.push(compileMatcher(property, propertyCompileOptions))
   }
   return {
-    match: (path: ASTPath<any>): MatchResult => {
+    match: (path: ASTPath<any>, matchSoFar: MatchResult): MatchResult => {
       let captures: MatchResult = null
 
       const { node } = path
@@ -109,20 +109,22 @@ export default function compileObjectExpressionMatcher(
           debug(simpleKey)
           const matcher = remainingSimpleProperties.get(simpleKey)
           if (matcher) {
-            const result = matcher.match(propertyPath)
+            const result = matcher.match(propertyPath, matchSoFar)
             if (!result) return null
             matched = true
             remainingSimpleProperties.delete(simpleKey)
             captures = mergeCaptures(captures, result)
+            matchSoFar = mergeCaptures(matchSoFar, result)
           }
         } else {
           debug('(other)')
           for (const otherMatcher of remainingOtherProperties) {
-            const result = otherMatcher.match(propertyPath)
+            const result = otherMatcher.match(propertyPath, matchSoFar)
             if (!result) continue
             matched = true
             remainingOtherProperties.delete(otherMatcher)
             captures = mergeCaptures(captures, result)
+            matchSoFar = mergeCaptures(matchSoFar, result)
           }
         }
         if (!matched) {

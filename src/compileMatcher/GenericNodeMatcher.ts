@@ -54,7 +54,7 @@ export default function compileGenericNodeMatcher(
   )
 
   return {
-    match: (path: ASTPath<any>): MatchResult => {
+    match: (path: ASTPath<any>, matchSoFar: MatchResult): MatchResult => {
       let captures: MatchResult = null
 
       debug('%s (generic)', query.type)
@@ -62,9 +62,10 @@ export default function compileGenericNodeMatcher(
         for (const key in keyMatchers) {
           debug('  .%s', key)
           const matcher = keyMatchers[key]
-          const result = matcher.match(path.get(key))
+          const result = matcher.match(path.get(key), matchSoFar)
           if (!result) return null
           captures = mergeCaptures(captures, result)
+          matchSoFar = mergeCaptures(matchSoFar, result)
         }
         return captures || {}
       } else {

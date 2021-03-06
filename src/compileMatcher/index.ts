@@ -53,12 +53,12 @@ export function mergeCaptures(
 }
 
 export type NonCapturingMatcher = {
-  match: (path: ASTPath<any>) => boolean
+  match: (path: ASTPath<any>, matchSoFar: MatchResult) => boolean
   nodeType?: keyof typeof t.namedTypes
 }
 
 export interface CompiledMatcher {
-  match: (path: ASTPath<any>) => MatchResult
+  match: (path: ASTPath<any>, matchSoFar: MatchResult) => MatchResult
   nodeType?: keyof typeof t.namedTypes
 }
 
@@ -90,9 +90,9 @@ export default function compileMatcher(
       debug: indentDebug(debug, 1),
     })
     return {
-      match: (path: ASTPath<any>): MatchResult => {
+      match: (path: ASTPath<any>, matchSoFar: MatchResult): MatchResult => {
         debug('%s (specific)', query.type)
-        const result = compiled.match(path)
+        const result = compiled.match(path, matchSoFar)
         if (result) {
           if (result === true) debug('  matched')
           return typeof result === 'object' ? result : {}

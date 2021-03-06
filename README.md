@@ -200,3 +200,15 @@ A spread property that isn't of the form `/^\$[a-z0-9]+$/i` is not a capture var
 match `{ ...$foo }` (leading `$$` is an escape for `$`).
 
 There is currently no way to match properties in a specific order, but it could be added in the future.
+
+## Backreferences
+
+If you use the same capture variable more than once, subsequent positions will have to match what was captured for the first occurrence of the variable.
+
+For example, the pattern `foo($a, $a, $b, $b)` will match only `foo(1, 1, {foo: 1}, {foo: 1})` in the following:
+
+```js
+foo(1, 1, { foo: 1 }, { foo: 1 })
+foo(1, 2, { foo: 1 }, { foo: 1 })
+foo(1, 1, { foo: 1 }, { bar: 1 })
+```

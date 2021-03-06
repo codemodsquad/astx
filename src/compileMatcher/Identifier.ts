@@ -1,4 +1,5 @@
 import { ASTPath, Identifier } from 'jscodeshift'
+import areASTsEqual from '../util/areASTsEqual'
 import { CompiledMatcher, CompileOptions, MatchResult } from './'
 
 export default function compileIdentifierMatcher(
@@ -10,8 +11,12 @@ export default function compileIdentifierMatcher(
   if (captureName) {
     const whereCondition = compileOptions?.where?.[captureName]
     return {
-      match: (path: ASTPath): MatchResult => {
+      match: (path: ASTPath, matchSoFar: MatchResult): MatchResult => {
         debug('Placeholder', query.name)
+        const existingCapture = matchSoFar?.captures?.[captureName]
+        if (existingCapture) {
+          return areASTsEqual(existingCapture.node, path.node) ? {} : null
+        }
         if (whereCondition && !whereCondition(path)) {
           debug('  where condition returned false')
           return null

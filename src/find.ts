@@ -32,7 +32,7 @@ export default function find<Node extends ASTNode>(
 
   for (const nodeType of nodeTypes) {
     root.find(j[nodeType]).forEach((path: ASTPath<any>) => {
-      const result = matcher.match(path)
+      const result = matcher.match(path, null)
       if (result) {
         const match: Match<Node> = { path, node: path.node }
         const {

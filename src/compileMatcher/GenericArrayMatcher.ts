@@ -19,7 +19,7 @@ export default function compileGenericArrayMatcher(
     })
   )
   return {
-    match: (path: ASTPath): MatchResult => {
+    match: (path: ASTPath, matchSoFar: MatchResult): MatchResult => {
       let captures: MatchResult = null
 
       debug('Array')
@@ -37,9 +37,10 @@ export default function compileGenericArrayMatcher(
       }
       for (let i = 0; i < elemMatchers.length; i++) {
         debug('  [%d]', i)
-        const result = elemMatchers[i].match(path.get(i))
+        const result = elemMatchers[i].match(path.get(i), matchSoFar)
         if (!result) return null
         captures = mergeCaptures(captures, result)
+        matchSoFar = mergeCaptures(matchSoFar, result)
       }
       return captures || {}
     },
