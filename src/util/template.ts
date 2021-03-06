@@ -5,14 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import {
-  ArrowFunctionExpression,
-  ASTNode,
-  Expression,
-  JSCodeshift,
-  Parser,
-  Statement,
-} from 'jscodeshift'
+import { ASTNode, Expression, JSCodeshift, Statement } from 'jscodeshift'
 import * as recast from 'recast'
 
 const builders = recast.types.builders
