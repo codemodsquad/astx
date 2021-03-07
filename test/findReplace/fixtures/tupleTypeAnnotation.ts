@@ -17,3 +17,10 @@ export const expectedFind = [
     },
   },
 ]
+
+export const replace = `type $a = [$_b, 1, Z, $c]`
+
+export const expectedReplace = `
+type W = [X, Y, 1, Z, Foo]
+type Bar = [A, B, C]
+`

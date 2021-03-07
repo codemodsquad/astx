@@ -85,7 +85,7 @@ export function replaceArrayCaptures(
         (parent.node.type !== 'ObjectProperty' &&
           parent.node.type !== 'Property') ||
         !parent.node.shorthand ||
-        !path.node === parent.node.value
+        path.node !== parent.node.value
       )
     })
     .forEach(doReplace)

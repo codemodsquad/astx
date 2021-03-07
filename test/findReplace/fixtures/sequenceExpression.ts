@@ -17,3 +17,10 @@ export const expectedFind = [
     },
   },
 ]
+
+export const replace = `const $a = (z, 2, $_b, $c, 5)`
+
+export const expectedReplace = `
+const w = (z, 2, x, y, foo, 5)
+const bar = (a, b, c)
+`

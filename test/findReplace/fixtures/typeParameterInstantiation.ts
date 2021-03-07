@@ -18,3 +18,10 @@ export const expectedFind = [
     },
   },
 ]
+
+export const replace = `type $2 = $a<$_b, number, $1>`
+
+export const expectedReplace = `
+type Bar = W<X, Y, number, Foo>
+type Baz = Qux<A, B, C>
+`

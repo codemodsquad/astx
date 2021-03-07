@@ -220,7 +220,7 @@ and the statements before and after that throw statement will get captured in `$
 | Type                                                  | Supports list matching?                    |
 | ----------------------------------------------------- | ------------------------------------------ |
 | `ArrayExpression.elements`                            | ✅                                         |
-| `ArrayPattern.elements`                               | TODO                                       |
+| `ArrayPattern.elements`                               | ✅                                         |
 | `BlockStatement.body`                                 | ✅                                         |
 | `CallExpression.arguments`                            | TODO                                       |
 | `Class(Declaration/Expression).implements`            | ✅                                         |
@@ -240,14 +240,14 @@ and the statements before and after that throw statement will get captured in `$
 | `ImportDeclaration.specifiers`                        | TODO                                       |
 | `(TS)InterfaceDeclaration.body`                       | TODO                                       |
 | `(TS)InterfaceDeclaration.extends`                    | TODO                                       |
-| `IntersectionTypeAnnotation/TSIntersectionType.types` | TODO                                       |
+| `IntersectionTypeAnnotation/TSIntersectionType.types` | ✅                                         |
 | `JSX(Element/Fragment).children`                      | TODO                                       |
 | `JSX(Opening)Element.attributes`                      | TODO                                       |
 | `MethodDefinition.decorators`                         | TODO                                       |
 | `NewExpression.arguments`                             | TODO                                       |
 | `ObjectExpression.properties`                         | ✅                                         |
 | `ObjectPattern.decorators`                            | TODO                                       |
-| `ObjectPattern.properties`                            | TODO                                       |
+| `ObjectPattern.properties`                            | ✅                                         |
 | `(ObjectTypeAnnotation/TSTypeLiteral).properties`     | TODO                                       |
 | `Program.body`                                        | TODO                                       |
 | `Property.decorators`                                 | TODO                                       |
@@ -271,7 +271,7 @@ and the statements before and after that throw statement will get captured in `$
 | `TupleTypeAnnotation/TSTupleType.types`               | ✅                                         |
 | `(TS)TypeParameterDeclaration`                        | ✅                                         |
 | `(TS)TypeParameterInstantiation`                      | ✅                                         |
-| `UnionTypeAnnotation/TSUnionType.types`               | TODO                                       |
+| `UnionTypeAnnotation/TSUnionType.types`               | ✅                                         |
 | `VariableDeclaration.declarations`                    | TODO                                       |
 | `WithStatement.body`                                  | ❌ who uses with statements...             |
 
