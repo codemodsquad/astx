@@ -12,6 +12,8 @@ structural search and replace for JavaScript and TypeScript, using jscodeshift
 
 <!-- toc -->
 
+- [astx](#astx)
+- [Table of Contents](#table-of-contents)
 - [Introduction](#introduction)
 - [Prior art and philosophy](#prior-art-and-philosophy)
 - [API](#api)
@@ -30,6 +32,9 @@ structural search and replace for JavaScript and TypeScript, using jscodeshift
   - [class MatchArray](#class-matcharray)
 - [Match Patterns](#match-patterns)
   - [Object Matching](#object-matching)
+  - [List Matching](#list-matching)
+    - [Support Table](#support-table)
+  - [Backreferences](#backreferences)
 
 <!-- tocstop -->
 
@@ -200,6 +205,32 @@ A spread property that isn't of the form `/^\$[a-z0-9]+$/i` is not a capture var
 match `{ ...$foo }` (leading `$$` is an escape for `$`).
 
 There is currently no way to match properties in a specific order, but it could be added in the future.
+
+## List Matching
+
+In many cases where there is a list of nodes in the AST (for example function arguments, array elements, tuple type elements, etc. but not currently objects) you can match
+multiple elements with a capture variable starting with `$_`. For example, `[$_before, 3, $_after]` will match any array expression containing an element `3`; elements before the
+first `3` will be captured in `$_before` and elements after the first `3` will be captured in `$_after`.
+
+This works even with block statements. For example, `function foo() { $_before; throw new Error('test'); $_after; }` will match `function foo()` that contains a `throw new Error('test')`,
+and the statements before and after that throw statement will get captured in `$_before` and `$_after`, respectively.
+
+### Support Table
+
+| Type                                   | Supports variable length captures? |
+| -------------------------------------- | ---------------------------------- |
+| `ArrayExpression`                      | ✅                                 |
+| `BlockStatement`                       | ✅                                 |
+| `Function.params`                      | ✅                                 |
+| `ObjectExpression`                     | TODO                               |
+| `ObjectTypeAnnotation`/`TSTypeLiteral` | TODO                               |
+| `Program.body`                         | TODO                               |
+| `Class.body`                           | TODO                               |
+| `Interface.body`                       | TODO                               |
+| `SequenceExpression`                   | ✅                                 |
+| `TupleTypeAnnotation`/`TSTupleType`    | ✅                                 |
+| `(TS)TypeParameterDeclaration`         | ✅                                 |
+| `(TS)TypeParameterInstantiation`       | ✅                                 |
 
 ## Backreferences
 

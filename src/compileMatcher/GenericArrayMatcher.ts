@@ -3,7 +3,6 @@ import compileMatcher, {
   CompiledMatcher,
   CompileOptions,
   MatchResult,
-  mergeCaptures,
 } from './'
 import indentDebug from './indentDebug'
 
@@ -20,8 +19,6 @@ export default function compileGenericArrayMatcher(
   )
   return {
     match: (path: ASTPath, matchSoFar: MatchResult): MatchResult => {
-      let captures: MatchResult = null
-
       debug('Array')
       if (!Array.isArray(path.value)) {
         debug('  path.value is not an array')
@@ -37,12 +34,10 @@ export default function compileGenericArrayMatcher(
       }
       for (let i = 0; i < elemMatchers.length; i++) {
         debug('  [%d]', i)
-        const result = elemMatchers[i].match(path.get(i), matchSoFar)
-        if (!result) return null
-        captures = mergeCaptures(captures, result)
-        matchSoFar = mergeCaptures(matchSoFar, result)
+        matchSoFar = elemMatchers[i].match(path.get(i), matchSoFar)
+        if (!matchSoFar) return null
       }
-      return captures || {}
+      return matchSoFar || {}
     },
   }
 }

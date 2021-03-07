@@ -32,19 +32,21 @@ export function formatMatches(
   function toSource(path: ASTPath<any>): string {
     return j([path]).toSource()
   }
-  return matches.map(({ path, pathCaptures, arrayPathCaptures }) => {
-    const result: {
+  const result = []
+  matches.forEach(({ path, pathCaptures, arrayPathCaptures }) => {
+    const match: {
       node: string
       captures?: Record<string, string>
       arrayCaptures?: Record<string, string[]>
     } = { node: toSource(path) }
-    if (pathCaptures) result.captures = mapValues(pathCaptures, toSource)
+    if (pathCaptures) match.captures = mapValues(pathCaptures, toSource)
     if (arrayPathCaptures)
-      result.arrayCaptures = mapValues(arrayPathCaptures, (paths) =>
+      match.arrayCaptures = mapValues(arrayPathCaptures, (paths) =>
         paths.map(toSource)
       )
-    return result
+    result.push(match)
   })
+  return result
 }
 
 describe(`find`, function () {

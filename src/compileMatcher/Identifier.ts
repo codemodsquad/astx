@@ -1,6 +1,6 @@
 import { ASTPath, Identifier } from 'jscodeshift'
 import areASTsEqual from '../util/areASTsEqual'
-import { CompiledMatcher, CompileOptions, MatchResult } from './'
+import { CompiledMatcher, CompileOptions, MatchResult, mergeCaptures } from './'
 
 export default function compileIdentifierMatcher(
   query: Identifier,
@@ -15,27 +15,29 @@ export default function compileIdentifierMatcher(
         debug('Placeholder', query.name)
         const existingCapture = matchSoFar?.captures?.[captureName]
         if (existingCapture) {
-          return areASTsEqual(existingCapture.node, path.node) ? {} : null
+          return areASTsEqual(existingCapture.node, path.node)
+            ? matchSoFar || {}
+            : null
         }
         if (whereCondition && !whereCondition(path)) {
           debug('  where condition returned false')
           return null
         }
         debug('  captured as %s', captureName)
-        return { captures: { [captureName]: path } }
+        return mergeCaptures(matchSoFar, { captures: { [captureName]: path } })
       },
     }
   } else {
     const escaped = query.name.replace(/^\$\$/g, '$')
     return {
-      match: (path: ASTPath): MatchResult => {
+      match: (path: ASTPath, matchSoFar: MatchResult): MatchResult => {
         debug('Identifier', escaped)
         if (path.node?.type !== 'Identifier') {
           debug(`  node is a %s`, path.node?.type)
           return null
         } else if (path.node.name === escaped) {
           debug('  %s === %s', path.node.name, escaped)
-          return {}
+          return matchSoFar || {}
         } else {
           debug(`  %s !== %s`, path.node.name, escaped)
           return null

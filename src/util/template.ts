@@ -85,7 +85,7 @@ function replaceNodes(
   jscodeshift: JSCodeshift
 ) {
   const ast = jscodeshift(src).nodes()[0]
-  if (ast.errors?.length) {
+  if (ast.type === 'File' ? ast.program.errors?.length : ast.errors?.length) {
     // Flow parser returns a bogus AST instead of throwing when the grammar is invalid,
     // but it at least includes parse errors in this array
     throw new Error(ast.errors[0].message)

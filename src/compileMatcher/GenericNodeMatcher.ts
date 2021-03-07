@@ -3,7 +3,6 @@ import compileMatcher, {
   CompiledMatcher,
   CompileOptions,
   MatchResult,
-  mergeCaptures,
 } from './index'
 import t from 'ast-types'
 import indentDebug from './indentDebug'
@@ -15,9 +14,14 @@ function isCompatibleType(path: ASTPath<any>, query: ASTNode): boolean {
   return false
 }
 
+type GenericNodeMatcherOptions = {
+  keyMatchers?: Record<string, CompiledMatcher>
+}
+
 export default function compileGenericNodeMatcher(
   query: ASTNode,
-  compileOptions: CompileOptions
+  compileOptions: CompileOptions,
+  options?: GenericNodeMatcherOptions
 ): CompiledMatcher {
   const { debug } = compileOptions
   const keyMatchers: Record<string, CompiledMatcher> = Object.fromEntries(
@@ -25,18 +29,23 @@ export default function compileGenericNodeMatcher(
       .getFieldNames(query)
       .filter((key) => key !== 'type')
       .map((key: string): [string, CompiledMatcher] => {
+        const override = options?.keyMatchers?.[key]
+        if (override) return [key, override]
         const value = (query as any)[key]
         if (typeof value !== 'object' || value == null) {
           return [
             key,
             {
-              match: (path: ASTPath<any>): MatchResult => {
+              match: (
+                path: ASTPath<any>,
+                matchSoFar: MatchResult
+              ): MatchResult => {
                 if (value !== path.node[key]) {
                   debug('    %s !== %s', value, path.node[key])
                   return null
                 } else {
                   debug('    %s === %s', value, path.node[key])
-                  return {}
+                  return matchSoFar || {}
                 }
               },
             },
@@ -55,19 +64,15 @@ export default function compileGenericNodeMatcher(
 
   return {
     match: (path: ASTPath<any>, matchSoFar: MatchResult): MatchResult => {
-      let captures: MatchResult = null
-
       debug('%s (generic)', query.type)
       if (path.node?.type === query.type || isCompatibleType(path, query)) {
         for (const key in keyMatchers) {
           debug('  .%s', key)
           const matcher = keyMatchers[key]
-          const result = matcher.match(path.get(key), matchSoFar)
-          if (!result) return null
-          captures = mergeCaptures(captures, result)
-          matchSoFar = mergeCaptures(matchSoFar, result)
+          matchSoFar = matcher.match(path.get(key), matchSoFar)
+          if (!matchSoFar) return null
         }
-        return captures || {}
+        return matchSoFar || {}
       } else {
         debug(
           '  path.node?.type (%s) is not compatible with query.type (%s)',

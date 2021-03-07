@@ -91,8 +91,6 @@ export default function compileObjectExpressionMatcher(
   }
   return {
     match: (path: ASTPath<any>, matchSoFar: MatchResult): MatchResult => {
-      let captures: MatchResult = null
-
       const { node } = path
       if (node.type !== query.type) return null
       const remainingSimpleProperties = new Map(simpleProperties.entries())
@@ -111,20 +109,18 @@ export default function compileObjectExpressionMatcher(
           if (matcher) {
             const result = matcher.match(propertyPath, matchSoFar)
             if (!result) return null
+            matchSoFar = result
             matched = true
             remainingSimpleProperties.delete(simpleKey)
-            captures = mergeCaptures(captures, result)
-            matchSoFar = mergeCaptures(matchSoFar, result)
           }
         } else {
           debug('(other)')
           for (const otherMatcher of remainingOtherProperties) {
             const result = otherMatcher.match(propertyPath, matchSoFar)
             if (!result) continue
+            matchSoFar = result
             matched = true
             remainingOtherProperties.delete(otherMatcher)
-            captures = mergeCaptures(captures, result)
-            matchSoFar = mergeCaptures(matchSoFar, result)
           }
         }
         if (!matched) {
@@ -152,11 +148,11 @@ export default function compileObjectExpressionMatcher(
       }
 
       if (captureRestVariable && capturedRestProperties) {
-        captures = mergeCaptures(captures, {
+        matchSoFar = mergeCaptures(matchSoFar, {
           arrayCaptures: { [captureRestVariable]: capturedRestProperties },
         })
       }
-      return captures || {}
+      return matchSoFar || {}
     },
     nodeType: 'ObjectExpression',
   }
