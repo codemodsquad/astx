@@ -2,7 +2,7 @@ import { describe, it } from 'mocha'
 import { expect } from 'chai'
 import Astx from '../src/Astx'
 import j from 'jscodeshift'
-import { formatMatches } from './find'
+import { formatMatches } from './findReplace'
 
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
