@@ -217,6 +217,8 @@ and the statements before and after that throw statement will get captured in `$
 
 ### Support Table
 
+Some items marked TODO probably actually work, but are untested.
+
 | Type                                                  | Supports list matching?                    |
 | ----------------------------------------------------- | ------------------------------------------ |
 | `ArrayExpression.elements`                            | ✅                                         |
