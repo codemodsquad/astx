@@ -1,8 +1,10 @@
 import { ASTNode, ASTPath } from 'jscodeshift'
+import areASTsEqual from '../util/areASTsEqual'
 import compileMatcher, {
   CompiledMatcher,
   CompileOptions,
   MatchResult,
+  mergeCaptures,
 } from './'
 import indentDebug from './indentDebug'
 
@@ -11,12 +13,132 @@ export default function compileGenericArrayMatcher(
   compileOptions: CompileOptions
 ): CompiledMatcher {
   const { debug } = compileOptions
-  const elemMatchers: CompiledMatcher[] = query.map((queryElem) =>
+  const matchers: CompiledMatcher[] = query.map((queryElem) =>
     compileMatcher(queryElem, {
       ...compileOptions,
       debug: indentDebug(debug, 2),
     })
   )
+
+  function remainingElements(matcherIndex: number): number {
+    let count = 0
+    for (let i = matcherIndex; i < matchers.length; i++) {
+      if (!matchers[i].arrayCaptureAs) count++
+    }
+    return count
+  }
+
+  function slicePath(
+    path: ASTPath,
+    start: number,
+    end: number = path.value.length
+  ): ASTPath[] {
+    const result = []
+    for (let i = start; i < end; i++) {
+      result.push(path.get(i))
+    }
+    return result
+  }
+
+  function matchElem(
+    path: ASTPath,
+    sliceStart: number,
+    arrayIndex: number,
+    matcherIndex: number,
+    matchSoFar: MatchResult
+  ): MatchResult {
+    if (arrayIndex === path.value.length) {
+      return remainingElements(matcherIndex) === 0 ? matchSoFar || {} : null
+    }
+    if (matcherIndex === matchers.length) return null
+
+    const matcher = matchers[matcherIndex]
+    const { arrayCaptureAs, captureAs } = matcher
+    if (arrayCaptureAs) {
+      if (matcherIndex === matchers.length - 1) {
+        return mergeCaptures(matchSoFar, {
+          arrayCaptures: {
+            [arrayCaptureAs]: slicePath(path, sliceStart),
+          },
+        })
+      }
+      return matchElem(
+        path,
+        sliceStart,
+        arrayIndex,
+        matcherIndex + 1,
+        matchSoFar
+      )
+    } else {
+      const origMatchSoFar = matchSoFar
+      const prevArrayCaptureAs = matchers[matcherIndex - 1]?.arrayCaptureAs
+      const end = prevArrayCaptureAs
+        ? path.value.length - remainingElements(matcherIndex + 1)
+        : arrayIndex + 1
+      for (let i = arrayIndex; i < end; i++) {
+        matchSoFar = origMatchSoFar
+        if (captureAs) {
+          const priorCapture = matchSoFar?.captures?.[captureAs]
+          if (priorCapture) {
+            if (!areASTsEqual(priorCapture.node, path.get(i).node)) continue
+          } else {
+            matchSoFar = mergeCaptures(matchSoFar, {
+              captures: { [captureAs]: path.get(i) },
+            })
+          }
+        } else {
+          matchSoFar = matcher.match(path.get(i), matchSoFar)
+        }
+        if (!matchSoFar) continue
+        if (prevArrayCaptureAs) {
+          matchSoFar = mergeCaptures(matchSoFar, {
+            arrayCaptures: {
+              [prevArrayCaptureAs]: slicePath(path, sliceStart, i),
+            },
+          })
+        }
+        const restMatch = matchElem(
+          path,
+          i + 1,
+          i + 1,
+          matcherIndex + 1,
+          matchSoFar
+        )
+        if (!restMatch) continue
+        return restMatch
+      }
+    }
+    return null
+  }
+
+  if (matchers.some((m) => m.captureAs || m.arrayCaptureAs)) {
+    return {
+      match: (path: ASTPath, matchSoFar: MatchResult): MatchResult => {
+        debug('Array')
+        if (!Array.isArray(path.value)) {
+          debug('  path.value is not an array')
+          return null
+        }
+
+        let result = matchElem(path, 0, 0, 0, matchSoFar)
+        if (!result) return result
+
+        // make sure all * captures are present in results
+        // (if there are more than one adjacent *, all captured paths will be in the
+        // last one and the rest will be empty)
+        for (const matcher of matchers) {
+          const { arrayCaptureAs } = matcher
+          if (!arrayCaptureAs) continue
+          if (!result?.arrayCaptures?.[arrayCaptureAs])
+            result = mergeCaptures(result, {
+              arrayCaptures: { [arrayCaptureAs]: [] },
+            })
+        }
+        return result
+      },
+    }
+  }
+
   return {
     match: (path: ASTPath, matchSoFar: MatchResult): MatchResult => {
       debug('Array')
@@ -32,9 +154,9 @@ export default function compileGenericArrayMatcher(
         )
         return null
       }
-      for (let i = 0; i < elemMatchers.length; i++) {
+      for (let i = 0; i < matchers.length; i++) {
         debug('  [%d]', i)
-        matchSoFar = elemMatchers[i].match(path.get(i), matchSoFar)
+        matchSoFar = matchers[i].match(path.get(i), matchSoFar)
         if (!matchSoFar) return null
       }
       return matchSoFar || {}

@@ -1,9 +1,9 @@
-import { GenericTypeAnnotation } from 'jscodeshift'
+import { ClassImplements } from 'jscodeshift'
 import { CompiledMatcher, CompileOptions } from '.'
 import compileCaptureMatcher, { unescapeIdentifier } from './Capture'
 
-export default function compileGenericTypeAnnotationMatcher(
-  query: GenericTypeAnnotation,
+export default function compileClassImplementsMatcher(
+  query: ClassImplements,
   compileOptions: CompileOptions
 ): CompiledMatcher | void {
   if (query.id.type === 'Identifier') {

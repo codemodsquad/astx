@@ -1,19 +1,19 @@
-import { GenericTypeAnnotation } from 'jscodeshift'
+import { TSExpressionWithTypeArguments } from 'jscodeshift'
 import { CompiledMatcher, CompileOptions } from '.'
 import compileCaptureMatcher, { unescapeIdentifier } from './Capture'
 
-export default function compileGenericTypeAnnotationMatcher(
-  query: GenericTypeAnnotation,
+export default function compileTSExpressionWithTypeArgumentsMatcher(
+  query: TSExpressionWithTypeArguments,
   compileOptions: CompileOptions
 ): CompiledMatcher | void {
-  if (query.id.type === 'Identifier') {
+  if (query.expression.type === 'Identifier') {
     if (query.typeParameters == null) {
       const captureMatcher = compileCaptureMatcher(
-        query.id.name,
+        query.expression.name,
         compileOptions
       )
       if (captureMatcher) return captureMatcher
     }
-    query.id.name = unescapeIdentifier(query.id.name)
+    query.expression.name = unescapeIdentifier(query.expression.name)
   }
 }

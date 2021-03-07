@@ -1,19 +1,19 @@
-import { GenericTypeAnnotation } from 'jscodeshift'
+import { ObjectProperty } from 'jscodeshift'
 import { CompiledMatcher, CompileOptions } from '.'
 import compileCaptureMatcher, { unescapeIdentifier } from './Capture'
 
-export default function compileGenericTypeAnnotationMatcher(
-  query: GenericTypeAnnotation,
+export default function compileObjectPropertyMatcher(
+  query: ObjectProperty,
   compileOptions: CompileOptions
 ): CompiledMatcher | void {
-  if (query.id.type === 'Identifier') {
-    if (query.typeParameters == null) {
+  if (query.key.type === 'Identifier') {
+    if (query.shorthand && !query.computed && query.accessibility == null) {
       const captureMatcher = compileCaptureMatcher(
-        query.id.name,
+        query.key.name,
         compileOptions
       )
       if (captureMatcher) return captureMatcher
     }
-    query.id.name = unescapeIdentifier(query.id.name)
+    query.key.name = unescapeIdentifier(query.key.name)
   }
 }

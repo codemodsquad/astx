@@ -1,15 +1,19 @@
 import { TSTypeReference } from 'jscodeshift'
 import { CompiledMatcher, CompileOptions } from '.'
-import compileGenericNodeMatcher from './GenericNodeMatcher'
-import compileIdentifierMatcher from './Identifier'
+import compileCaptureMatcher, { unescapeIdentifier } from './Capture'
 
 export default function compileTSTypeReferenceMatcher(
   query: TSTypeReference,
   compileOptions: CompileOptions
-): CompiledMatcher {
-  if (query.typeName.type === 'Identifier' && query.typeParameters == null) {
-    const match = /^\$[a-z0-9]+/i.exec(query.typeName.name)
-    if (match) return compileIdentifierMatcher(query.typeName, compileOptions)
+): CompiledMatcher | void {
+  if (query.typeName.type === 'Identifier') {
+    if (query.typeParameters == null) {
+      const captureMatcher = compileCaptureMatcher(
+        query.typeName.name,
+        compileOptions
+      )
+      if (captureMatcher) return captureMatcher
+    }
+    query.typeName.name = unescapeIdentifier(query.typeName.name)
   }
-  return compileGenericNodeMatcher(query, compileOptions)
 }

@@ -1,30 +1,27 @@
 import { ASTPath, ASTNode } from 'jscodeshift'
 import t from 'ast-types'
 import __debug, { Debugger } from 'debug'
-import ArrayExpression from './ArrayExpression'
-import BlockStatement from './BlockStatement'
 import BooleanLiteral from './BooleanLiteral'
-import ClassBody from './ClassBody'
 import ClassDeclaration from './ClassDeclaration'
+import ClassImplements from './ClassImplements'
+import ClassProperty from './ClassProperty'
 import compileFunctionMatcher from './Function'
 import compileGenericArrayMatcher from './GenericArrayMatcher'
 import compileGenericNodeMatcher from './GenericNodeMatcher'
+import ExpressionStatement from './ExpressionStatement'
 import GenericTypeAnnotation from './GenericTypeAnnotation'
 import Identifier from './Identifier'
 import indentDebug from './indentDebug'
 import Literal from './Literal'
 import NumericLiteral from './NumericLiteral'
 import ObjectExpression from './ObjectExpression'
+import ObjectProperty from './ObjectProperty'
 import RegExpLiteral from './RegExpLiteral'
-import SequenceExpression from './SequenceExpression'
 import StringLiteral from './StringLiteral'
-import TSTupleType from './TSTupleType'
-import TSTypeParameterDeclaration from './TSTypeParameterDeclaration'
-import TSTypeParameterInstantiation from './TSTypeParameterInstantiation'
+import TSExpressionWithTypeArguments from './TSExpressionWithTypeArguments'
+import TSTypeParameter from './TSTypeParameter'
 import TSTypeReference from './TSTypeReference'
-import TupleTypeAnnotation from './TupleTypeAnnotation'
-import TypeParameterDeclaration from './TypeParameterDeclaration'
-import TypeParameterInstantiation from './TypeParameterInstantiation'
+import TypeParameter from './TypeParameter'
 
 const _debug = __debug('astx:match')
 
@@ -70,35 +67,38 @@ export type NonCapturingMatcher = {
 }
 
 export interface CompiledMatcher {
+  captureAs?: string
+  arrayCaptureAs?: string
   match: (path: ASTPath<any>, matchSoFar: MatchResult) => MatchResult
   nodeType?: keyof typeof t.namedTypes | (keyof typeof t.namedTypes)[]
 }
 
 const nodeMatchers: Record<
   string,
-  (query: any, options: CompileOptions) => CompiledMatcher | NonCapturingMatcher
+  (
+    query: any,
+    options: CompileOptions
+  ) => CompiledMatcher | NonCapturingMatcher | undefined | void
 > = {
-  ArrayExpression,
-  BlockStatement,
   BooleanLiteral,
-  ClassBody,
   ClassDeclaration,
   ClassExpression: ClassDeclaration,
+  ClassImplements,
+  ClassProperty,
+  ExpressionStatement,
   GenericTypeAnnotation,
   Identifier,
   Literal,
   NumericLiteral,
   ObjectExpression,
+  ObjectProperty,
+  Property: ObjectProperty,
   RegExpLiteral,
-  SequenceExpression,
   StringLiteral,
-  TSTupleType,
-  TSTypeParameterDeclaration,
-  TSTypeParameterInstantiation,
+  TSExpressionWithTypeArguments,
+  TSTypeParameter,
   TSTypeReference,
-  TupleTypeAnnotation,
-  TypeParameterDeclaration,
-  TypeParameterInstantiation,
+  TypeParameter,
 }
 
 export default function compileMatcher(
@@ -109,13 +109,14 @@ export default function compileMatcher(
   if (Array.isArray(query)) {
     return compileGenericArrayMatcher(query, { ...compileOptions, debug })
   } else if (nodeMatchers[query.type]) {
-    const compiled: CompiledMatcher | NonCapturingMatcher = nodeMatchers[
-      query.type
-    ](query, {
+    const compiled = nodeMatchers[query.type](query, {
       ...compileOptions,
       debug: indentDebug(debug, 1),
     })
+    if (!compiled)
+      return compileGenericNodeMatcher(query, { ...compileOptions, debug })
     return {
+      ...compiled,
       match: (path: ASTPath<any>, matchSoFar: MatchResult): MatchResult => {
         debug('%s (specific)', query.type)
         const result = compiled.match(path, matchSoFar)
@@ -127,7 +128,6 @@ export default function compileMatcher(
           return null
         }
       },
-      nodeType: compiled.nodeType,
     }
   } else if (t.namedTypes.Function.check(query)) {
     return compileFunctionMatcher(query, { ...compileOptions, debug })
