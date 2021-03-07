@@ -4,6 +4,8 @@ import __debug, { Debugger } from 'debug'
 import ArrayExpression from './ArrayExpression'
 import BlockStatement from './BlockStatement'
 import BooleanLiteral from './BooleanLiteral'
+import ClassBody from './ClassBody'
+import ClassDeclaration from './ClassDeclaration'
 import compileFunctionMatcher from './Function'
 import compileGenericArrayMatcher from './GenericArrayMatcher'
 import compileGenericNodeMatcher from './GenericNodeMatcher'
@@ -64,12 +66,12 @@ export function mergeCaptures(...results: MatchResult[]): MatchResult {
 
 export type NonCapturingMatcher = {
   match: (path: ASTPath<any>, matchSoFar: MatchResult) => boolean
-  nodeType?: keyof typeof t.namedTypes
+  nodeType?: keyof typeof t.namedTypes | (keyof typeof t.namedTypes)[]
 }
 
 export interface CompiledMatcher {
   match: (path: ASTPath<any>, matchSoFar: MatchResult) => MatchResult
-  nodeType?: keyof typeof t.namedTypes
+  nodeType?: keyof typeof t.namedTypes | (keyof typeof t.namedTypes)[]
 }
 
 const nodeMatchers: Record<
@@ -79,6 +81,9 @@ const nodeMatchers: Record<
   ArrayExpression,
   BlockStatement,
   BooleanLiteral,
+  ClassBody,
+  ClassDeclaration,
+  ClassExpression: ClassDeclaration,
   GenericTypeAnnotation,
   Identifier,
   Literal,
@@ -122,7 +127,7 @@ export default function compileMatcher(
           return null
         }
       },
-      nodeType: query.type,
+      nodeType: compiled.nodeType,
     }
   } else if (t.namedTypes.Function.check(query)) {
     return compileFunctionMatcher(query, { ...compileOptions, debug })

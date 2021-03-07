@@ -4,6 +4,7 @@ import path from 'path'
 import jscodeshift, { ASTNode } from 'jscodeshift'
 import replace, { ReplaceOptions } from '../../src/replace'
 import requireGlob from 'require-glob'
+import prettier from 'prettier'
 import { Match } from '../../src/find'
 import parseFindOrReplace from '../../src/util/parseFindOrReplace'
 
@@ -39,6 +40,16 @@ describe(`replace`, function () {
     const group = groups[parser]
 
     describe(`with parser: ${parser}`, function () {
+      const prettierOptions = {
+        parser:
+          parser === 'babylon'
+            ? 'babel-flow'
+            : parser === 'ts'
+            ? 'babel-ts'
+            : parser,
+      }
+      const format = (code: string) => prettier.format(code, prettierOptions)
+
       for (const key in group) {
         const {
           input,
@@ -65,7 +76,7 @@ describe(`replace`, function () {
               { where }
             )
             const actual = root.toSource()
-            expect(actual).to.deep.equal(expected)
+            expect(format(actual)).to.deep.equal(format(expected))
           }
         )
       }

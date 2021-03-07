@@ -81,8 +81,9 @@ export default function compileArrayMatcher(
     matcherIndex: number,
     matchSoFar: MatchResult
   ): MatchResult {
-    if (arrayIndex === path.value.length)
+    if (arrayIndex === path.value.length) {
       return remainingElements(matcherIndex) === 0 ? matchSoFar || {} : null
+    }
 
     const matcher = matchers[matcherIndex]
     switch (matcher.kind) {

@@ -12,10 +12,13 @@ export function replaceCaptures(
     const captureName = captureMatch ? captureMatch[0] : null
     const capture = captureName ? captures[captureName] : null
     if (capture) {
-      if (t.namedTypes.Statement.check(capture)) {
+      if (
+        t.namedTypes.Statement.check(capture) &&
+        !t.namedTypes.Statement.check(path.parentPath.node)
+      ) {
         if (path.parentPath.node?.type !== 'ExpressionStatement') {
           throw new Error(
-            `can't replace $a because it captured a statement, but a statement can't go in replacement position`
+            `can't replace ${captureName} because it captured a statement, but a statement can't go in replacement position`
           )
         }
         path.parentPath.replace(capture)
@@ -45,28 +48,47 @@ export function replaceArrayCaptures(
   arrayCaptures: Record<string, ASTNode[]>
 ): void {
   const doReplace = (path: ASTPath<any>) => {
-    const { parent } = path
+    const { parentPath: parent } = path
     const captureHolder = getCaptureHolder(path)
     if (!captureHolder) return
     const captureMatch = /^\$_?[a-z0-9]+/i.exec(path.node.name)
     const capture = captureMatch ? arrayCaptures[captureMatch[0]] : null
     if (!capture) return
     for (const replacement of capture) {
-      if (
-        parent.node.type === 'SpreadElement' ||
-        parent.node.type === 'SpreadProperty'
-      ) {
-        captureHolder.insertBefore(replacement)
-      } else {
-        path.replace(replacement)
-        // const replacementNode = cloneDeep(captureHolder.node)
-        captureHolder.insertBefore(cloneDeep(captureHolder.node))
+      switch (parent.node.type) {
+        case 'SpreadElement':
+        case 'SpreadProperty':
+          captureHolder.insertBefore(replacement)
+          break
+        case 'ObjectProperty':
+        case 'Property':
+          if (parent.node.shorthand && parent.node.key === path.node) {
+            captureHolder.insertBefore(replacement)
+          }
+          break
+        // eslint-disable-next-line no-fallthrough
+        default:
+          path.replace(replacement)
+          captureHolder.insertBefore(cloneDeep(captureHolder.node))
       }
     }
     captureHolder.prune()
   }
 
-  j([path]).find(j.Identifier).forEach(doReplace)
+  j([path])
+    .find(j.Identifier)
+    // filter out identifiers that are the value node of shorthand properties.
+    // it was causing problems when the value node was getting visited after the property was replaced
+    .filter((path: ASTPath<any>) => {
+      const { parentPath: parent } = path
+      return (
+        (parent.node.type !== 'ObjectProperty' &&
+          parent.node.type !== 'Property') ||
+        !parent.node.shorthand ||
+        !path.node === parent.node.value
+      )
+    })
+    .forEach(doReplace)
   j([path]).find(j.TypeParameter).forEach(doReplace)
   j([path]).find(j.TSTypeParameter).forEach(doReplace)
 }
@@ -76,9 +98,21 @@ export function replaceMatches<Node extends ASTNode>(
   replace: ASTNode | ((match: Match<Node>) => ASTNode)
 ): void {
   for (const match of matches) {
-    const [replaced] = match.path.replace(
+    const replacement =
       typeof replace === 'function' ? replace(match) : cloneDeep(replace)
-    )
+    switch (match.node.type) {
+      case 'ClassDeclaration':
+      case 'ClassExpression':
+        if (
+          replacement.type !== match.node.type &&
+          (replacement.type === 'ClassDeclaration' ||
+            replacement.type === 'ClassExpression')
+        ) {
+          replacement.type = match.node.type
+        }
+        break
+    }
+    const [replaced] = match.path.replace(replacement)
     if (match.arrayCaptures) replaceArrayCaptures(replaced, match.arrayCaptures)
     if (match.captures) replaceCaptures(replaced, match.captures)
   }

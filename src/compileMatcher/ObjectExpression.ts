@@ -1,4 +1,5 @@
 import {
+  ASTNode,
   ASTPath,
   ObjectExpression,
   ObjectMethod,
@@ -7,6 +8,7 @@ import {
   SpreadElement,
   SpreadProperty,
 } from 'jscodeshift'
+import compileGenericNodeMatcher from './GenericNodeMatcher'
 import indentDebug from './indentDebug'
 import compileMatcher, {
   CompiledMatcher,
@@ -14,6 +16,8 @@ import compileMatcher, {
   MatchResult,
   mergeCaptures,
 } from './index'
+
+import compileArrayMatcher, { ElementMatcherKind } from './AdvancedArrayMatcher'
 
 function getSimpleKey(
   property:
@@ -57,10 +61,46 @@ function getCaptureRestVariable(
   return captureMatch?.[0]
 }
 
+function hasArrayCaptures(query: ObjectExpression): boolean {
+  return query.properties.some(
+    (property) =>
+      (property.type === 'ObjectProperty' || property.type === 'Property') &&
+      property.shorthand &&
+      !property.computed &&
+      property.key.type === 'Identifier' &&
+      /^\$_?[a-z0-9]+/.test(property.key.name)
+  )
+}
+
 export default function compileObjectExpressionMatcher(
   query: ObjectExpression,
   compileOptions: CompileOptions
 ): CompiledMatcher {
+  if (hasArrayCaptures(query)) {
+    return compileGenericNodeMatcher(query, compileOptions, {
+      keyMatchers: {
+        properties: compileArrayMatcher(query.properties, compileOptions, {
+          getElementMatcherKind: (node: ASTNode): ElementMatcherKind => {
+            if (
+              (node.type === 'ObjectProperty' || node.type === 'Property') &&
+              node.shorthand &&
+              !node.computed &&
+              node.key.type === 'Identifier'
+            ) {
+              const match = /^\$_?[a-z0-9]+/i.exec(node.key.name)
+              if (match)
+                return {
+                  kind: match[0].startsWith('$_') ? '*' : '$',
+                  captureAs: match[0],
+                }
+            }
+            return { kind: 'element', query: node }
+          },
+        }),
+      },
+    })
+  }
+
   const { debug } = compileOptions
   const propertyCompileOptions = {
     ...compileOptions,

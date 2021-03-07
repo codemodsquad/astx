@@ -11,10 +11,19 @@ function isCompatibleType(path: ASTPath<any>, query: ASTNode): boolean {
   if (t.namedTypes.Function.check(query)) {
     return t.namedTypes.Function.check(path.node)
   }
+  switch (query.type) {
+    case 'ClassDeclaration':
+    case 'ClassExpression':
+      return (
+        path.node.type === 'ClassDeclaration' ||
+        path.node.type === 'ClassExpression'
+      )
+  }
   return false
 }
 
 type GenericNodeMatcherOptions = {
+  nodeType?: CompiledMatcher['nodeType']
   keyMatchers?: Record<string, CompiledMatcher>
 }
 
@@ -23,6 +32,7 @@ export default function compileGenericNodeMatcher(
   compileOptions: CompileOptions,
   options?: GenericNodeMatcherOptions
 ): CompiledMatcher {
+  const nodeType = options?.nodeType || query.type
   const { debug } = compileOptions
   const keyMatchers: Record<string, CompiledMatcher> = Object.fromEntries(
     t
@@ -82,6 +92,6 @@ export default function compileGenericNodeMatcher(
         return null
       }
     },
-    nodeType: query.type,
+    nodeType,
   }
 }

@@ -22,6 +22,6 @@ export const expected = `
 if (foo) {
   const x = 1;
   const baz = 3
-  const bar = foo;;
+  const bar = foo
 }
 `

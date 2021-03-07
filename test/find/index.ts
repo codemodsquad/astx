@@ -7,15 +7,17 @@ import Astx from '../../src/Astx'
 import requireGlob from 'require-glob'
 import mapValues from 'lodash/mapValues'
 
+type ExpectedMatch = {
+  node: string
+  captures?: Record<string, string>
+  arrayCaptures?: Record<string, string[]>
+}
+
 type Fixture = {
   input: string
   find: string
   where?: FindOptions['where']
-  expected: {
-    node: string
-    captures?: Record<string, string>
-    arrayCaptures?: Record<string, string[]>
-  }[]
+  expected: ExpectedMatch[]
   parsers?: string[]
   only?: boolean
   skip?: boolean

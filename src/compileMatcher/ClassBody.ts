@@ -1,22 +1,25 @@
-import { TypeParameterDeclaration, ASTNode } from 'jscodeshift'
+import { ASTNode, ClassBody } from 'jscodeshift'
 import { CompiledMatcher, CompileOptions } from '.'
 import compileArrayMatcher, { ElementMatcherKind } from './AdvancedArrayMatcher'
 import compileGenericNodeMatcher from './GenericNodeMatcher'
 
-export default function compileTypeParameterDeclarationMatcher(
-  query: TypeParameterDeclaration,
+export default function compileClassBodyMatcher(
+  query: ClassBody,
   compileOptions: CompileOptions
 ): CompiledMatcher {
   return compileGenericNodeMatcher(query, compileOptions, {
     keyMatchers: {
-      params: compileArrayMatcher(query.params, compileOptions, {
+      body: compileArrayMatcher(query.body, compileOptions, {
         getElementMatcherKind: (node: ASTNode): ElementMatcherKind => {
           if (
-            node.type === 'TypeParameter' &&
+            node.type === 'ClassProperty' &&
+            !node.computed &&
+            !node.static &&
             node.variance == null &&
-            node.bound == null
+            node.value == null &&
+            node.key.type === 'Identifier'
           ) {
-            const match = /^\$_?[a-z0-9]+/i.exec(node.name)
+            const match = /^\$_?[a-z0-9]+/i.exec(node.key.name)
             if (match)
               return {
                 kind: match[0].startsWith('$_') ? '*' : '$',

@@ -208,7 +208,7 @@ There is currently no way to match properties in a specific order, but it could 
 
 ## List Matching
 
-In many cases where there is a list of nodes in the AST (for example function arguments, array elements, tuple type elements, etc. but not currently objects) you can match
+In many cases where there is a list of nodes in the AST you can match
 multiple elements with a capture variable starting with `$_`. For example, `[$_before, 3, $_after]` will match any array expression containing an element `3`; elements before the
 first `3` will be captured in `$_before` and elements after the first `3` will be captured in `$_after`.
 
@@ -217,20 +217,26 @@ and the statements before and after that throw statement will get captured in `$
 
 ### Support Table
 
-| Type                                   | Supports variable length captures? |
-| -------------------------------------- | ---------------------------------- |
-| `ArrayExpression`                      | ✅                                 |
-| `BlockStatement`                       | ✅                                 |
-| `Function.params`                      | ✅                                 |
-| `ObjectExpression`                     | TODO                               |
-| `ObjectTypeAnnotation`/`TSTypeLiteral` | TODO                               |
-| `Program.body`                         | TODO                               |
-| `Class.body`                           | TODO                               |
-| `Interface.body`                       | TODO                               |
-| `SequenceExpression`                   | ✅                                 |
-| `TupleTypeAnnotation`/`TSTupleType`    | ✅                                 |
-| `(TS)TypeParameterDeclaration`         | ✅                                 |
-| `(TS)TypeParameterInstantiation`       | ✅                                 |
+| Type                                       | Supports variable length captures? |
+| ------------------------------------------ | ---------------------------------- |
+| `ArrayExpression`                          | ✅                                 |
+| `BlockStatement`                           | ✅                                 |
+| `Function.params`                          | ✅                                 |
+| `ObjectExpression`                         | ✅                                 |
+| `ObjectTypeAnnotation`/`TSTypeLiteral`     | TODO                               |
+| `Program.body`                             | TODO                               |
+| `ClassBody.body`                           | ✅                                 |
+| `Class(Declaration/Expression).implements` | ✅                                 |
+| `DeclareClass.body`                        | TODO                               |
+| `DeclareClass.implements`                  | TODO                               |
+| `(TS)InterfaceDeclaration.body`            | TODO                               |
+| `(TS)InterfaceDeclaration.extends`         | TODO                               |
+| `DeclareInterface.body`                    | TODO                               |
+| `DeclareInterface.extends`                 | TODO                               |
+| `SequenceExpression`                       | ✅                                 |
+| `TupleTypeAnnotation`/`TSTupleType`        | ✅                                 |
+| `(TS)TypeParameterDeclaration`             | ✅                                 |
+| `(TS)TypeParameterInstantiation`           | ✅                                 |
 
 ## Backreferences
 
