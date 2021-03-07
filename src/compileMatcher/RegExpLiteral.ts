@@ -1,12 +1,13 @@
 import { ASTPath, RegExpLiteral } from 'jscodeshift'
 import sortFlags from './sortFlags'
-import { NonCapturingMatcher } from './index'
+import { PredicateMatcher } from './index'
 
 export default function matchRegExpLiteral(
   query: RegExpLiteral
-): NonCapturingMatcher {
+): PredicateMatcher {
   const queryFlags = sortFlags(query.flags)
   return {
+    predicate: true,
     match: (path: ASTPath<any>): boolean => {
       const { node } = path
       return (

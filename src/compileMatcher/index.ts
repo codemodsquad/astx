@@ -11,7 +11,6 @@ import compileGenericNodeMatcher from './GenericNodeMatcher'
 import ExpressionStatement from './ExpressionStatement'
 import GenericTypeAnnotation from './GenericTypeAnnotation'
 import Identifier from './Identifier'
-import indentDebug from './indentDebug'
 import Literal from './Literal'
 import NumericLiteral from './NumericLiteral'
 import ObjectExpression from './ObjectExpression'
@@ -61,12 +60,14 @@ export function mergeCaptures(...results: MatchResult[]): MatchResult {
   return current
 }
 
-export type NonCapturingMatcher = {
+export type PredicateMatcher = {
+  predicate: true
   match: (path: ASTPath<any>, matchSoFar: MatchResult) => boolean
   nodeType?: keyof typeof t.namedTypes | (keyof typeof t.namedTypes)[]
 }
 
 export interface CompiledMatcher {
+  predicate?: false
   captureAs?: string
   arrayCaptureAs?: string
   match: (path: ASTPath<any>, matchSoFar: MatchResult) => MatchResult
@@ -78,7 +79,7 @@ const nodeMatchers: Record<
   (
     query: any,
     options: CompileOptions
-  ) => CompiledMatcher | NonCapturingMatcher | undefined | void
+  ) => CompiledMatcher | PredicateMatcher | undefined | void
 > = {
   BooleanLiteral,
   ClassDeclaration,
@@ -101,6 +102,27 @@ const nodeMatchers: Record<
   TypeParameter,
 }
 
+function convertPredicateMatcher(
+  query: ASTNode,
+  matcher: PredicateMatcher,
+  debug: Debugger
+): CompiledMatcher {
+  return {
+    nodeType: matcher.nodeType,
+    match: (path: ASTPath<any>, matchSoFar: MatchResult): MatchResult => {
+      debug('%s (specific)', query.type)
+      const result = matcher.match(path, matchSoFar)
+      if (result) {
+        if (result === true) debug('  matched')
+        return typeof result === 'object' ? result : matchSoFar || {}
+      } else {
+        if (result === false) debug(`  didn't match`)
+        return null
+      }
+    },
+  }
+}
+
 export default function compileMatcher(
   query: ASTNode | ASTNode[],
   compileOptions: RootCompileOptions = {}
@@ -109,29 +131,17 @@ export default function compileMatcher(
   if (Array.isArray(query)) {
     return compileGenericArrayMatcher(query, { ...compileOptions, debug })
   } else if (nodeMatchers[query.type]) {
-    const compiled = nodeMatchers[query.type](query, {
+    const matcher = nodeMatchers[query.type](query, {
       ...compileOptions,
-      debug: indentDebug(debug, 1),
+      debug,
     })
-    if (!compiled)
-      return compileGenericNodeMatcher(query, { ...compileOptions, debug })
-    return {
-      ...compiled,
-      match: (path: ASTPath<any>, matchSoFar: MatchResult): MatchResult => {
-        debug('%s (specific)', query.type)
-        const result = compiled.match(path, matchSoFar)
-        if (result) {
-          if (result === true) debug('  matched')
-          return typeof result === 'object' ? result : matchSoFar || {}
-        } else {
-          if (result === false) debug(`  didn't match`)
-          return null
-        }
-      },
+    if (matcher) {
+      return matcher.predicate
+        ? convertPredicateMatcher(query, matcher, debug)
+        : matcher
     }
   } else if (t.namedTypes.Function.check(query)) {
     return compileFunctionMatcher(query, { ...compileOptions, debug })
-  } else {
-    return compileGenericNodeMatcher(query, { ...compileOptions, debug })
   }
+  return compileGenericNodeMatcher(query, { ...compileOptions, debug })
 }

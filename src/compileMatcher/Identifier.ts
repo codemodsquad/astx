@@ -1,16 +1,17 @@
 import { ASTPath, Identifier } from 'jscodeshift'
-import { CompiledMatcher, CompileOptions, NonCapturingMatcher } from './'
+import { CompiledMatcher, CompileOptions, PredicateMatcher } from './'
 import compileCaptureMatcher, { unescapeIdentifier } from './Capture'
 
 export default function compileIdentifierMatcher(
   query: Identifier,
   compileOptions: CompileOptions
-): CompiledMatcher | NonCapturingMatcher {
+): CompiledMatcher | PredicateMatcher {
   const { debug } = compileOptions
   const captureMatcher = compileCaptureMatcher(query.name, compileOptions)
   if (captureMatcher) return captureMatcher
   const name = unescapeIdentifier(query.name)
   return {
+    predicate: true,
     match: (path: ASTPath): boolean => {
       debug('Identifier', name)
       if (path.node?.type !== 'Identifier') {

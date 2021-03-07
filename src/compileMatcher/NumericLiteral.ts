@@ -1,10 +1,11 @@
 import { ASTPath, NumericLiteral } from 'jscodeshift'
-import { NonCapturingMatcher } from './index'
+import { PredicateMatcher } from './index'
 
 export default function matchNumericLiteral(
   query: NumericLiteral
-): NonCapturingMatcher {
+): PredicateMatcher {
   return {
+    predicate: true,
     match: (path: ASTPath<any>): boolean => {
       const { node } = path
       return node.type === 'NumericLiteral' && query.value === node.value
