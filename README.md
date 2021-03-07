@@ -34,7 +34,7 @@ structural search and replace for JavaScript and TypeScript, using jscodeshift
   - [Object Matching](#object-matching)
   - [List Matching](#list-matching)
     - [Support Table](#support-table)
-  - [Backreferences](#backreferences)
+  - [| Backreferences](#-backreferences)
 
 <!-- tocstop -->
 
@@ -219,65 +219,65 @@ and the statements before and after that throw statement will get captured in `$
 
 Some items marked TODO probably actually work, but are untested.
 
-| Type                                                  | Supports list matching?                    |
-| ----------------------------------------------------- | ------------------------------------------ |
-| `ArrayExpression.elements`                            | ✅                                         |
-| `ArrayPattern.elements`                               | ✅                                         |
-| `BlockStatement.body`                                 | ✅                                         |
-| `CallExpression.arguments`                            | ✅                                         |
-| `Class(Declaration/Expression).implements`            | ✅                                         |
-| `ClassBody.body`                                      | ✅                                         |
-| `ComprehensionExpression.blocks`                      | TODO                                       |
-| `DeclareClass.body`                                   | TODO                                       |
-| `DeclareClass.implements`                             | TODO                                       |
-| `DeclareExportDeclaration.specifiers`                 | TODO                                       |
-| `DeclareInterface.body`                               | TODO                                       |
-| `DeclareInterface.extends`                            | TODO                                       |
-| `DoExpression.body`                                   | TODO                                       |
-| `ExportNamedDeclaration.specifiers`                   | ✅                                         |
-| `Function.decorators`                                 | TODO                                       |
-| `Function.params`                                     | ✅                                         |
-| `FunctionTypeAnnotation/TSFunctionType.params`        | ✅                                         |
-| `GeneratorExpression.blocks`                          | TODO                                       |
-| `ImportDeclaration.specifiers`                        | TODO                                       |
-| `(TS)InterfaceDeclaration.body`                       | TODO                                       |
-| `(TS)InterfaceDeclaration.extends`                    | TODO                                       |
-| `IntersectionTypeAnnotation/TSIntersectionType.types` | ✅                                         |
-| `JSX(Element/Fragment).children`                      | TODO                                       |
-| `JSX(Opening)Element.attributes`                      | TODO                                       |
-| `MethodDefinition.decorators`                         | TODO                                       |
-| `NewExpression.arguments`                             | TODO                                       |
-| `ObjectExpression.properties`                         | ✅                                         |
-| `ObjectPattern.decorators`                            | TODO                                       |
-| `ObjectPattern.properties`                            | ✅                                         |
-| `(ObjectTypeAnnotation/TSTypeLiteral).properties`     | ✅                                         |
-| `Program.body`                                        | TODO                                       |
-| `Property.decorators`                                 | TODO                                       |
-| `SequenceExpression`                                  | ✅                                         |
-| `SwitchCase.consequent`                               | ✅                                         |
-| `SwitchStatement.cases`                               | TODO                                       |
-| `TemplateLiteral.quasis/expressions`                  | ❓ not sure if I can come up with a syntax |
-| `TryStatement.guardedHandlers`                        | TODO                                       |
-| `TryStatement.handlers`                               | TODO                                       |
-| `TSFunctionType.parameters`                           | TODO                                       |
-| `TSCallSignatureDeclaration.parameters`               | TODO                                       |
-| `TSConstructorType.parameters`                        | TODO                                       |
-| `TSConstructSignatureDeclaration.parameters`          | TODO                                       |
-| `TSDeclareFunction.params`                            | TODO                                       |
-| `TSDeclareMethod.params`                              | TODO                                       |
-| `TSEnumDeclaration.members`                           | TODO                                       |
-| `TSIndexSignature.parameters`                         | TODO                                       |
-| `TSMethodSignature.parameters`                        | TODO                                       |
-| `TSModuleBlock.body`                                  | TODO                                       |
-| `TSTypeLiteral.members`                               | ✅                                         |
-| `TupleTypeAnnotation/TSTupleType.types`               | ✅                                         |
-| `(TS)TypeParameterDeclaration`                        | ✅                                         |
-| `(TS)TypeParameterInstantiation`                      | ✅                                         |
-| `UnionTypeAnnotation/TSUnionType.types`               | ✅                                         |
-| `VariableDeclaration.declarations`                    | ✅                                         |
-| `WithStatement.body`                                  | ❌ who uses with statements...             |
+| Type                                                  | Supports list matching?                    | Notes                                                             |
+| ----------------------------------------------------- | ------------------------------------------ | ----------------------------------------------------------------- |
+| `ArrayExpression.elements`                            | ✅                                         |                                                                   |
+| `ArrayPattern.elements`                               | ✅                                         |                                                                   |
+| `BlockStatement.body`                                 | ✅                                         |                                                                   |
+| `CallExpression.arguments`                            | ✅                                         |                                                                   |
+| `Class(Declaration/Expression).implements`            | ✅                                         |                                                                   |
+| `ClassBody.body`                                      | ✅                                         |                                                                   |
+| `ComprehensionExpression.blocks`                      | TODO                                       |                                                                   |
+| `DeclareClass.body`                                   | TODO                                       |                                                                   |
+| `DeclareClass.implements`                             | TODO                                       |                                                                   |
+| `DeclareExportDeclaration.specifiers`                 | TODO                                       |                                                                   |
+| `DeclareInterface.body`                               | TODO                                       |                                                                   |
+| `DeclareInterface.extends`                            | TODO                                       |                                                                   |
+| `DoExpression.body`                                   | TODO                                       |                                                                   |
+| `ExportNamedDeclaration.specifiers`                   | ✅                                         |                                                                   |
+| `Function.decorators`                                 | TODO                                       |                                                                   |
+| `Function.params`                                     | ✅                                         |                                                                   |
+| `FunctionTypeAnnotation/TSFunctionType.params`        | ✅                                         |                                                                   |
+| `GeneratorExpression.blocks`                          | TODO                                       |                                                                   |
+| `ImportDeclaration.specifiers`                        | TODO                                       |                                                                   |
+| `(TS)InterfaceDeclaration.body`                       | TODO                                       |                                                                   |
+| `(TS)InterfaceDeclaration.extends`                    | TODO                                       |                                                                   |
+| `IntersectionTypeAnnotation/TSIntersectionType.types` | ✅                                         |                                                                   |
+| `JSX(Element/Fragment).children`                      | TODO                                       |                                                                   |
+| `JSX(Opening)Element.attributes`                      | TODO                                       |                                                                   |
+| `MethodDefinition.decorators`                         | TODO                                       |                                                                   |
+| `NewExpression.arguments`                             | TODO                                       |                                                                   |
+| `ObjectExpression.properties`                         | ✅                                         |                                                                   |
+| `ObjectPattern.decorators`                            | TODO                                       |                                                                   |
+| `ObjectPattern.properties`                            | ✅                                         |                                                                   |
+| `(ObjectTypeAnnotation/TSTypeLiteral).properties`     | ✅                                         | Use `$a: any` to match one property, `$_a: any` to match multiple |
+| `Program.body`                                        | TODO                                       |                                                                   |
+| `Property.decorators`                                 | TODO                                       |                                                                   |
+| `SequenceExpression`                                  | ✅                                         |                                                                   |
+| `SwitchCase.consequent`                               | ✅                                         |                                                                   |
+| `SwitchStatement.cases`                               | TODO                                       |                                                                   |
+| `TemplateLiteral.quasis/expressions`                  | ❓ not sure if I can come up with a syntax |                                                                   |
+| `TryStatement.guardedHandlers`                        | TODO                                       |                                                                   |
+| `TryStatement.handlers`                               | TODO                                       |                                                                   |
+| `TSFunctionType.parameters`                           | TODO                                       |                                                                   |
+| `TSCallSignatureDeclaration.parameters`               | TODO                                       |                                                                   |
+| `TSConstructorType.parameters`                        | TODO                                       |                                                                   |
+| `TSConstructSignatureDeclaration.parameters`          | TODO                                       |                                                                   |
+| `TSDeclareFunction.params`                            | TODO                                       |                                                                   |
+| `TSDeclareMethod.params`                              | TODO                                       |                                                                   |
+| `TSEnumDeclaration.members`                           | TODO                                       |                                                                   |
+| `TSIndexSignature.parameters`                         | TODO                                       |                                                                   |
+| `TSMethodSignature.parameters`                        | TODO                                       |                                                                   |
+| `TSModuleBlock.body`                                  | TODO                                       |                                                                   |
+| `TSTypeLiteral.members`                               | ✅                                         |                                                                   |
+| `TupleTypeAnnotation/TSTupleType.types`               | ✅                                         |                                                                   |
+| `(TS)TypeParameterDeclaration`                        | ✅                                         |                                                                   |
+| `(TS)TypeParameterInstantiation`                      | ✅                                         |                                                                   |
+| `UnionTypeAnnotation/TSUnionType.types`               | ✅                                         |                                                                   |
+| `VariableDeclaration.declarations`                    | ✅                                         |                                                                   |
+| `WithStatement.body`                                  | ❌ who uses with statements...             |                                                                   |
 
-## Backreferences
+## | Backreferences
 
 If you use the same capture variable more than once, subsequent positions will have to match what was captured for the first occurrence of the variable.
 
