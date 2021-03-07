@@ -3,23 +3,22 @@ import t from 'ast-types'
 import find, { Match } from './find'
 import cloneDeep from 'lodash/cloneDeep'
 
-function getParentStatement(path: ASTPath<any>): ASTPath<any> | null {
-  do {
-    if (t.namedTypes.Statement.check(path?.node)) return path
-    path = path.parentPath
-  } while (path != null && path.node?.type !== 'Program')
-}
-
 export function replaceCaptures(
   path: ASTPath<any>,
   captures: Record<string, ASTNode>
 ): void {
   const doReplace = (path: ASTPath<any>) => {
     const captureMatch = /^\$[a-z0-9]+/i.exec(path.node.name)
-    const capture = captureMatch ? captures[captureMatch[0]] : null
+    const captureName = captureMatch ? captureMatch[0] : null
+    const capture = captureName ? captures[captureName] : null
     if (capture) {
       if (t.namedTypes.Statement.check(capture)) {
-        getParentStatement(path).replace(capture)
+        if (path.parentPath.node?.type !== 'ExpressionStatement') {
+          throw new Error(
+            `can't replace $a because it captured a statement, but a statement can't go in replacement position`
+          )
+        }
+        path.parentPath.replace(capture)
       } else {
         path.replace(capture)
       }
