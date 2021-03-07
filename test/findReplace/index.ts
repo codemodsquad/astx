@@ -39,7 +39,7 @@ export function formatMatches(
   arrayCaptures?: Record<string, string[]>
 }[] {
   function toSource(path: ASTPath<any>): string {
-    return j([path]).toSource()
+    return j([path]).toSource().replace(/,$/, '')
   }
   const result = []
   matches.forEach(({ path, pathCaptures, arrayPathCaptures }) => {

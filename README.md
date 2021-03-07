@@ -222,7 +222,7 @@ and the statements before and after that throw statement will get captured in `$
 | `ArrayExpression.elements`                            | ✅                                         |
 | `ArrayPattern.elements`                               | ✅                                         |
 | `BlockStatement.body`                                 | ✅                                         |
-| `CallExpression.arguments`                            | TODO                                       |
+| `CallExpression.arguments`                            | ✅                                         |
 | `Class(Declaration/Expression).implements`            | ✅                                         |
 | `ClassBody.body`                                      | ✅                                         |
 | `ComprehensionExpression.blocks`                      | TODO                                       |
@@ -235,7 +235,7 @@ and the statements before and after that throw statement will get captured in `$
 | `ExportNamedDeclaration.specifiers`                   | ✅                                         |
 | `Function.decorators`                                 | TODO                                       |
 | `Function.params`                                     | ✅                                         |
-| `FunctionTypeAnnotation/TSFunctionType.params`        | TODO                                       |
+| `FunctionTypeAnnotation/TSFunctionType.params`        | ✅                                         |
 | `GeneratorExpression.blocks`                          | TODO                                       |
 | `ImportDeclaration.specifiers`                        | TODO                                       |
 | `(TS)InterfaceDeclaration.body`                       | TODO                                       |
@@ -248,11 +248,11 @@ and the statements before and after that throw statement will get captured in `$
 | `ObjectExpression.properties`                         | ✅                                         |
 | `ObjectPattern.decorators`                            | TODO                                       |
 | `ObjectPattern.properties`                            | ✅                                         |
-| `(ObjectTypeAnnotation/TSTypeLiteral).properties`     | TODO                                       |
+| `(ObjectTypeAnnotation/TSTypeLiteral).properties`     | ✅                                         |
 | `Program.body`                                        | TODO                                       |
 | `Property.decorators`                                 | TODO                                       |
 | `SequenceExpression`                                  | ✅                                         |
-| `SwitchCase.consequent`                               | TODO                                       |
+| `SwitchCase.consequent`                               | ✅                                         |
 | `SwitchStatement.cases`                               | TODO                                       |
 | `TemplateLiteral.quasis/expressions`                  | ❓ not sure if I can come up with a syntax |
 | `TryStatement.guardedHandlers`                        | TODO                                       |
@@ -267,12 +267,12 @@ and the statements before and after that throw statement will get captured in `$
 | `TSIndexSignature.parameters`                         | TODO                                       |
 | `TSMethodSignature.parameters`                        | TODO                                       |
 | `TSModuleBlock.body`                                  | TODO                                       |
-| `TSTypeLiteral.members`                               | TODO                                       |
+| `TSTypeLiteral.members`                               | ✅                                         |
 | `TupleTypeAnnotation/TSTupleType.types`               | ✅                                         |
 | `(TS)TypeParameterDeclaration`                        | ✅                                         |
 | `(TS)TypeParameterInstantiation`                      | ✅                                         |
 | `UnionTypeAnnotation/TSUnionType.types`               | ✅                                         |
-| `VariableDeclaration.declarations`                    | TODO                                       |
+| `VariableDeclaration.declarations`                    | ✅                                         |
 | `WithStatement.body`                                  | ❌ who uses with statements...             |
 
 ## Backreferences

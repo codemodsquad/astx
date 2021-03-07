@@ -9,18 +9,22 @@ import compileFunctionMatcher from './Function'
 import compileGenericArrayMatcher from './GenericArrayMatcher'
 import compileGenericNodeMatcher from './GenericNodeMatcher'
 import ExpressionStatement from './ExpressionStatement'
+import FunctionTypeParam from './FunctionTypeParam'
 import GenericTypeAnnotation from './GenericTypeAnnotation'
 import Identifier from './Identifier'
 import Literal from './Literal'
 import NumericLiteral from './NumericLiteral'
 import ObjectExpression from './ObjectExpression'
 import ObjectProperty from './ObjectProperty'
+import ObjectTypeProperty from './ObjectTypeProperty'
 import RegExpLiteral from './RegExpLiteral'
 import StringLiteral from './StringLiteral'
 import TSExpressionWithTypeArguments from './TSExpressionWithTypeArguments'
+import TSPropertySignature from './TSPropertySignature'
 import TSTypeParameter from './TSTypeParameter'
 import TSTypeReference from './TSTypeReference'
 import TypeParameter from './TypeParameter'
+import VariableDeclarator from './VariableDeclarator'
 
 const _debug = __debug('astx:match')
 
@@ -87,6 +91,7 @@ const nodeMatchers: Record<
   ClassImplements,
   ClassProperty,
   ExpressionStatement,
+  FunctionTypeParam,
   GenericTypeAnnotation,
   Identifier,
   Literal,
@@ -94,12 +99,15 @@ const nodeMatchers: Record<
   ObjectExpression,
   ObjectProperty,
   Property: ObjectProperty,
+  ObjectTypeProperty,
   RegExpLiteral,
   StringLiteral,
   TSExpressionWithTypeArguments,
+  TSPropertySignature,
   TSTypeParameter,
   TSTypeReference,
   TypeParameter,
+  VariableDeclarator,
 }
 
 function convertPredicateMatcher(
