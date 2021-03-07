@@ -19,3 +19,17 @@ export const expectedFind = [
     },
   },
 ]
+
+export const replace = `
+type $1 = (c: [$_b, number], $d, x: number, $_a) => any
+`
+
+export const expectedReplace = `
+type Foo = (
+  c: [string, number],
+  d: any,
+  x: number,
+  a: number,
+  b: string
+) => any;
+`
