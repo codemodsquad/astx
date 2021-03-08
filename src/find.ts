@@ -198,7 +198,10 @@ function findStatements(
     return null
   }
 
-  const paths: ASTPath = findStatementArrayPaths(root)
+  // reverse order.  Otherwise, statements in an outer array could get replaced
+  // before those in an inner array (for example, a function in root scope might
+  // get replaced before a match within the function body gets replaced)
+  const paths: ASTPath = findStatementArrayPaths(root).reverse()
 
   const matches: StatementsMatch[] = []
 
@@ -250,7 +253,8 @@ function findStatements(
         matches.push(finalMatch)
 
         // prevent overlapping matches
-        sliceStart = arrayIndex = end
+        sliceStart = end
+        arrayIndex = end - 1
       }
     }
   }
