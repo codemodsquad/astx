@@ -2,7 +2,7 @@ import { describe, it } from 'mocha'
 import { expect } from 'chai'
 import path from 'path'
 import jscodeshift, { ASTNode, ASTPath, JSCodeshift } from 'jscodeshift'
-import { FindOptions, Match } from '../../src/find'
+import { FindOptions, Match, StatementsMatch } from '../../src/find'
 import Astx from '../../src/Astx'
 import requireGlob from 'require-glob'
 import mapValues from 'lodash/mapValues'
@@ -12,7 +12,8 @@ import replace, { ReplaceOptions } from '../../src/replace'
 import parseFindOrReplace from '../../src/util/parseFindOrReplace'
 
 type ExpectedMatch = {
-  node: string
+  node?: string
+  nodes?: string[]
   captures?: Record<string, string>
   arrayCaptures?: Record<string, string[]>
 }
@@ -32,22 +33,18 @@ type Fixture = {
 
 export function formatMatches(
   j: JSCodeshift,
-  matches: Match<any>[]
-): {
-  node: string
-  captures?: Record<string, string>
-  arrayCaptures?: Record<string, string[]>
-}[] {
+  matches: Match<any>[] | StatementsMatch[]
+): ExpectedMatch[] {
   function toSource(path: ASTPath<any>): string {
     return j([path]).toSource().replace(/,$/, '')
   }
   const result = []
-  matches.forEach(({ path, pathCaptures, arrayPathCaptures }) => {
-    const match: {
-      node: string
-      captures?: Record<string, string>
-      arrayCaptures?: Record<string, string[]>
-    } = { node: toSource(path) }
+  matches.forEach((_match: Match<any> | StatementsMatch) => {
+    const { pathCaptures, arrayPathCaptures } = _match
+    const { path, paths }: { path?: ASTPath; paths?: ASTPath[] } = _match as any
+    const match: ExpectedMatch = {}
+    if (path) match.node = toSource(path)
+    if (paths) match.nodes = paths.map(toSource)
     if (pathCaptures) match.captures = mapValues(pathCaptures, toSource)
     if (arrayPathCaptures)
       match.arrayCaptures = mapValues(arrayPathCaptures, (paths) =>

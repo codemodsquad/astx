@@ -1,5 +1,4 @@
 import { ASTNode, ASTPath } from 'jscodeshift'
-import areASTsEqual from '../util/areASTsEqual'
 import compileMatcher, {
   CompiledMatcher,
   CompileOptions,
@@ -53,7 +52,7 @@ export default function compileGenericArrayMatcher(
     if (matcherIndex === matchers.length) return null
 
     const matcher = matchers[matcherIndex]
-    const { arrayCaptureAs, captureAs } = matcher
+    const { arrayCaptureAs } = matcher
     if (arrayCaptureAs) {
       if (matcherIndex === matchers.length - 1) {
         return mergeCaptures(matchSoFar, {
@@ -76,19 +75,7 @@ export default function compileGenericArrayMatcher(
         ? path.value.length - remainingElements(matcherIndex + 1)
         : arrayIndex + 1
       for (let i = arrayIndex; i < end; i++) {
-        matchSoFar = origMatchSoFar
-        if (captureAs) {
-          const priorCapture = matchSoFar?.captures?.[captureAs]
-          if (priorCapture) {
-            if (!areASTsEqual(priorCapture.node, path.get(i).node)) continue
-          } else {
-            matchSoFar = mergeCaptures(matchSoFar, {
-              captures: { [captureAs]: path.get(i) },
-            })
-          }
-        } else {
-          matchSoFar = matcher.match(path.get(i), matchSoFar)
-        }
+        matchSoFar = matcher.match(path.get(i), origMatchSoFar)
         if (!matchSoFar) continue
         if (prevArrayCaptureAs) {
           matchSoFar = mergeCaptures(matchSoFar, {
@@ -104,8 +91,7 @@ export default function compileGenericArrayMatcher(
           matcherIndex + 1,
           matchSoFar
         )
-        if (!restMatch) continue
-        return restMatch
+        if (restMatch) return restMatch
       }
     }
     return null
