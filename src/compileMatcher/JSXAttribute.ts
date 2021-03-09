@@ -1,6 +1,6 @@
 import { JSXAttribute } from 'jscodeshift'
 import { CompiledMatcher, CompileOptions } from '.'
-import compileCaptureMatcher, { unescapeIdentifier } from './Capture'
+import compileArrayCaptureMatcher, { unescapeIdentifier } from './Capture'
 
 export default function compileJSXAttributeMatcher(
   query: JSXAttribute,
@@ -8,7 +8,7 @@ export default function compileJSXAttributeMatcher(
 ): CompiledMatcher | void {
   if (query.name.type === 'JSXIdentifier') {
     if (query.value == null) {
-      const captureMatcher = compileCaptureMatcher(
+      const captureMatcher = compileArrayCaptureMatcher(
         query.name.name,
         compileOptions
       )

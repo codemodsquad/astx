@@ -1,6 +1,6 @@
 import { VariableDeclarator } from 'jscodeshift'
 import { CompiledMatcher, CompileOptions } from '.'
-import compileCaptureMatcher, { unescapeIdentifier } from './Capture'
+import compileArrayCaptureMatcher, { unescapeIdentifier } from './Capture'
 
 export default function compileVariableDeclaratorMatcher(
   query: VariableDeclarator,
@@ -8,7 +8,7 @@ export default function compileVariableDeclaratorMatcher(
 ): CompiledMatcher | void {
   if (query.id.type === 'Identifier') {
     if (query.init == null) {
-      const captureMatcher = compileCaptureMatcher(
+      const captureMatcher = compileArrayCaptureMatcher(
         query.id.name,
         compileOptions
       )

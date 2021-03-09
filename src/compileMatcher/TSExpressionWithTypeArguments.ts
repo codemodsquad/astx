@@ -1,6 +1,6 @@
 import { TSExpressionWithTypeArguments } from 'jscodeshift'
 import { CompiledMatcher, CompileOptions } from '.'
-import compileCaptureMatcher, { unescapeIdentifier } from './Capture'
+import compileArrayCaptureMatcher, { unescapeIdentifier } from './Capture'
 
 export default function compileTSExpressionWithTypeArgumentsMatcher(
   query: TSExpressionWithTypeArguments,
@@ -8,7 +8,7 @@ export default function compileTSExpressionWithTypeArgumentsMatcher(
 ): CompiledMatcher | void {
   if (query.expression.type === 'Identifier') {
     if (query.typeParameters == null) {
-      const captureMatcher = compileCaptureMatcher(
+      const captureMatcher = compileArrayCaptureMatcher(
         query.expression.name,
         compileOptions
       )

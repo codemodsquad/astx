@@ -4,22 +4,38 @@ import compileMatcher, {
   CompileOptions,
   MatchResult,
 } from './index'
-import t from 'ast-types'
+import t, { Type } from 'ast-types'
 import indentDebug from './indentDebug'
 
-function isCompatibleType(path: ASTPath<any>, query: ASTNode): boolean {
-  if (t.namedTypes.Function.check(query)) {
-    return t.namedTypes.Function.check(path.node)
-  }
-  switch (query.type) {
-    case 'ClassDeclaration':
-    case 'ClassExpression':
-      return (
-        path.node.type === 'ClassDeclaration' ||
-        path.node.type === 'ClassExpression'
-      )
-  }
-  return false
+const equivalenceClassesArray: {
+  nodeTypes: Set<ASTNode['type']>
+  baseType?: keyof typeof t.namedTypes
+}[] = [
+  { nodeTypes: new Set(['ClassDeclaration', 'ClassExpression']) },
+  {
+    nodeTypes: new Set([
+      'FunctionDeclaration',
+      'FunctionExpression',
+      'ArrowFunctionExpression',
+      'ObjectMethod',
+      'ClassMethod',
+      'ClassPrivateMethod',
+    ]),
+    baseType: 'Function',
+  },
+  {
+    nodeTypes: new Set(['Identifier', 'JSXIdentifier']),
+  },
+]
+
+const equivalenceClasses: Partial<
+  Record<
+    ASTNode['type'],
+    { nodeTypes: Set<ASTNode['type']>; baseType?: keyof typeof t.namedTypes }
+  >
+> = {}
+for (const klass of equivalenceClassesArray) {
+  for (const type of klass.nodeTypes) equivalenceClasses[type] = klass
 }
 
 type GenericNodeMatcherOptions = {
@@ -32,7 +48,21 @@ export default function compileGenericNodeMatcher(
   compileOptions: CompileOptions,
   options?: GenericNodeMatcherOptions
 ): CompiledMatcher {
-  const nodeType = options?.nodeType || query.type
+  const { baseType, nodeTypes } = equivalenceClasses[query.type] || {}
+  const nodeType =
+    options?.nodeType ||
+    baseType ||
+    (nodeTypes ? [...nodeTypes] : null) ||
+    query.type
+
+  const namedType: Type<any> = baseType ? (t.namedTypes[baseType] as any) : null
+
+  const isCorrectType = namedType
+    ? (node: ASTNode) => namedType.check(node)
+    : nodeTypes
+    ? (node: ASTNode) => nodeTypes.has(node.type)
+    : (node: ASTNode) => node.type === query.type
+
   const { debug } = compileOptions
   const keyMatchers: Record<string, CompiledMatcher> = Object.fromEntries(
     t
@@ -75,7 +105,7 @@ export default function compileGenericNodeMatcher(
   return {
     match: (path: ASTPath<any>, matchSoFar: MatchResult): MatchResult => {
       debug('%s (generic)', query.type)
-      if (path.node?.type === query.type || isCompatibleType(path, query)) {
+      if (isCorrectType(path.node)) {
         for (const key in keyMatchers) {
           debug('  .%s', key)
           const matcher = keyMatchers[key]

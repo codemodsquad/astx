@@ -1,6 +1,6 @@
 import { FunctionTypeParam } from 'jscodeshift'
 import { CompiledMatcher, CompileOptions } from '.'
-import compileCaptureMatcher, { unescapeIdentifier } from './Capture'
+import compileArrayCaptureMatcher, { unescapeIdentifier } from './Capture'
 
 export default function compileFunctionTypeParamMatcher(
   query: FunctionTypeParam,
@@ -8,7 +8,7 @@ export default function compileFunctionTypeParamMatcher(
 ): CompiledMatcher | void {
   if (query.name?.type === 'Identifier') {
     if (query.typeAnnotation == null) {
-      const captureMatcher = compileCaptureMatcher(
+      const captureMatcher = compileArrayCaptureMatcher(
         query.name.name,
         compileOptions
       )
@@ -21,7 +21,7 @@ export default function compileFunctionTypeParamMatcher(
     query.typeAnnotation.id.type === 'Identifier'
   ) {
     if (query.typeAnnotation.typeParameters == null) {
-      const captureMatcher = compileCaptureMatcher(
+      const captureMatcher = compileArrayCaptureMatcher(
         query.typeAnnotation.id.name,
         compileOptions
       )

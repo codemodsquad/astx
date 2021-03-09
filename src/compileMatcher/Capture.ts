@@ -5,6 +5,24 @@ import areASTsEqual from '../util/areASTsEqual'
 export const unescapeIdentifier = (identifier: string): string =>
   identifier.replace(/^\$\$/, '$')
 
+export function compileArrayCaptureMatcher(
+  identifier: string,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  compileOptions: CompileOptions
+): CompiledMatcher | void {
+  const arrayCaptureAs = /^\$_[a-z0-9]+/i.exec(identifier)?.[0]
+  if (arrayCaptureAs) {
+    return {
+      arrayCaptureAs,
+      match: (): MatchResult => {
+        throw new Error(
+          `array capture placeholder ${arrayCaptureAs} is in an invalid position`
+        )
+      },
+    }
+  }
+}
+
 export default function compileCaptureMatcher(
   identifier: string,
   compileOptions: CompileOptions
@@ -32,15 +50,5 @@ export default function compileCaptureMatcher(
       },
     }
   }
-  const arrayCaptureAs = /^\$_[a-z0-9]+/i.exec(identifier)?.[0]
-  if (arrayCaptureAs) {
-    return {
-      arrayCaptureAs,
-      match: (): MatchResult => {
-        throw new Error(
-          `array capture placeholder ${arrayCaptureAs} is in an invalid position`
-        )
-      },
-    }
-  }
+  return compileArrayCaptureMatcher(identifier, compileOptions)
 }

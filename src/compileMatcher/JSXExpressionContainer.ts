@@ -1,13 +1,13 @@
 import { JSXExpressionContainer } from 'jscodeshift'
 import { CompiledMatcher, CompileOptions } from '.'
-import compileCaptureMatcher, { unescapeIdentifier } from './Capture'
+import compileArrayCaptureMatcher, { unescapeIdentifier } from './Capture'
 
 export default function compileJSXExpressionContainerMatcher(
   query: JSXExpressionContainer,
   compileOptions: CompileOptions
 ): CompiledMatcher | void {
   if (query.expression.type === 'Identifier') {
-    const captureMatcher = compileCaptureMatcher(
+    const captureMatcher = compileArrayCaptureMatcher(
       query.expression.name,
       compileOptions
     )

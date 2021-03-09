@@ -2,10 +2,8 @@ import { ASTPath, ASTNode } from 'jscodeshift'
 import t from 'ast-types'
 import __debug, { Debugger } from 'debug'
 import BooleanLiteral from './BooleanLiteral'
-import ClassDeclaration from './ClassDeclaration'
 import ClassImplements from './ClassImplements'
 import ClassProperty from './ClassProperty'
-import compileFunctionMatcher from './Function'
 import compileGenericArrayMatcher from './GenericArrayMatcher'
 import compileGenericNodeMatcher from './GenericNodeMatcher'
 import ExpressionStatement from './ExpressionStatement'
@@ -84,14 +82,9 @@ export interface CompiledMatcher {
 
 const nodeMatchers: Record<
   string,
-  (
-    query: any,
-    options: CompileOptions
-  ) => CompiledMatcher | PredicateMatcher | undefined | void
+  (query: any, options: CompileOptions) => CompiledMatcher | undefined | void
 > = {
   BooleanLiteral,
-  ClassDeclaration,
-  ClassExpression: ClassDeclaration,
   ClassImplements,
   ClassProperty,
   ExpressionStatement,
@@ -118,10 +111,10 @@ const nodeMatchers: Record<
   VariableDeclarator,
 }
 
-function convertPredicateMatcher(
+export function convertPredicateMatcher(
   query: ASTNode,
   matcher: PredicateMatcher,
-  debug: Debugger
+  { debug }: CompileOptions
 ): CompiledMatcher {
   return {
     nodeType: matcher.nodeType,
@@ -141,23 +134,15 @@ function convertPredicateMatcher(
 
 export default function compileMatcher(
   query: ASTNode | ASTNode[],
-  compileOptions: RootCompileOptions = {}
+  rootCompileOptions: RootCompileOptions = {}
 ): CompiledMatcher {
-  const { debug = _debug } = compileOptions
+  const { debug = _debug } = rootCompileOptions
+  const compileOptions = { ...rootCompileOptions, debug }
   if (Array.isArray(query)) {
-    return compileGenericArrayMatcher(query, { ...compileOptions, debug })
+    return compileGenericArrayMatcher(query, compileOptions)
   } else if (nodeMatchers[query.type]) {
-    const matcher = nodeMatchers[query.type](query, {
-      ...compileOptions,
-      debug,
-    })
-    if (matcher) {
-      return matcher.predicate
-        ? convertPredicateMatcher(query, matcher, debug)
-        : matcher
-    }
-  } else if (t.namedTypes.Function.check(query)) {
-    return compileFunctionMatcher(query, { ...compileOptions, debug })
+    const matcher = nodeMatchers[query.type](query, compileOptions)
+    if (matcher) return matcher
   }
   return compileGenericNodeMatcher(query, { ...compileOptions, debug })
 }
