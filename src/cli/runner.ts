@@ -10,14 +10,52 @@ import isEmpty from 'lodash/isEmpty'
 import runTransform from '../runTransform'
 import { Transform } from '../runTransformOnFile'
 
-const argv = yargs.option('transform', {
-  alias: 't',
-  describe: 'path to the transform file. Can be either a local path or url',
-  default: './astx.js',
-}).argv
+const argv = yargs
+  .option('transform', {
+    alias: 't',
+    describe: 'path to the transform file. Can be either a local path or url',
+  })
+  .options('parser', {
+    describe: 'parser to use',
+    type: 'string',
+  })
+  .option('find', {
+    alias: 'f',
+    describe: 'search pattern',
+    type: 'string',
+  })
+  .option('replace', {
+    alias: 'r',
+    describe: 'replace pattern',
+    type: 'string',
+  }).argv
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const transform: Transform = require(path.resolve(argv.transform))
+console.log(process.argv)
+console.log(argv)
+
+const paths = argv._.filter((x) => typeof x === 'string') as string[]
+if (!paths.length) {
+  yargs.showHelp()
+  process.exit(1)
+}
+
+function getTransform(): Transform {
+  const { transform, find, replace, parser }: any = argv
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  if (transform) return require(path.resolve(transform))
+  if (find && replace) {
+    // yargs Eats quotes, not cool...
+    const find =
+      process.argv[process.argv.findIndex((a) => /^-f(ind)?$/.test(a)) + 1]
+    const replace =
+      process.argv[process.argv.findIndex((a) => /^-r(eplace)?$/.test(a)) + 1]
+    return { find, replace, parser }
+  }
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  return require(path.resolve('./astx.js'))
+}
+
+const transform: Transform = getTransform()
 
 async function go() {
   const results: Record<string, string> = {}
@@ -28,7 +66,7 @@ async function go() {
     reports,
     error,
   } of runTransform(transform, {
-    paths: argv._.filter((x) => typeof x === 'string') as string[],
+    paths,
   })) {
     if (error) {
       console.error(
