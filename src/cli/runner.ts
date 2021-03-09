@@ -30,9 +30,6 @@ const argv = yargs
     type: 'string',
   }).argv
 
-console.log(process.argv)
-console.log(argv)
-
 const paths = argv._.filter((x) => typeof x === 'string') as string[]
 if (!paths.length) {
   yargs.showHelp()

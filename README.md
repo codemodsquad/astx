@@ -54,9 +54,13 @@ rmdir('old/stuff')
 rmdir('new/stuff', { force: true })
 ```
 
-Changing a bunch of calls to `rmdir` by hand would suck. Now you can do this automatically using `astx`!
+Changing a bunch of calls to `rmdir` by hand would suck. You could try using regex replace, but it's fiddly and wouldn't tolerate whitespace and
+linebreaks well unless you work really hard at the regex.
+
+Now there's a better option...you can refactor with confidence using `astx`!
 
 ```js
+// astx.js
 astx.find`rmdir($path, $force)`.replace`rmdir($path, { force: $force })`
 ```
 
