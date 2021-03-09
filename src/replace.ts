@@ -1,6 +1,6 @@
-import j, { ASTNode, ASTPath, Collection } from 'jscodeshift'
+import j, { ASTNode, ASTPath, Collection, Statement } from 'jscodeshift'
 import t from 'ast-types'
-import find, { Match } from './find'
+import find, { Match, StatementsMatch } from './find'
 import cloneDeep from 'lodash/cloneDeep'
 
 export function replaceCaptures(
@@ -118,16 +118,75 @@ export function replaceMatches<Node extends ASTNode>(
   }
 }
 
+export function replaceStatementsMatches(
+  matches: StatementsMatch[],
+  replace:
+    | Statement
+    | Statement[]
+    | ((match: StatementsMatch) => Statement | Statement[])
+): void {
+  for (const match of matches) {
+    const _replacements =
+      typeof replace === 'function' ? replace(match) : cloneDeep(replace)
+    const replacements = Array.isArray(_replacements)
+      ? _replacements
+      : [_replacements]
+    const parent = match.paths[0].parentPath
+    let index = match.paths[0].name
+    for (const replacement of replacements) {
+      parent.insertAt(index, replacement)
+      const replaced = parent.get(index++)
+      if (match.arrayCaptures)
+        replaceArrayCaptures(replaced, match.arrayCaptures)
+      if (match.captures) replaceCaptures(replaced, match.captures)
+    }
+    for (const path of match.paths) path.prune()
+  }
+}
+
 export type ReplaceOptions = {
   where?: { [captureName: string]: (path: ASTPath<any>) => boolean }
 }
-
 export default function replace<Node extends ASTNode>(
   root: Collection,
   query: Node,
   replace: ASTNode | ((match: Match<Node>) => ASTNode),
   options?: ReplaceOptions
+): void
+export default function replace(
+  root: Collection,
+  query: Statement[],
+  replace:
+    | Statement
+    | Statement[]
+    | ((match: StatementsMatch) => Statement | Statement[]),
+  options?: ReplaceOptions
+): void
+export default function replace<Node extends ASTNode>(
+  root: Collection,
+  query: Node | Statement[],
+  replace:
+    | ASTNode
+    | Statement
+    | Statement[]
+    | ((match: Match<Node>) => ASTNode)
+    | ((match: StatementsMatch) => Statement | Statement[]),
+  options?: ReplaceOptions
 ): void {
-  const matches = find(root, query, options)
-  replaceMatches(matches, replace)
+  if (Array.isArray(query)) {
+    const matches = find(root, query, options)
+    replaceStatementsMatches(
+      matches,
+      replace as
+        | Statement
+        | Statement[]
+        | ((match: StatementsMatch) => Statement | Statement[])
+    )
+  } else {
+    const matches = find(root, query, options)
+    replaceMatches(
+      matches,
+      replace as ASTNode | ((match: Match<Node>) => ASTNode)
+    )
+  }
 }

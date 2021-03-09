@@ -2,11 +2,9 @@ import { describe, it } from 'mocha'
 import { expect } from 'chai'
 import path from 'path'
 import jscodeshift, { ASTNode, ASTPath, JSCodeshift } from 'jscodeshift'
-import { FindOptions, Match, StatementsMatch } from '../../src/find'
-import Astx from '../../src/Astx'
+import find, { FindOptions, Match, StatementsMatch } from '../../src/find'
 import requireGlob from 'require-glob'
 import mapValues from 'lodash/mapValues'
-
 import prettier from 'prettier'
 import replace, { ReplaceOptions } from '../../src/replace'
 import parseFindOrReplace from '../../src/util/parseFindOrReplace'
@@ -103,10 +101,12 @@ describe(`find`, function () {
             if (parser) j = j.withParser(parser)
             const root = j(input)
 
-            const astx = new Astx(j, root)
-
             if (expectedFind) {
-              const matches = astx.find(_find, findOptions)
+              const matches = find(
+                root,
+                parseFindOrReplace(j, [_find] as any) as any,
+                findOptions
+              )
               expect(formatMatches(j, matches)).to.deep.equal(expectedFind)
             }
             if (expectedReplace) {

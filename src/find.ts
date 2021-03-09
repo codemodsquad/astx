@@ -7,6 +7,7 @@ import compileMatcher, {
 } from './compileMatcher'
 
 export type Match<Node extends ASTNode> = {
+  type: 'node'
   path: ASTPath<Node>
   node: Node
   pathCaptures?: Record<string, ASTPath<any>>
@@ -16,6 +17,7 @@ export type Match<Node extends ASTNode> = {
 }
 
 export type StatementsMatch = {
+  type: 'statements'
   paths: ASTPath<Statement>[]
   nodes: Statement[]
   pathCaptures?: Record<string, ASTPath<any>>
@@ -61,7 +63,7 @@ export default function find<Node extends ASTNode>(
     root.find(j[nodeType]).forEach((path: ASTPath<any>) => {
       const result = matcher.match(path, null)
       if (result) {
-        const match: Match<Node> = { path, node: path.node }
+        const match: Match<Node> = { type: 'node', path, node: path.node }
         const {
           captures: pathCaptures,
           arrayCaptures: arrayPathCaptures,
@@ -236,6 +238,7 @@ function findStatements(
         const paths = slicePath(path, start, end)
 
         const finalMatch: StatementsMatch = {
+          type: 'statements',
           paths,
           nodes: paths.map((p) => p.node),
         }

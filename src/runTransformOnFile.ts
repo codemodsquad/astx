@@ -100,7 +100,7 @@ export const runTransformOnFile = (transform: Transform) => async (
     ) {
       transform.astx = ({ astx }) =>
         astx
-          .find(transform.find as any, { where: transform.where })
+          .findAuto(transform.find as any, { where: transform.where })
           .replace(transform.replace as any)
     }
 

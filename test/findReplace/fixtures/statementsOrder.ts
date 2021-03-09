@@ -59,3 +59,21 @@ export const expectedFind = [
     },
   },
 ]
+
+export const replace = `
+const $d = $b
+const $a = $d + $e
+$_c
+`
+
+export const expectedReplace = `
+const b = 1;
+const a = b + 3;
+const g = 1;
+const f = g + 3;
+function foo() {
+  const e = 5;
+  const c = e + 4;
+  const d = 6;
+}
+`

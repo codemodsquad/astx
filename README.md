@@ -159,6 +159,50 @@ astx
   .replace(({ captures: { $fn } }) => `${$fn.name.toUpperCase()}()`)
 ```
 
+### `.findStatements()`
+
+Finds matches for the given multi-statement pattern within `root`, and returns a `StatementsMatchArray` containing the matches.
+
+There are several different ways you can call `.findStatements`:
+
+- `` .findStatements`pattern`(options?: FindOptions) ``
+- `.findStatements(pattern: string, options?: FindOptions)`
+- `.findStatements(pattern: ASTNode, options?: FindOptions)`
+
+If you give the pattern as a string, it must be code for valid statement(s) as parsed by the `jscodeshift` instance. Otherwise it should be
+a valid array of statement AST nodes you already parsed or constructed.
+You can interpolate AST nodes in the tagged template literal; it uses `jscodeshift.template.statements` under the hood.
+
+For example you could do:
+
+```ts
+astx.findStatements`
+  const $a = $b;
+  $_c;
+  const $d = $a + $e;
+`()
+```
+
+This would match (for example) the statements `const foo = 1; const bar = foo + 5;`, with any number of statements between them.
+
+### `.findStatements().replace()`
+
+Finds and replaces matches for the given multi-statement pattern within `root`.
+
+There are several different ways you can call `.replace`. Note that you can omit the `()` after `` .findStatements`pattern` `` if you're calling `.replace`.
+And you can call `.findStatements` in any way described above in place of `` .findStatements`pattern` ``.
+
+- `` .findStatements`pattern`.replace`replacement` ``
+- `` .findStatements`pattern`.replace(replacement: string) ``
+- `` .findStatements`pattern`.replace(replacement: Statement | Statement[]) ``
+- `` .findStatements`pattern`.replace(replacement: (match: Match<any>, parse: ParseTag) => string) ``
+- `` .findStatements`pattern`.replace(replacement: (match: Match<any>, parse: ParseTag) => Statement | Statement[]) ``
+
+If you give the replacement as a string, it must be valid code for statements as parsed by the `jscodeshift` instance.
+You can give the replacement as statement AST node(s) you already parsed or constructed.
+Or you can give a replacement function, which will be called with each match and must return a string, `Statement`, or array of `Statement`s (you can use the `parse` tagged template string function provided as the second argument to parse code into a string
+via `jscodeshift.template.statements`).
+
 ## Match
 
 ### `.path`
