@@ -38,22 +38,12 @@ for (const klass of equivalenceClassesArray) {
   for (const type of klass.nodeTypes) equivalenceClasses[type] = klass
 }
 
-type GenericNodeMatcherOptions = {
-  nodeType?: CompiledMatcher['nodeType']
-  keyMatchers?: Record<string, CompiledMatcher>
-}
-
 export default function compileGenericNodeMatcher(
   query: ASTNode,
-  compileOptions: CompileOptions,
-  options?: GenericNodeMatcherOptions
+  compileOptions: CompileOptions
 ): CompiledMatcher {
   const { baseType, nodeTypes } = equivalenceClasses[query.type] || {}
-  const nodeType =
-    options?.nodeType ||
-    baseType ||
-    (nodeTypes ? [...nodeTypes] : null) ||
-    query.type
+  const nodeType = baseType || (nodeTypes ? [...nodeTypes] : null) || query.type
 
   const namedType: Type<any> = baseType ? (t.namedTypes[baseType] as any) : null
 
@@ -69,8 +59,6 @@ export default function compileGenericNodeMatcher(
       .getFieldNames(query)
       .filter((key) => key !== 'type')
       .map((key: string): [string, CompiledMatcher] => {
-        const override = options?.keyMatchers?.[key]
-        if (override) return [key, override]
         const value = (query as any)[key]
         if (typeof value !== 'object' || value == null) {
           return [

@@ -328,7 +328,7 @@ If you use the same capture variable more than once, subsequent positions will h
 For example, the pattern `foo($a, $a, $b, $b)` will match only `foo(1, 1, {foo: 1}, {foo: 1})` in the following:
 
 ```js
-foo(1, 1, { foo: 1 }, { foo: 1 })
-foo(1, 2, { foo: 1 }, { foo: 1 })
-foo(1, 1, { foo: 1 }, { bar: 1 })
+foo(1, 1, { foo: 1 }, { foo: 1 }) // match
+foo(1, 2, { foo: 1 }, { foo: 1 }) // no match
+foo(1, 1, { foo: 1 }, { bar: 1 }) // no match
 ```
