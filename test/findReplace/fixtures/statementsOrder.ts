@@ -71,6 +71,7 @@ const b = 1;
 const a = b + 3;
 const g = 1;
 const f = g + 3;
+
 function foo() {
   const e = 5;
   const c = e + 4;

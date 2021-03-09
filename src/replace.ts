@@ -1,4 +1,10 @@
-import j, { ASTNode, ASTPath, Collection, Statement } from 'jscodeshift'
+import j, {
+  ASTNode,
+  ASTPath,
+  Collection,
+  Identifier,
+  Statement,
+} from 'jscodeshift'
 import t from 'ast-types'
 import find, { Match, StatementsMatch } from './find'
 import cloneDeep from 'lodash/cloneDeep'
@@ -56,20 +62,14 @@ export function replaceArrayCaptures(
     if (!capture) return
     for (const replacement of capture) {
       switch (parent.node.type) {
-        case 'SpreadElement':
-        case 'SpreadProperty':
-          captureHolder.insertBefore(replacement)
-          break
         case 'ObjectProperty':
         case 'Property':
           if (parent.node.shorthand && parent.node.key === path.node) {
             captureHolder.insertBefore(replacement)
           }
           break
-        // eslint-disable-next-line no-fallthrough
         default:
-          path.replace(replacement)
-          captureHolder.insertBefore(cloneDeep(captureHolder.node))
+          captureHolder.insertBefore(replacement)
       }
     }
     captureHolder.prune()
@@ -77,16 +77,30 @@ export function replaceArrayCaptures(
 
   j([path])
     .find(j.Identifier)
-    // filter out identifiers that are the value node of shorthand properties.
+    // filter out identifiers that are the value node of shorthand properties, or the local node of shorthand import specifiers.
     // it was causing problems when the value node was getting visited after the property was replaced
-    .filter((path: ASTPath<any>) => {
+    .filter((path: ASTPath<Identifier>): boolean => {
       const { parentPath: parent } = path
-      return (
-        (parent.node.type !== 'ObjectProperty' &&
-          parent.node.type !== 'Property') ||
-        !parent.node.shorthand ||
-        path.node !== parent.node.value
-      )
+      switch (parent.node.type) {
+        case 'ObjectProperty':
+        case 'Property':
+          return !parent.node.shorthand || path.node !== parent.node.value
+        case 'ImportSpecifier':
+          return (
+            path.node === parent.node.imported ||
+            (path.node === parent.node.local &&
+              parent.node.local.name !== parent.node.imported.name)
+          )
+        default:
+          return true
+      }
+    })
+    .forEach(doReplace)
+  j([path])
+    .find(j.JSXAttribute)
+    .filter((path: ASTPath<Identifier>): boolean => {
+      const { parentPath: parent } = path
+      return parent.node.type !== 'JSXAttribute' || parent.node.value == null
     })
     .forEach(doReplace)
   j([path]).find(j.TypeParameter).forEach(doReplace)

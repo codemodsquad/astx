@@ -60,7 +60,7 @@ describe(`find`, function () {
 
   for (const key in fixtures) {
     const fixture = fixtures[key]
-    const { parsers = ['babylon', 'flow', 'ts'] } = fixture
+    const { parsers = ['babylon', 'flow', 'tsx'] } = fixture
 
     for (const parser of parsers) {
       const group = groups[parser] || (groups[parser] = {})
@@ -76,7 +76,7 @@ describe(`find`, function () {
         parser:
           parser === 'babylon'
             ? 'babel-flow'
-            : parser === 'ts'
+            : parser === 'tsx'
             ? 'babel-ts'
             : parser,
       }

@@ -283,19 +283,19 @@ Some items marked TODO probably actually work, but are untested.
 | `Function.params`                                     | ✅                                         |                                                                   |
 | `FunctionTypeAnnotation/TSFunctionType.params`        | ✅                                         |                                                                   |
 | `GeneratorExpression.blocks`                          | TODO                                       |                                                                   |
-| `ImportDeclaration.specifiers`                        | TODO                                       |                                                                   |
+| `ImportDeclaration.specifiers`                        | ✅                                         |                                                                   |
 | `(TS)InterfaceDeclaration.body`                       | TODO                                       |                                                                   |
 | `(TS)InterfaceDeclaration.extends`                    | TODO                                       |                                                                   |
 | `IntersectionTypeAnnotation/TSIntersectionType.types` | ✅                                         |                                                                   |
-| `JSX(Element/Fragment).children`                      | TODO                                       |                                                                   |
-| `JSX(Opening)Element.attributes`                      | TODO                                       |                                                                   |
+| `JSX(Element/Fragment).children`                      | ✅                                         |                                                                   |
+| `JSX(Opening)Element.attributes`                      | ✅                                         |                                                                   |
 | `MethodDefinition.decorators`                         | TODO                                       |                                                                   |
-| `NewExpression.arguments`                             | TODO                                       |                                                                   |
+| `NewExpression.arguments`                             | ✅                                         |                                                                   |
 | `ObjectExpression.properties`                         | ✅                                         |                                                                   |
 | `ObjectPattern.decorators`                            | TODO                                       |                                                                   |
 | `ObjectPattern.properties`                            | ✅                                         |                                                                   |
 | `(ObjectTypeAnnotation/TSTypeLiteral).properties`     | ✅                                         | Use `$a: any` to match one property, `$_a: any` to match multiple |
-| `Program.body`                                        | TODO                                       |                                                                   |
+| `Program.body`                                        | ✅                                         |                                                                   |
 | `Property.decorators`                                 | TODO                                       |                                                                   |
 | `SequenceExpression`                                  | ✅                                         |                                                                   |
 | `SwitchCase.consequent`                               | ✅                                         |                                                                   |
@@ -303,7 +303,7 @@ Some items marked TODO probably actually work, but are untested.
 | `TemplateLiteral.quasis/expressions`                  | ❓ not sure if I can come up with a syntax |                                                                   |
 | `TryStatement.guardedHandlers`                        | TODO                                       |                                                                   |
 | `TryStatement.handlers`                               | TODO                                       |                                                                   |
-| `TSFunctionType.parameters`                           | TODO                                       |                                                                   |
+| `TSFunctionType.parameters`                           | ✅                                         |                                                                   |
 | `TSCallSignatureDeclaration.parameters`               | TODO                                       |                                                                   |
 | `TSConstructorType.parameters`                        | TODO                                       |                                                                   |
 | `TSConstructSignatureDeclaration.parameters`          | TODO                                       |                                                                   |
