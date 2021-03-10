@@ -1568,6 +1568,11 @@
   resolved "https://registry.npmjs.org/@types/chai/-/chai-4.2.15.tgz#b7a6d263c2cecf44b6de9a051cf496249b154553"
   integrity sha512-rYff6FI+ZTKAPkJUoyz7Udq3GaoDZnxYDEvdEdFZASiA7PoErltHezDishqQiSDWrGxvxmplH304jyzQmjp0AQ==
 
+"@types/diff@^5.0.0":
+  version "5.0.0"
+  resolved "https://registry.npmjs.org/@types/diff/-/diff-5.0.0.tgz#eb71e94feae62548282c4889308a3dfb57e36020"
+  integrity sha512-jrm2K65CokCCX4NmowtA+MfXyuprZC13jbRuwprs6/04z/EcFg/MCwYdsHn+zgV4CQBiATiI7AEq7y1sZCtWKA==
+
 "@types/eslint-visitor-keys@^1.0.0":
   version "1.0.0"
   resolved "https://registry.npmjs.org/@types/eslint-visitor-keys/-/eslint-visitor-keys-1.0.0.tgz#1ee30d79544ca84d68d4b3cdb0af4f205663dd2d"
@@ -3219,7 +3224,7 @@ dezalgo@^1.0.0, dezalgo@~1.0.3:
     asap "^2.0.0"
     wrappy "1"
 
-diff@5.0.0:
+diff@5.0.0, diff@^5.0.0:
   version "5.0.0"
   resolved "https://registry.npmjs.org/diff/-/diff-5.0.0.tgz#7ed6ad76d859d030787ec35855f5b1daf31d852b"
   integrity sha512-/VTCrvm5Z0JGty/BWHljh+BAiw3IK+2j87NGMu8Nwc/f48WoDAC395uomO9ZD117ZOBaHmkX1oyLvkVM/aIT3w==
@@ -7148,13 +7153,6 @@ pretty-format@^23.0.1:
   dependencies:
     ansi-regex "^3.0.0"
     ansi-styles "^3.2.0"
-
-print-diff@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.npmjs.org/print-diff/-/print-diff-1.0.0.tgz#acd02edc899bf6c320fd3a30769b7a7374c71059"
-  integrity sha512-tvYT1pVzXxTOMLDRyu6ncaF2LL69d0EAchmGGGJoLc/2GOcnRKcO4PV89l7/s3Er1CpXTgFv7jB4XDgd+yxBjA==
-  dependencies:
-    diff "^4.0.1"
 
 process-nextick-args@~2.0.0:
   version "2.0.1"

@@ -3,12 +3,12 @@
 import chalk from 'chalk'
 import path from 'path'
 import fs from 'fs-extra'
-import printDiff from 'print-diff'
 import yargs from 'yargs'
 import inquirer from 'inquirer'
 import isEmpty from 'lodash/isEmpty'
 import runTransform from '../runTransform'
 import { Transform } from '../runTransformOnFile'
+import formatDiff from '../util/formatDiff'
 
 const argv = yargs
   .option('transform', {
@@ -83,7 +83,7 @@ ${file}
 ==========================================
 `)
       )
-      printDiff(source, transformed)
+      console.log(formatDiff(source, transformed))
     } else {
       console.error(chalk.yellow(`no changes: ${file}`))
     }
