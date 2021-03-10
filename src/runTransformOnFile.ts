@@ -1,12 +1,10 @@
 import jscodeshift, {
-  API,
   ASTNode,
   Collection,
   Expression,
-  FileInfo,
-  Options,
   Parser,
   Statement,
+  JSCodeshift,
 } from 'jscodeshift'
 import { ReplaceOptions } from './replace'
 import Astx, { GetReplacement } from './Astx'
@@ -19,39 +17,30 @@ import chooseJSCodeshiftParser from 'jscodeshift-choose-parser'
 import makeTemplate from './util/template'
 const resolve = promisify(_resolve) as any
 
-interface Templates {
+type TransformOptions = {
+  /** The absolute path to the current file. */
+  path: string
+  /** The source code of the current file. */
+  source: string
+  root: Collection
+  astx: Astx
   expression(strings: TemplateStringsArray, ...quasis: any[]): Expression
   statement(strings: TemplateStringsArray, ...quasis: any[]): Statement
   statements(strings: TemplateStringsArray, ...quasis: any[]): Statement[]
+  j: JSCodeshift
+  jscodeshift: JSCodeshift
+  report: (msg: string) => void
 }
 
-type TransformOptions = FileInfo & API & Templates & { astx: Astx }
-
-export type AstxTransformOptions = TransformOptions & {
-  root: Collection
-  astx: Astx
-}
-
-export interface AstxTransform {
-  (options: AstxTransformOptions): Collection | string | null | undefined | void
-}
-
-type TransformProps = {
-  astx?: AstxTransform
+export type Transform = {
+  astx?: (
+    options: TransformOptions
+  ) => Collection | string | null | undefined | void
   parser?: string | Parser
   find?: string | ASTNode
   replace?: string | GetReplacement<any>
   where?: ReplaceOptions['where']
 }
-
-export type Transform =
-  | TransformProps
-  | (TransformProps &
-      ((
-        fileInfo: FileInfo,
-        api: API,
-        options: Options
-      ) => string | null | undefined | void))
 
 export type TransformResult = {
   file: string
@@ -93,7 +82,6 @@ export const runTransformOnFile = (transform: Transform) => async (
     const reports: any[] = []
 
     if (
-      typeof transform !== 'function' &&
       typeof transform.astx !== 'function' &&
       transform.find &&
       transform.replace
@@ -103,31 +91,13 @@ export const runTransformOnFile = (transform: Transform) => async (
           .findAuto(transform.find as any, { where: transform.where })
           .replace(transform.replace as any)
     }
-
-    if (typeof transform === 'function') {
-      // jscodeshift CLI passes source/path separately from other options, which is dumb
-      transformed = await transform(
-        { source, path: file },
-        {
-          j,
-          jscodeshift: j,
-          stats: () => {
-            // noop
-          },
-          report: (msg: any) => reports.push(msg),
-        },
-        {}
-      )
-    } else if (typeof transform.astx === 'function') {
+    if (typeof transform.astx === 'function') {
       const root = j(source)
       const options = {
         source,
         path: file,
         j,
         jscodeshift: j,
-        stats: () => {
-          // noop
-        },
         report: (msg: any) => reports.push(msg),
         ...template,
         root,
@@ -148,6 +118,13 @@ export const runTransformOnFile = (transform: Transform) => async (
         const config = (await prettier.resolveConfig(file)) || {}
         if (/tsx?$/.test(parser)) config.parser = 'typescript'
         transformed = prettier.format(transformed, config)
+      }
+    } else {
+      return {
+        file,
+        error: new Error(
+          'transform file must export either astx or find/replace'
+        ),
       }
     }
     return {
