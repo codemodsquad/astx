@@ -1,6 +1,7 @@
 import t from 'ast-types'
 import { ASTNode } from 'jscodeshift'
 import shallowEqual from 'shallowequal'
+import getFieldNames from './getFieldNames'
 
 /* eslint-disable @typescript-eslint/no-use-before-define */
 
@@ -8,7 +9,7 @@ export default function areASTsEqual(a: ASTNode, b: ASTNode): boolean {
   if (a.type === 'File')
     return b.type === 'File' && areFieldValuesEqual(a.program, b.program)
   if (a.type !== b.type) return false
-  const nodeFields = t.getFieldNames(a)
+  const nodeFields = getFieldNames(a)
   for (const name of nodeFields) {
     if (
       !areFieldValuesEqual(t.getFieldValue(a, name), t.getFieldValue(b, name))

@@ -7,6 +7,8 @@ import compileMatcher, {
 import t, { Type } from 'ast-types'
 import indentDebug from './indentDebug'
 
+import getFieldNames from '../util/getFieldNames'
+
 const equivalenceClassesArray: {
   nodeTypes: Set<ASTNode['type']>
   baseType?: keyof typeof t.namedTypes
@@ -55,8 +57,7 @@ export default function compileGenericNodeMatcher(
 
   const { debug } = compileOptions
   const keyMatchers: Record<string, CompiledMatcher> = Object.fromEntries(
-    t
-      .getFieldNames(query)
+    getFieldNames(query)
       .filter((key) => key !== 'type')
       .map((key: string): [string, CompiledMatcher] => {
         const value = (query as any)[key]

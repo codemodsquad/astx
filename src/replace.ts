@@ -42,11 +42,11 @@ export function replaceCaptures(
 }
 
 function getCaptureHolder(path: ASTPath<any>): ASTPath<any> | null {
-  do {
+  while (path && path.node?.type !== 'Program' && path.parentPath) {
     if (Array.isArray(path.parentPath.value)) return path
     if (path.parentPath.node?.type === 'Statement') return null
     path = path.parentPath
-  } while (path != null && path.node?.type !== 'Program')
+  }
 }
 
 export function replaceArrayCaptures(
@@ -107,28 +107,41 @@ export function replaceArrayCaptures(
   j([path]).find(j.TSTypeParameter).forEach(doReplace)
 }
 
+export function generateReplacements<Node extends ASTNode>(
+  matches: Match<Node>[],
+  replace: ASTNode | ((match: Match<Node>) => ASTNode)
+): ASTNode[] {
+  return matches.map(
+    (match: Match<Node>): ASTNode => {
+      const replacement =
+        typeof replace === 'function' ? replace(match) : cloneDeep(replace)
+      switch (match.node.type) {
+        case 'ClassDeclaration':
+        case 'ClassExpression':
+          if (
+            replacement.type !== match.node.type &&
+            (replacement.type === 'ClassDeclaration' ||
+              replacement.type === 'ClassExpression')
+          ) {
+            replacement.type = match.node.type
+          }
+          break
+      }
+      const path = j([replacement]).paths()[0]
+      if (match.arrayCaptures) replaceArrayCaptures(path, match.arrayCaptures)
+      if (match.captures) replaceCaptures(path, match.captures)
+      return path.node
+    }
+  )
+}
+
 export function replaceMatches<Node extends ASTNode>(
   matches: Match<Node>[],
   replace: ASTNode | ((match: Match<Node>) => ASTNode)
 ): void {
-  for (const match of matches) {
-    const replacement =
-      typeof replace === 'function' ? replace(match) : cloneDeep(replace)
-    switch (match.node.type) {
-      case 'ClassDeclaration':
-      case 'ClassExpression':
-        if (
-          replacement.type !== match.node.type &&
-          (replacement.type === 'ClassDeclaration' ||
-            replacement.type === 'ClassExpression')
-        ) {
-          replacement.type = match.node.type
-        }
-        break
-    }
-    const [replaced] = match.path.replace(replacement)
-    if (match.arrayCaptures) replaceArrayCaptures(replaced, match.arrayCaptures)
-    if (match.captures) replaceCaptures(replaced, match.captures)
+  const replacements = generateReplacements(matches, replace)
+  for (let i = 0; i < matches.length; i++) {
+    matches[i].path.replace(replacements[i])
   }
 }
 
