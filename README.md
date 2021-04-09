@@ -25,6 +25,8 @@ structural search and replace for JavaScript and TypeScript, using jscodeshift
     - [`constructor(jscodeshift: JSCodeshift, root: Collection)`](#constructorjscodeshift-jscodeshift-root-collection)
     - [`.on(root: Collection)`](#onroot-collection)
     - [`.find()`](#find)
+    - [`FindOptions`](#findoptions)
+      - [`FindOptions.where` (`{ [captureName: string]: (path: ASTPath<any>) => boolean }`)](#findoptionswhere--capturename-string-path-astpathany--boolean-)
     - [`.find().replace()`](#findreplace)
     - [`.findStatements()`](#findstatements)
     - [`.findStatements().replace()`](#findstatementsreplace)
@@ -42,6 +44,12 @@ structural search and replace for JavaScript and TypeScript, using jscodeshift
   - [String Matching](#string-matching)
     - [Support Table](#support-table)
   - [| Backreferences](#-backreferences)
+- [Transform files](#transform-files)
+  - [`exports.find` (optional)](#exportsfind-optional)
+  - [`exports.where` (optional)](#exportswhere-optional)
+  - [`exports.replace` (optional)](#exportsreplace-optional)
+  - [`exports.astx` (optional)](#exportsastx-optional)
+- [CLI](#cli)
 
 <!-- tocstop -->
 
@@ -66,10 +74,8 @@ linebreaks well unless you work really hard at the regex.
 
 Now there's a better option...you can refactor with confidence using `astx`!
 
-```js
-// astx.js
-exports.find = `rmdir($path, $force)`
-exports.replace = `rmdir($path, { force: $force })`
+```sh
+astx -f 'rmdir($path, $force)' -r 'rmdir($path, { force: $force })' src
 ```
 
 What's going on here? Find and replace must be valid JS expressions or statements. `astx` parses them
@@ -214,6 +220,16 @@ AST node you already parsed or constructed.
 You can interpolate AST nodes in the tagged template literal; it uses `jscodeshift.template.expression` or `jscodeshift.template.statement` under the hood.
 
 For example you could do `` astx.find`${j.identifier('foo')} + 3`() ``
+
+### `FindOptions`
+
+An object with the following optional properties:
+
+#### `FindOptions.where` (`{ [captureName: string]: (path: ASTPath<any>) => boolean }`)
+
+Where conditions for node captures. For example if your find pattern is `$a()`, you could have
+`{ where: { $a: path => /foo|bar/.test(path.node.name) } }`, which would only match zero-argument calls
+to `foo` or `bar`.
 
 ### `.find().replace()`
 
@@ -419,4 +435,81 @@ For example, the pattern `foo($a, $a, $b, $b)` will match only `foo(1, 1, {foo: 
 foo(1, 1, { foo: 1 }, { foo: 1 }) // match
 foo(1, 2, { foo: 1 }, { foo: 1 }) // no match
 foo(1, 1, { foo: 1 }, { bar: 1 }) // no match
+```
+
+# Transform files
+
+Like `jscodeshift`, you can put code to perform a transform in a `.js` file (defaults to `astx.js` in the working directory, unless you use the `-t` CLI option).
+
+The transform file API is a bit different from `jscodeshift` though. You can have the following exports:
+
+## `exports.find` (optional)
+
+A code string or AST node of the pattern to find in the files being transformed.
+
+## `exports.where` (optional)
+
+Where conditions for capture variables in `exports.find`.
+See [`FindOptions.where` (`{ [captureName: string]: (path: ASTPath<any>) => boolean }`)](#findoptionswhere--capturename-string-path-astpathany--boolean-) for more information.
+
+## `exports.replace` (optional)
+
+A code string, AST node, or replace function to replace matches of `exports.find` with.
+
+The function arguments are the same as described in [`.find().replace()`](#findreplace) or
+[`.findStatements().replace()`](#findstatementsreplace), depending on whether `exports.find`
+is multiple statements or not.
+
+## `exports.astx` (optional)
+
+A function to perform an arbitrary transform using the `Astx` API. It gets called with an object with the following properties:
+
+- `source` (`string`) - The source code of the file being transformed
+- `path` (`string`) - The path to the file being transformed
+- `root` (`Collection`) - the JSCodeshift Collection wrapping the parsed AST
+- `astx` (`Astx`) - the `Astx` API instance
+- `jscodeshift` (`JSCodeshift`) - the JSCodeshift instance
+- `j` (`JSCodeshift`) - shorthand for the same JSCodeshift instance
+- `expression` - tagged template literal for parsing code as an expression, like `jscodeshift.template.expression`
+- `statement` - tagged template literal for parsing code as a statement, like `jscodeshift.template.statement`
+- `statements` - tagged template literal for parsing code as an array of statements, like `jscodeshift.template.statements`
+- `report` (`(message: any) => void`)
+
+# CLI
+
+Astx includes a CLI for performing transforms. The CLI will process the given files, then print out a diff of what will be
+changed, and prompt you to confirm you want to write the changes.
+
+It will parse with babel by default using the version installed in your project and your project's babel config, if any.
+You can pass other parsers with the `--parser` option, just like `jscodeshift`.
+
+```
+Usage:
+
+astx -f <code> -r <code> [<files...>] [<directories...>]
+
+  Quick search and replace in the given files and directories
+  (make sure to quote code)
+
+  Example:
+
+    astx -f 'rmdir($path, $force)' -r 'rmdir($path, { force: $force })' src
+
+astx -t <transformFile> [<files ...>] [<directories ...>]
+
+  Applies a transform file to the given files and directories
+
+astx [<files ...>] [<directories ...>]
+
+  Applies the default transform file (astx.js in working directory)
+  to the given files and directories
+
+
+Options:
+      --help       Show help                                           [boolean]
+      --version    Show version number                                 [boolean]
+  -t, --transform  path to the transform file. Can be either a local path or url
+      --parser     parser to use                                        [string]
+  -f, --find       search pattern                                       [string]
+  -r, --replace    replace pattern                                      [string]
 ```

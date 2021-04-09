@@ -30,7 +30,26 @@ const argv = yargs
     alias: 'r',
     describe: 'replace pattern',
     type: 'string',
-  }).argv
+  }).usage(`Usage:
+
+$0 -f <code> -r <code> [<files...>] [<directories...>]
+  
+  Quick search and replace in the given files and directories
+  (make sure to quote code)
+
+  Example:
+
+    astx -f 'rmdir($path, $force)' -r 'rmdir($path, { force: $force })' src
+
+$0 -t <transformFile> [<files ...>] [<directories ...>]
+
+  Applies a transform file to the given files and directories
+
+$0 [<files ...>] [<directories ...>]
+
+  Applies the default transform file (astx.js in working directory)
+  to the given files and directories
+`).argv
 
 const paths = argv._.filter((x) => typeof x === 'string') as string[]
 if (!paths.length) {

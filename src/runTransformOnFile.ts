@@ -99,7 +99,9 @@ export const runTransformOnFile = (transform: Transform) => async (
         path: file,
         j,
         jscodeshift: j,
-        report: (msg: any) => reports.push(msg),
+        report: (msg: any) => {
+          reports.push(msg)
+        },
         ...template,
         root,
         astx: new Astx(j, root),
