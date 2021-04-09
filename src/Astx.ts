@@ -24,7 +24,7 @@ export type GetReplacement<Node extends ASTNode> = (
 export type GetStatementsReplacement = (
   match: StatementsMatch,
   parse: ParseTag
-) => string | Statement | Statement[]
+) => string | Expression | Statement | Statement[]
 
 export class MatchArray<Node extends ASTNode> extends Array<Match<Node>> {
   private jscodeshift: JSCodeshift

@@ -2,6 +2,7 @@ import j, {
   ASTNode,
   ASTPath,
   Collection,
+  Expression,
   Identifier,
   Statement,
 } from 'jscodeshift'
@@ -166,19 +167,26 @@ export function replaceMatches<Node extends ASTNode>(
   }
 }
 
+function ensureStatements(
+  value: Expression | Statement | Statement[]
+): Statement[] {
+  if (Array.isArray(value)) return value
+  if (t.namedTypes.Statement.check(value)) return [value]
+  return [j.expressionStatement(value as Expression)]
+}
+
 export function replaceStatementsMatches(
   matches: StatementsMatch[],
   replace:
+    | Expression
     | Statement
     | Statement[]
-    | ((match: StatementsMatch) => Statement | Statement[])
+    | ((match: StatementsMatch) => Expression | Statement | Statement[])
 ): void {
   for (const match of matches) {
-    const _replacements =
+    const replacements = ensureStatements(
       typeof replace === 'function' ? replace(match) : cloneDeep(replace)
-    const replacements = Array.isArray(_replacements)
-      ? _replacements
-      : [_replacements]
+    )
     const parent = match.paths[0].parentPath
     let index = match.paths[0].name
     for (const replacement of replacements) {
@@ -228,6 +236,7 @@ export default function replace<Node extends ASTNode>(
     replaceStatementsMatches(
       matches,
       replace as
+        | Expression
         | Statement
         | Statement[]
         | ((match: StatementsMatch) => Statement | Statement[])
