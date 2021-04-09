@@ -5,8 +5,6 @@ import {
   runTransformOnFile,
   Transform,
   TransformResult,
-  AstxTransform,
-  AstxTransformOptions,
 } from './runTransformOnFile'
 import runTransform from './runTransform'
 
@@ -25,6 +23,4 @@ export {
   runTransformOnFile,
   Transform,
   TransformResult,
-  AstxTransform,
-  AstxTransformOptions,
 }
