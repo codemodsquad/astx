@@ -21,6 +21,7 @@ import ObjectProperty from './ObjectProperty'
 import ObjectTypeProperty from './ObjectTypeProperty'
 import RegExpLiteral from './RegExpLiteral'
 import StringLiteral from './StringLiteral'
+import TemplateLiteral from './TemplateLiteral'
 import TSExpressionWithTypeArguments from './TSExpressionWithTypeArguments'
 import TSPropertySignature from './TSPropertySignature'
 import TSTypeParameter from './TSTypeParameter'
@@ -42,10 +43,12 @@ export type CompileOptions = {
 
 export type Captures = Record<string, ASTPath<any>>
 export type ArrayCaptures = Record<string, ASTPath<any>[]>
+export type StringCaptures = Record<string, string>
 
 export type MatchResult = {
   captures?: Captures
   arrayCaptures?: ArrayCaptures
+  stringCaptures?: StringCaptures
 } | null
 
 export function mergeCaptures(...results: MatchResult[]): MatchResult {
@@ -61,6 +64,11 @@ export function mergeCaptures(...results: MatchResult[]): MatchResult {
       if (!current) current = {}
       if (!current.arrayCaptures) current.arrayCaptures = {}
       Object.assign(current.arrayCaptures, result.arrayCaptures)
+    }
+    if (result.stringCaptures) {
+      if (!current) current = {}
+      if (!current.stringCaptures) current.stringCaptures = {}
+      Object.assign(current.stringCaptures, result.stringCaptures)
     }
   }
   return current
@@ -103,6 +111,7 @@ const nodeMatchers: Record<
   ObjectTypeProperty,
   RegExpLiteral,
   StringLiteral,
+  TemplateLiteral,
   TSExpressionWithTypeArguments,
   TSPropertySignature,
   TSTypeParameter,

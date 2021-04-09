@@ -17,6 +17,7 @@ structural search and replace for JavaScript and TypeScript, using jscodeshift
 - [Introduction](#introduction)
 - [Other usage examples](#other-usage-examples)
   - [Fixing eslint errors that eslint is too dumb to fix for you](#fixing-eslint-errors-that-eslint-is-too-dumb-to-fix-for-you)
+  - [Converting require statements to imports](#converting-require-statements-to-imports)
 - [Prior art and philosophy](#prior-art-and-philosophy)
 - [API](#api)
   - [class Astx](#class-astx)
@@ -37,6 +38,7 @@ structural search and replace for JavaScript and TypeScript, using jscodeshift
 - [Match Patterns](#match-patterns)
   - [Object Matching](#object-matching)
   - [List Matching](#list-matching)
+  - [String Matching](#string-matching)
     - [Support Table](#support-table)
   - [| Backreferences](#-backreferences)
 
@@ -90,6 +92,13 @@ Got a lot of `Do not access Object.prototype method 'hasOwnProperty' from target
 ```js
 exports.find = `$a.hasOwnProperty($b)`
 exports.replace = `Object.prototype.hasOwnProperty.call($a, $b)`
+```
+
+## Converting require statements to imports
+
+```js
+exports.find = `const $id = require('$source')`
+exports.replace = `import $id from '$source'`
 ```
 
 # Prior art and philosophy
@@ -277,6 +286,13 @@ first `3` will be captured in `$_before` and elements after the first `3` will b
 
 This works even with block statements. For example, `function foo() { $_before; throw new Error('test'); $_after; }` will match `function foo()` that contains a `throw new Error('test')`,
 and the statements before and after that throw statement will get captured in `$_before` and `$_after`, respectively.
+
+## String Matching
+
+A string that's just a placeholder like `'$foo'` will match any string and capture its contents into `match.stringCaptures.$foo`.
+The same escaping rules apply as for identifiers. This also works for template literals like `` `$foo` `` and tagged template literals like `` doSomething`$foo` ``.
+
+This can be helpful for working with import statements. For example, see [Converting require statements to imports](#converting-require-statements-to-imports).
 
 ### Support Table
 

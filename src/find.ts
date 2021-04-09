@@ -14,6 +14,7 @@ export type Match<Node extends ASTNode> = {
   captures?: Record<string, ASTNode>
   arrayPathCaptures?: Record<string, ASTPath<any>[]>
   arrayCaptures?: Record<string, ASTNode[]>
+  stringCaptures?: Record<string, string>
 }
 
 export type StatementsMatch = {
@@ -24,6 +25,7 @@ export type StatementsMatch = {
   captures?: Record<string, ASTNode>
   arrayPathCaptures?: Record<string, ASTPath<any>[]>
   arrayCaptures?: Record<string, ASTNode[]>
+  stringCaptures?: Record<string, string>
 }
 
 export type FindOptions = {
@@ -67,6 +69,7 @@ export default function find<Node extends ASTNode>(
         const {
           captures: pathCaptures,
           arrayCaptures: arrayPathCaptures,
+          stringCaptures,
         } = result
         if (pathCaptures) {
           match.pathCaptures = pathCaptures
@@ -82,6 +85,7 @@ export default function find<Node extends ASTNode>(
             (paths: ASTPath<any>[]) => paths.map((path) => path.node)
           )
         }
+        if (stringCaptures) match.stringCaptures = stringCaptures
         matches.push(match)
       }
     })
@@ -251,6 +255,9 @@ function findStatements(
           finalMatch.arrayCaptures = mapValues(result.arrayCaptures, (paths) =>
             paths.map((p) => p.node)
           )
+        }
+        if (result?.stringCaptures) {
+          finalMatch.stringCaptures = result.stringCaptures
         }
 
         matches.push(finalMatch)

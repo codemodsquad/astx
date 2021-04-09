@@ -1,10 +1,18 @@
 import { ASTPath, StringLiteral } from 'jscodeshift'
 import { CompileOptions, convertPredicateMatcher, CompiledMatcher } from './'
+import { compileStringCaptureMatcher } from './Capture'
 
 export default function matchStringLiteral(
   query: StringLiteral,
   compileOptions: CompileOptions
 ): CompiledMatcher {
+  const captureMatcher = compileStringCaptureMatcher(
+    query,
+    (query) => query.value,
+    compileOptions
+  )
+  if (captureMatcher) return captureMatcher
+
   return convertPredicateMatcher(
     query,
     {

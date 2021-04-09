@@ -14,12 +14,14 @@ type ExpectedMatch = {
   nodes?: string[]
   captures?: Record<string, string>
   arrayCaptures?: Record<string, string[]>
+  stringCaptures?: Record<string, string>
 }
 
 type Fixture = {
   input: string
   find: string
   findOptions?: FindOptions
+  where?: FindOptions['where']
   replace: string | ((match: Match<any>) => ASTNode)
   replaceOptions?: ReplaceOptions
   expectedFind?: ExpectedMatch[]
@@ -38,7 +40,7 @@ export function formatMatches(
   }
   const result = []
   matches.forEach((_match: Match<any> | StatementsMatch) => {
-    const { pathCaptures, arrayPathCaptures } = _match
+    const { pathCaptures, arrayPathCaptures, stringCaptures } = _match
     const { path, paths }: { path?: ASTPath; paths?: ASTPath[] } = _match as any
     const match: ExpectedMatch = {}
     if (path) match.node = toSource(path)
@@ -48,6 +50,7 @@ export function formatMatches(
       match.arrayCaptures = mapValues(arrayPathCaptures, (paths) =>
         paths.map(toSource)
       )
+    if (stringCaptures) match.stringCaptures = stringCaptures
     result.push(match)
   })
   return result
@@ -89,6 +92,7 @@ describe(`find`, function () {
           findOptions,
           replace: _replace,
           replaceOptions,
+          where,
           expectedFind,
           expectedReplace,
           only,
@@ -105,7 +109,7 @@ describe(`find`, function () {
               const matches = find(
                 root,
                 parseFindOrReplace(j, [_find] as any) as any,
-                findOptions
+                where ? { ...findOptions, where } : findOptions
               )
               expect(formatMatches(j, matches)).to.deep.equal(expectedFind)
             }
@@ -116,7 +120,7 @@ describe(`find`, function () {
                 typeof _replace === 'function'
                   ? _replace
                   : (parseFindOrReplace(j, [_replace] as any) as any),
-                replaceOptions
+                where ? { ...replaceOptions, where } : replaceOptions
               )
               const actual = root.toSource()
               expect(format(actual)).to.deep.equal(format(expectedReplace))

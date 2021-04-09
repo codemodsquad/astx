@@ -1,4 +1,5 @@
 import { ASTPath, Literal } from 'jscodeshift'
+import { compileStringCaptureMatcher } from './Capture'
 import {
   CompiledMatcher,
   CompileOptions,
@@ -32,6 +33,14 @@ export default function matchLiteral(
       },
       compileOptions
     )
+  }
+  if (typeof query.value === 'string') {
+    const captureMatcher = compileStringCaptureMatcher(
+      query,
+      (node: Literal) => (typeof node.value === 'string' ? node.value : null),
+      compileOptions
+    )
+    if (captureMatcher) return captureMatcher
   }
   return convertPredicateMatcher(
     query,

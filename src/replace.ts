@@ -41,6 +41,25 @@ export function replaceCaptures(
   j([path]).find(j.TSTypeParameter).forEach(doReplace)
 }
 
+export function replaceStringCaptures(
+  path: ASTPath<any>,
+  captures: Record<string, string>
+): void {
+  const replaceOnLiteral = (path: ASTPath<any>) => {
+    const captureMatch = /^\$[a-z0-9]+/i.exec(path.node.value)
+    const captureName = captureMatch ? captureMatch[0] : null
+    const capture = captureName ? captures[captureName] : null
+    if (capture) {
+      path.node.value = capture
+    } else {
+      const escaped = path.node.value.replace(/^\$\$/, '$')
+      if (escaped !== path.node.value) path.node.value = escaped
+    }
+  }
+  j([path]).find(j.StringLiteral).forEach(replaceOnLiteral)
+  j([path]).find(j.Literal).forEach(replaceOnLiteral)
+}
+
 function getCaptureHolder(path: ASTPath<any>): ASTPath<any> | null {
   while (path && path.node?.type !== 'Program' && path.parentPath) {
     if (Array.isArray(path.parentPath.value)) return path
@@ -130,6 +149,8 @@ export function generateReplacements<Node extends ASTNode>(
       const path = j([replacement]).paths()[0]
       if (match.arrayCaptures) replaceArrayCaptures(path, match.arrayCaptures)
       if (match.captures) replaceCaptures(path, match.captures)
+      if (match.stringCaptures)
+        replaceStringCaptures(path, match.stringCaptures)
       return path.node
     }
   )
@@ -166,6 +187,8 @@ export function replaceStatementsMatches(
       if (match.arrayCaptures)
         replaceArrayCaptures(replaced, match.arrayCaptures)
       if (match.captures) replaceCaptures(replaced, match.captures)
+      if (match.stringCaptures)
+        replaceStringCaptures(replaced, match.stringCaptures)
     }
     for (const path of match.paths) path.prune()
   }

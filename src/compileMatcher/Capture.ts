@@ -1,5 +1,5 @@
 import { CompileOptions, MatchResult, mergeCaptures, CompiledMatcher } from './'
-import { ASTPath } from 'jscodeshift'
+import { ASTNode, ASTPath } from 'jscodeshift'
 import areASTsEqual from '../util/areASTsEqual'
 
 export const unescapeIdentifier = (identifier: string): string =>
@@ -34,7 +34,7 @@ export default function compileCaptureMatcher(
     return {
       captureAs,
       match: (path: ASTPath, matchSoFar: MatchResult): MatchResult => {
-        debug('Capture', identifier)
+        debug('Capture', captureAs)
         const existingCapture = matchSoFar?.captures?.[captureAs]
         if (existingCapture) {
           return areASTsEqual(existingCapture.node, path.node)
@@ -51,4 +51,34 @@ export default function compileCaptureMatcher(
     }
   }
   return compileArrayCaptureMatcher(identifier, compileOptions)
+}
+
+export function compileStringCaptureMatcher<Node extends ASTNode>(
+  query: Node,
+  getString: (node: Node) => string | null,
+  compileOptions: CompileOptions
+): CompiledMatcher | void {
+  const { debug } = compileOptions
+  const string = getString(query)
+  if (!string) return
+  const captureAs = /^\$[a-z0-9]+/i.exec(string)?.[0]
+  if (captureAs) {
+    return {
+      captureAs,
+      match: (path: ASTPath, matchSoFar: MatchResult): MatchResult => {
+        if (path.node.type !== query.type) return null
+        debug('String Capture', captureAs)
+        const string = getString(path.node)
+        if (!string) return null
+        const existingCapture = matchSoFar?.stringCaptures?.[captureAs]
+        if (existingCapture) {
+          return string === existingCapture ? matchSoFar || {} : null
+        }
+        debug('  captured as %s', captureAs)
+        return mergeCaptures(matchSoFar, {
+          stringCaptures: { [captureAs]: string },
+        })
+      },
+    }
+  }
 }
