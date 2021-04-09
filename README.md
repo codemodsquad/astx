@@ -475,6 +475,10 @@ A function to perform an arbitrary transform using the `Astx` API. It gets calle
 - `statements` - tagged template literal for parsing code as an array of statements, like `jscodeshift.template.statements`
 - `report` (`(message: any) => void`)
 
+Unlike `jscodeshift`, your transform function can be async, and it doesn't have to return the transformed code,
+but you can return a `string` or JSCodeshift `Collection` instance if you want. You can also return `null` to
+skip the file.
+
 # CLI
 
 Astx includes a CLI for performing transforms. The CLI will process the given files, then print out a diff of what will be
