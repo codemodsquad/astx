@@ -402,6 +402,11 @@
   resolved "https://registry.npmjs.org/@babel/parser/-/parser-7.12.16.tgz#cc31257419d2c3189d394081635703f549fc1ed4"
   integrity sha512-c/+u9cqV6F0+4Hpq01jnJO+GLp2DdT63ppz9Xa+6cHaajM9VFzK/iDXiKK65YtpeVwu+ctfS6iqlMqRgQRzeCw==
 
+"@babel/parser@^7.13.13":
+  version "7.13.15"
+  resolved "https://registry.npmjs.org/@babel/parser/-/parser-7.13.15.tgz#8e66775fb523599acb6a289e12929fa5ab0954d8"
+  integrity sha512-b9COtcAlVEQljy/9fbcMHpG+UIW9ReF+gpaxDHTlZd0c6/UU9ng8zdySAW9sRTzpvcdCHn6bUcbuYUgGzLAWVQ==
+
 "@babel/plugin-proposal-async-generator-functions@^7.12.13":
   version "7.12.13"
   resolved "https://registry.npmjs.org/@babel/plugin-proposal-async-generator-functions/-/plugin-proposal-async-generator-functions-7.12.13.tgz#d1c6d841802ffb88c64a2413e311f7345b9e66b5"
@@ -1151,6 +1156,15 @@
     lodash "^4.17.19"
     to-fast-properties "^2.0.0"
 
+"@babel/types@^7.13.14":
+  version "7.13.14"
+  resolved "https://registry.npmjs.org/@babel/types/-/types-7.13.14.tgz#c35a4abb15c7cd45a2746d78ab328e362cbace0d"
+  integrity sha512-A2aa3QTkWoyqsZZFl56MLUsfmh7O0gN41IPvXAE/++8ojpbz12SszD7JEGYVdn4f9Kt4amIei07swF1h4AqmmQ==
+  dependencies:
+    "@babel/helper-validator-identifier" "^7.12.11"
+    lodash "^4.17.19"
+    to-fast-properties "^2.0.0"
+
 "@commitlint/cli@^11.0.0":
   version "11.0.0"
   resolved "https://registry.npmjs.org/@commitlint/cli/-/cli-11.0.0.tgz#698199bc52afed50aa28169237758fa14a67b5d3"
@@ -1567,6 +1581,11 @@
   version "4.2.15"
   resolved "https://registry.npmjs.org/@types/chai/-/chai-4.2.15.tgz#b7a6d263c2cecf44b6de9a051cf496249b154553"
   integrity sha512-rYff6FI+ZTKAPkJUoyz7Udq3GaoDZnxYDEvdEdFZASiA7PoErltHezDishqQiSDWrGxvxmplH304jyzQmjp0AQ==
+
+"@types/debug@^4.1.5":
+  version "4.1.5"
+  resolved "https://registry.npmjs.org/@types/debug/-/debug-4.1.5.tgz#b14efa8852b7768d898906613c23f688713e02cd"
+  integrity sha512-Q1y515GcOdTHgagaVFhHnIFQ38ygs/kmxdNpvpou+raI9UO3YZcHDngBSYKQklcKlvA7iuQlmIKbzvmxcOE9CQ==
 
 "@types/diff@^5.0.0":
   version "5.0.0"
@@ -2199,6 +2218,16 @@ babel-eslint@^10.1.0:
     "@babel/types" "^7.7.0"
     eslint-visitor-keys "^1.0.0"
     resolve "^1.12.0"
+
+babel-parse-wild-code@^1.1.1:
+  version "1.1.1"
+  resolved "https://registry.npmjs.org/babel-parse-wild-code/-/babel-parse-wild-code-1.1.1.tgz#c99cdbaf9aac3933fa2dfd90f4be180d53a8f299"
+  integrity sha512-926fqbqPlp01ltB1NBBGqGeZKhO3Ia14VCaH1Hj1R2kDGMtIddP4muefO/bg8bsBRKD1rbarsy8/ZYPkVx0bYQ==
+  dependencies:
+    "@babel/parser" "^7.13.13"
+    "@babel/runtime" "^7.12.5"
+    "@babel/types" "^7.13.14"
+    resolve "^1.20.0"
 
 babel-plugin-dynamic-import-node@^2.3.3:
   version "2.3.3"
@@ -4687,11 +4716,6 @@ into-stream@^5.0.0:
     from2 "^2.3.0"
     p-is-promise "^3.0.0"
 
-invalidate-require-cache@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.npmjs.org/invalidate-require-cache/-/invalidate-require-cache-1.0.0.tgz#7be817287ff6adbb6e8e233e7e4a0444af8a540a"
-  integrity sha512-3aVHx42pg3GoimLy81TZoLripzJrgaLgABn8itsN2y0n6ykwO39MQO7WdzzUcul02H+FoGg84VD55ovQveXdZg==
-
 invert-kv@^1.0.0:
   version "1.0.0"
   resolved "https://registry.npmjs.org/invert-kv/-/invert-kv-1.0.0.tgz#104a8e4aaca6d3d8cd157a8ef8bfab2d7a3ffdb6"
@@ -5202,14 +5226,6 @@ jsbn@~0.1.0:
   version "0.1.1"
   resolved "https://registry.npmjs.org/jsbn/-/jsbn-0.1.1.tgz#a5e654c2e5a2deb5f201d96cefbca80c0ef2f513"
   integrity sha1-peZUwuWi3rXyAdls77yoDA7y9RM=
-
-jscodeshift-choose-parser@^2.0.0:
-  version "2.0.0"
-  resolved "https://registry.npmjs.org/jscodeshift-choose-parser/-/jscodeshift-choose-parser-2.0.0.tgz#1001917239515e46690da5a66f3de1fb2bb484fe"
-  integrity sha512-wQKZYoohvYb9g/nYGs6vrzjtaDHN6fm2FtXwOhWpUcHYjyn/MQ+5e84coMnquVKkpXITyb6vjB3XIWoTLzAPzQ==
-  dependencies:
-    invalidate-require-cache "^1.0.0"
-    resolve "^1.15.0"
 
 jscodeshift@^0.11.0:
   version "0.11.0"
@@ -7632,7 +7648,7 @@ resolve@1.1.x:
   resolved "https://registry.npmjs.org/resolve/-/resolve-1.1.7.tgz#203114d82ad2c5ed9e8e0411b3932875e889e97b"
   integrity sha1-IDEU2CrSxe2ejgQRs5ModeiJ6Xs=
 
-resolve@^1.10.0, resolve@^1.12.0, resolve@^1.17.0:
+resolve@^1.10.0, resolve@^1.12.0, resolve@^1.17.0, resolve@^1.20.0:
   version "1.20.0"
   resolved "https://registry.npmjs.org/resolve/-/resolve-1.20.0.tgz#629a013fb3f70755d6f0b7935cc1c2c5378b1975"
   integrity sha512-wENBPt4ySzg4ybFQW2TT1zMQucPK95HSh/nq2CFTZVOGut2+pQvSsgtda4d26YrYcr067wjbmzOG8byDPBX63A==
@@ -7640,7 +7656,7 @@ resolve@^1.10.0, resolve@^1.12.0, resolve@^1.17.0:
     is-core-module "^2.2.0"
     path-parse "^1.0.6"
 
-resolve@^1.15.0, resolve@^1.19.0:
+resolve@^1.19.0:
   version "1.19.0"
   resolved "https://registry.npmjs.org/resolve/-/resolve-1.19.0.tgz#1af5bf630409734a067cae29318aac7fa29a267c"
   integrity sha512-rArEXAgsBG4UgRGcynxWIWKFvh/XZCcS8UJdHhwy91zwAvCZIbcs+vAbflgBnNjYMs/i/i+/Ux6IZhML1yPvxg==

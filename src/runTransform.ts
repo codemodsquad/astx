@@ -4,6 +4,7 @@ import {
   TransformResult,
 } from './runTransformOnFile'
 import resolveGlobsAndDirs from './util/resolveGlobsAndDirs'
+import { clearCache } from 'babel-parse-wild-code'
 
 export default async function* runTransform(
   transform: Transform,
@@ -20,13 +21,10 @@ export default async function* runTransform(
     'esm',
   ])
 
+  clearCache()
   const transformResults = files.map(runTransformOnFile(transform))
 
   for (const elem of transformResults) {
-    if (Array.isArray(elem)) {
-      for (const promise of elem) yield await promise
-    } else {
-      yield await elem
-    }
+    yield await elem
   }
 }

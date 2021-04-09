@@ -6,6 +6,7 @@ import jscodeshift, {
   Statement,
   JSCodeshift,
 } from 'jscodeshift'
+import { getParserAsync } from 'babel-parse-wild-code'
 import { ReplaceOptions } from './replace'
 import Astx, { GetReplacement } from './Astx'
 import fs from 'fs-extra'
@@ -13,7 +14,6 @@ import Path from 'path'
 import memoize from 'lodash/memoize'
 import { promisify } from 'util'
 import _resolve from 'resolve'
-import chooseJSCodeshiftParser from 'jscodeshift-choose-parser'
 import makeTemplate from './util/template'
 const resolve = promisify(_resolve) as any
 
@@ -74,7 +74,8 @@ export const runTransformOnFile = (transform: Transform) => async (
 ): Promise<TransformResult> => {
   try {
     const source = await fs.readFile(file, 'utf8')
-    const parser = transform.parser || chooseJSCodeshiftParser(file)
+    const parser =
+      transform.parser || (await getParserAsync(file, { tokens: true }))
     const j = jscodeshift.withParser(parser)
     const template = makeTemplate(j)
 
