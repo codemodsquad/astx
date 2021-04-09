@@ -487,6 +487,8 @@ changed, and prompt you to confirm you want to write the changes.
 It will parse with babel by default using the version installed in your project and your project's babel config, if any.
 You can pass other parsers with the `--parser` option, just like `jscodeshift`.
 
+Also unlike `jscodeshift`, if `prettier` is installed in your project, it will format the transformed code with `prettier`.
+
 ```
 Usage:
 
