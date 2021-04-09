@@ -31,8 +31,6 @@ import Foo from "baz";\`)
   })
 `
 
-export const only = true
-
 export const find = `
 const code = $code
 const root = j(code)
