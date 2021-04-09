@@ -15,6 +15,8 @@ structural search and replace for JavaScript and TypeScript, using jscodeshift
 - [astx](#astx)
 - [Table of Contents](#table-of-contents)
 - [Introduction](#introduction)
+- [Other usage examples](#other-usage-examples)
+  - [Fixing eslint errors that eslint is too dumb to fix for you](#fixing-eslint-errors-that-eslint-is-too-dumb-to-fix-for-you)
 - [Prior art and philosophy](#prior-art-and-philosophy)
 - [API](#api)
   - [class Astx](#class-astx)
@@ -22,6 +24,8 @@ structural search and replace for JavaScript and TypeScript, using jscodeshift
     - [`.on(root: Collection)`](#onroot-collection)
     - [`.find()`](#find)
     - [`.find().replace()`](#findreplace)
+    - [`.findStatements()`](#findstatements)
+    - [`.findStatements().replace()`](#findstatementsreplace)
   - [Match](#match)
     - [`.path`](#path)
     - [`.node`](#node)
@@ -76,6 +80,17 @@ of the two arguments in your code.
 
 Then `astx` replaces that function call it found with the replacement expression. When it finds placeholders in the replacement expression,
 it substitutes the corresponding values that were captured for those placeholders (`$path` captured `'new/stuff'` and `$force` captured `true`).
+
+# Other usage examples
+
+## Fixing eslint errors that eslint is too dumb to fix for you
+
+Got a lot of `Do not access Object.prototype method 'hasOwnProperty' from target object` errors?
+
+```js
+exports.find = `$a.hasOwnProperty($b)`
+exports.replace = `Object.prototype.hasOwnProperty.call($a, $b)`
+```
 
 # Prior art and philosophy
 
