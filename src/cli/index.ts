@@ -43,11 +43,13 @@ function getTransform(): Transform {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   if (transform) return require(path.resolve(transform))
   if (find && replace) {
+    const getOpt = (regex: RegExp): string | undefined => {
+      const index = process.argv.findIndex((a) => regex.test(a))
+      return index >= 0 ? process.argv[index + 1] : undefined
+    }
     // yargs Eats quotes, not cool...
-    const find =
-      process.argv[process.argv.findIndex((a) => /^-f(ind)?$/.test(a)) + 1]
-    const replace =
-      process.argv[process.argv.findIndex((a) => /^-r(eplace)?$/.test(a)) + 1]
+    const find = getOpt(/^(-f|--find)$/)
+    const replace = getOpt(/^(-r|--replace)$/)
     return { find, replace, parser }
   }
   // eslint-disable-next-line @typescript-eslint/no-var-requires

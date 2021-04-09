@@ -1,4 +1,5 @@
 import t from 'ast-types'
+import { ASTNode } from 'jscodeshift'
 
 function addFieldNames(type: ASTNode['type'], ...fields: string[]): string[] {
   const fieldNames = t.getFieldNames({ type })
