@@ -9,7 +9,7 @@ export default function matchTemplateLiteral(
   const captureMatcher = compileStringCaptureMatcher(
     query,
     (node: TemplateLiteral) =>
-      node.quasis.length === 1 ? node.quasis[0].value.cooked : null,
+      node.quasis.length === 1 ? node.quasis[0].value.cooked ?? null : null,
     compileOptions
   )
   if (captureMatcher) return captureMatcher

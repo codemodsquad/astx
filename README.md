@@ -15,9 +15,10 @@ structural search and replace for JavaScript and TypeScript, using jscodeshift
 - [astx](#astx)
 - [Table of Contents](#table-of-contents)
 - [Introduction](#introduction)
-- [Other usage examples](#other-usage-examples)
-  - [Fixing eslint errors that eslint is too dumb to fix for you](#fixing-eslint-errors-that-eslint-is-too-dumb-to-fix-for-you)
+- [Usage examples](#usage-examples)
+  - [Fixing eslint errors](#fixing-eslint-errors)
   - [Converting require statements to imports](#converting-require-statements-to-imports)
+  - [Making code DRY](#making-code-dry)
 - [Prior art and philosophy](#prior-art-and-philosophy)
 - [API](#api)
   - [class Astx](#class-astx)
@@ -67,7 +68,8 @@ Now there's a better option...you can refactor with confidence using `astx`!
 
 ```js
 // astx.js
-astx.find`rmdir($path, $force)`.replace`rmdir($path, { force: $force })`
+exports.find = `rmdir($path, $force)`
+exports.replace = `rmdir($path, { force: $force })`
 ```
 
 What's going on here? Find and replace must be valid JS expressions or statements. `astx` parses them
@@ -83,13 +85,14 @@ of the two arguments in your code.
 Then `astx` replaces that function call it found with the replacement expression. When it finds placeholders in the replacement expression,
 it substitutes the corresponding values that were captured for those placeholders (`$path` captured `'new/stuff'` and `$force` captured `true`).
 
-# Other usage examples
+# Usage examples
 
-## Fixing eslint errors that eslint is too dumb to fix for you
+## Fixing eslint errors
 
 Got a lot of `Do not access Object.prototype method 'hasOwnProperty' from target object` errors?
 
 ```js
+// astx.js
 exports.find = `$a.hasOwnProperty($b)`
 exports.replace = `Object.prototype.hasOwnProperty.call($a, $b)`
 ```
@@ -97,8 +100,58 @@ exports.replace = `Object.prototype.hasOwnProperty.call($a, $b)`
 ## Converting require statements to imports
 
 ```js
+// astx.js
 exports.find = `const $id = require('$source')`
 exports.replace = `import $id from '$source'`
+```
+
+## Making code DRY
+
+In `jscodeshift-add-imports` I had a bunch of test cases following this pattern:
+
+```js
+it(`leaves existing default imports untouched`, function () {
+  const code = `import Baz from 'baz'`
+  const root = j(code)
+  const result = addImports(root, statement`import Foo from 'baz'`)
+  expect(result).to.deep.equal({ Foo: 'Baz' })
+  expect(root.toSource()).to.equal(code)
+})
+```
+
+I wanted to make them more DRY, like this:
+
+```js
+it(`leaves existing default imports untouched`, function () {
+  testCase({
+    code: `import Baz from 'baz'`,
+    add: `import Foo from 'baz'`,
+    expectedCode: `import Baz from 'baz'`,
+    expectedReturn: { Foo: 'Baz' },
+  })
+})
+```
+
+Here was a transform for the above. (Of course, I had to run a few variations of this for
+cases where the expected code was different, etc.)
+
+```js
+exports.find = `
+const code = $code
+const root = j(code)
+const result = addImports(root, statement\`$add\`)
+expect(result).to.deep.equal($expectedReturn)
+expect(root.toSource()).to.equal(code)
+`
+
+exports.replace = `
+testCase({
+  code: $code,
+  add: \`$add\`,
+  expectedCode: $code,
+  expectedReturn: $expectedReturn,
+})
+`
 ```
 
 # Prior art and philosophy

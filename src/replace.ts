@@ -59,6 +59,28 @@ export function replaceStringCaptures(
   }
   j([path]).find(j.StringLiteral).forEach(replaceOnLiteral)
   j([path]).find(j.Literal).forEach(replaceOnLiteral)
+
+  j([path])
+    .find(j.TemplateLiteral)
+    .forEach((path: ASTPath<any>) => {
+      if (path.node.quasis.length !== 1) return
+      const [quasi] = path.node.quasis
+      const { cooked } = quasi.value
+      if (cooked == null) return
+      const captureMatch = /^\$[a-z0-9]+/i.exec(cooked)
+      const captureName = captureMatch ? captureMatch[0] : null
+      const capture = captureName ? captures[captureName] : null
+      if (capture) {
+        quasi.value = {
+          // TODO: this doesn't completely produce the correct raw string
+          raw: capture.replace(/\\|`|\${/g, '\\$&'),
+          cooked: capture,
+        }
+      } else {
+        const escaped = cooked.replace(/^\$\$/, '$')
+        if (escaped !== cooked) quasi.value = { raw: escaped, cooked: escaped }
+      }
+    })
 }
 
 function getCaptureHolder(path: ASTPath<any>): ASTPath<any> | null {
