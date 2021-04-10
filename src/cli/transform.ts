@@ -191,6 +191,15 @@ function countLines(source: string): number {
   return lines
 }
 
+const captureColors = [
+  chalk.red,
+  chalk.green,
+  chalk.yellow,
+  chalk.blue,
+  chalk.magenta,
+  chalk.cyan,
+]
+
 function formatNodeMatch(
   source: string,
   lineCount: number,
@@ -203,15 +212,57 @@ function formatNodeMatch(
       start: { line: startLine, column: startCol },
     },
   } = match.node
+  const { captures, arrayCaptures } = match
   const start = nodeStart - startCol
   const eolRegex = /\r\n?|\n/gm
   eolRegex.lastIndex = nodeEnd
   const eolMatch = eolRegex.exec(source)
   const end = eolMatch ? eolMatch.index : nodeEnd
 
+  let captureColor = 0
+
+  const captureRanges = []
+  if (captures) {
+    for (const [key, node] of Object.entries(captures)) {
+      const { start, end } = node as any
+      captureRanges.push({
+        key,
+        start,
+        end,
+        color: captureColors[captureColor++] || chalk.gray,
+      })
+    }
+  }
+  if (arrayCaptures) {
+    for (const [key, nodes] of Object.entries(arrayCaptures)) {
+      const first = nodes[0]
+      const last = nodes[nodes.length - 1]
+      if (!first || !last) continue
+      const { start } = first as any
+      const { end } = last as any
+      captureRanges.push({
+        key,
+        start,
+        end,
+        color: captureColors[captureColor++] || chalk.gray,
+      })
+    }
+  }
+
+  captureRanges.sort((a, b) => a.start - b.start)
+
+  let lastIndex = nodeStart
+  const parts = []
+  for (const { start, end, color } of captureRanges) {
+    parts.push(source.substring(lastIndex, start))
+    parts.push(color(source.substring(start, end)))
+    lastIndex = end
+  }
+  parts.push(source.substring(lastIndex, nodeEnd))
+
   const bolded =
     source.substring(start, nodeStart) +
-    chalk.bold(source.substring(nodeStart, nodeEnd)) +
+    chalk.bold(parts.join('')) +
     source.substring(nodeEnd, end)
 
   const lines = bolded.split(/\r\n?|\n/gm)
@@ -219,7 +270,13 @@ function formatNodeMatch(
   const lineNumberLength = String(lineCount).length
 
   let line = startLine
-  return lines
+  const result = lines
     .map((l) => `${String(line++).padStart(lineNumberLength, ' ')} | ${l}`)
     .join('\n')
+
+  return captureRanges.length
+    ? `${' '.repeat(lineNumberLength)} | ${captureRanges
+        .map(({ key, color }) => color(key))
+        .join(' ')}\n${result}`
+    : result
 }
