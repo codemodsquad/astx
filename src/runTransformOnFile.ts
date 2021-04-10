@@ -8,7 +8,7 @@ import jscodeshift, {
 } from 'jscodeshift'
 import { getParserAsync } from 'babel-parse-wild-code'
 import { ReplaceOptions } from './replace'
-import Astx, { GetReplacement } from './Astx'
+import Astx, { GetReplacement, StatementsMatchArray, MatchArray } from './Astx'
 import fs from 'fs-extra'
 import Path from 'path'
 import memoize from 'lodash/memoize'
@@ -48,6 +48,7 @@ export type TransformResult = {
   transformed?: string
   reports?: any[]
   error?: Error
+  matches?: MatchArray<any> | StatementsMatchArray
 }
 
 const getPrettier = memoize(
@@ -82,17 +83,19 @@ export const runTransformOnFile = (transform: Transform) => async (
     let transformed
     const reports: any[] = []
 
-    if (
-      typeof transform.astx !== 'function' &&
-      transform.find &&
-      transform.replace
-    ) {
-      transform.astx = ({ astx }) =>
-        astx
-          .findAuto(transform.find as any, { where: transform.where })
-          .replace(transform.replace as any)
+    let matches: MatchArray<any> | StatementsMatchArray | undefined
+
+    let transformFn = transform.astx
+
+    if (typeof transformFn !== 'function' && transform.find) {
+      transformFn = ({ astx }) => {
+        matches = astx.findAuto(transform.find as any, {
+          where: transform.where,
+        })
+        if (transform.replace) matches.replace(transform.replace as any)
+      }
     }
-    if (typeof transform.astx === 'function') {
+    if (typeof transformFn === 'function') {
       const root = j(source)
       const options = {
         source,
@@ -107,7 +110,7 @@ export const runTransformOnFile = (transform: Transform) => async (
         astx: new Astx(j, root),
       }
       const [_result, prettier] = await Promise.all([
-        transform.astx(options),
+        transformFn(options),
         getPrettier(Path.dirname(file)),
       ])
       transformed = _result
@@ -135,6 +138,7 @@ export const runTransformOnFile = (transform: Transform) => async (
       source,
       transformed,
       reports,
+      matches,
     }
   } catch (error) {
     return {
