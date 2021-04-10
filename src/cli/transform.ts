@@ -111,7 +111,13 @@ const transform: CommandModule<Options> = {
         results[file] = transformed
         logHeader(console.error)
         console.log(formatDiff(source, transformed))
-      } else if (matches?.length && source) {
+      } else if (
+        matches?.length &&
+        source &&
+        transform.find &&
+        !transform.replace &&
+        !transform.astx
+      ) {
         logHeader(console.log)
         const lineCount = countLines(source)
         for (let i = 0; i < matches.length; i++) {
@@ -150,6 +156,14 @@ const transform: CommandModule<Options> = {
           chalk.red(`${errorCount} file${errorCount === 1 ? '' : 's'} errored`)
         )
       }
+    } else if (transform.find) {
+      console.error(
+        chalk.yellow(
+          `\n${unchangedCount} file${
+            changedCount === 1 ? '' : 's'
+          } had no matches`
+        )
+      )
     }
 
     if (!isEmpty(results)) {
