@@ -119,7 +119,7 @@ export const runTransformOnFile = (transform: Transform) => async (
         transformed !== source
       ) {
         const config = (await prettier.resolveConfig(file)) || {}
-        if (/tsx?$/.test(parser)) config.parser = 'typescript'
+        if (/\.tsx?$/.test(file)) config.parser = 'typescript'
         transformed = prettier.format(transformed, config)
       }
     } else {
