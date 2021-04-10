@@ -10,7 +10,7 @@ import fs from 'fs-extra'
 
 import dedent from 'dedent-js'
 
-import { Match } from '../find'
+import { Match, StatementsMatch } from '../find'
 
 /* eslint-disable no-console */
 
@@ -116,17 +116,8 @@ const transform: CommandModule<Options> = {
         const lineCount = countLines(source)
         for (let i = 0; i < matches.length; i++) {
           const match = matches[i]
-          switch (match.type) {
-            case 'node': {
-              if (i > 0)
-                console.log(' '.repeat(String(lineCount).length + 1) + '|')
-              console.log(formatNodeMatch(source, lineCount, match))
-              break
-            }
-            case 'statements': {
-              break
-            }
-          }
+          if (i > 0) console.log(' '.repeat(String(lineCount).length + 1) + '|')
+          console.log(formatMatch(source, lineCount, match))
         }
       } else {
         unchangedCount++
@@ -192,26 +183,37 @@ function countLines(source: string): number {
 }
 
 const captureColors = [
-  chalk.red,
   chalk.green,
   chalk.yellow,
   chalk.blue,
-  chalk.magenta,
   chalk.cyan,
+  chalk.magenta,
+  chalk.red,
 ]
 
-function formatNodeMatch(
+function formatMatch(
   source: string,
   lineCount: number,
-  match: Match<any>
+  match: Match<any> | StatementsMatch
 ): string {
+  const lineNumberLength = String(lineCount).length
+
+  if (match.type === 'statements' && !match.nodes.length)
+    return `${' '.repeat(lineNumberLength)} | (zero statements)`
   const {
     start: nodeStart,
     end: nodeEnd,
     loc: {
       start: { line: startLine, column: startCol },
     },
-  } = match.node
+  } =
+    match.type === 'node'
+      ? match.node
+      : {
+          start: (match.nodes[0] as any).start,
+          end: (match.nodes[match.nodes.length - 1] as any).end,
+          loc: { start: (match.nodes[0] as any).loc.start },
+        }
   const { captures, arrayCaptures } = match
   const start = nodeStart - startCol
   const eolRegex = /\r\n?|\n/gm
@@ -254,6 +256,7 @@ function formatNodeMatch(
   let lastIndex = nodeStart
   const parts = []
   for (const { start, end, color } of captureRanges) {
+    if (start < lastIndex) continue
     parts.push(source.substring(lastIndex, start))
     parts.push(color(source.substring(start, end)))
     lastIndex = end
@@ -266,8 +269,6 @@ function formatNodeMatch(
     source.substring(nodeEnd, end)
 
   const lines = bolded.split(/\r\n?|\n/gm)
-
-  const lineNumberLength = String(lineCount).length
 
   let line = startLine
   const result = lines
