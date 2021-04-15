@@ -1,47 +1,14 @@
-import jscodeshift, {
-  ASTNode,
-  Collection,
-  Expression,
-  Parser,
-  Statement,
-  JSCodeshift,
-} from 'jscodeshift'
+import { Transform } from './variant'
+import jscodeshift from 'jscodeshift'
 import { getParserAsync } from 'babel-parse-wild-code'
-import { ReplaceOptions } from './replace'
-import Astx, { GetReplacement, StatementsMatchArray, MatchArray } from './Astx'
+import Astx, { StatementsMatchArray, MatchArray } from './Astx'
 import fs from 'fs-extra'
 import Path from 'path'
 import memoize from 'lodash/memoize'
 import { promisify } from 'util'
 import _resolve from 'resolve'
 import makeTemplate from './util/template'
-import { CompiledMatcher } from './compileMatcher'
 const resolve = promisify(_resolve) as any
-
-type TransformOptions = {
-  /** The absolute path to the current file. */
-  path: string
-  /** The source code of the current file. */
-  source: string
-  root: Collection
-  astx: Astx
-  expression(strings: TemplateStringsArray, ...quasis: any[]): Expression
-  statement(strings: TemplateStringsArray, ...quasis: any[]): Statement
-  statements(strings: TemplateStringsArray, ...quasis: any[]): Statement[]
-  j: JSCodeshift
-  jscodeshift: JSCodeshift
-  report: (msg: string) => void
-}
-
-export type Transform = {
-  astx?: (
-    options: TransformOptions
-  ) => Collection | string | null | undefined | void
-  parser?: string | Parser
-  find?: string | ASTNode | CompiledMatcher | CompiledMatcher[]
-  replace?: string | GetReplacement<any>
-  where?: ReplaceOptions['where']
-}
 
 export type TransformResult = {
   file: string

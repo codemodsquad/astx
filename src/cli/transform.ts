@@ -1,5 +1,5 @@
 import yargs, { Arguments, Argv, CommandModule } from 'yargs'
-import { Transform } from '../runTransformOnFile'
+import { Transform } from '../variant'
 import path from 'path'
 import runTransform from '../runTransform'
 import chalk from 'chalk'

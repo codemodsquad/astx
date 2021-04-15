@@ -1,6 +1,18 @@
 import t from 'ast-types'
-import j, { ASTNode, ASTPath, Statement, Collection } from 'jscodeshift'
+import j, {
+  ASTNode,
+  ASTPath,
+  Expression,
+  Statement,
+  Collection,
+  JSCodeshift,
+  Parser,
+} from 'jscodeshift'
 import shallowEqual from 'shallowequal'
+
+import Astx, { GetReplacement } from './Astx'
+import { CompiledMatcher } from './compileMatcher'
+import { ReplaceOptions } from './replace'
 
 export * from 'ast-types/gen/nodes'
 
@@ -78,4 +90,27 @@ function areFieldValuesEqual(a: any, b: any): boolean {
   } else {
     return shallowEqual(a, b)
   }
+}
+
+export type TransformOptions = {
+  /** The absolute path to the current file. */
+  path: string
+  /** The source code of the current file. */
+  source: string
+  root: Root
+  astx: Astx
+  expression(strings: TemplateStringsArray, ...quasis: any[]): Expression
+  statement(strings: TemplateStringsArray, ...quasis: any[]): Statement
+  statements(strings: TemplateStringsArray, ...quasis: any[]): Statement[]
+  j: JSCodeshift
+  jscodeshift: JSCodeshift
+  report: (msg: string) => void
+}
+
+export type Transform = {
+  astx?: (options: TransformOptions) => Root | string | null | undefined | void
+  parser?: string | Parser
+  find?: string | ASTNode | CompiledMatcher | CompiledMatcher[]
+  replace?: string | GetReplacement<any>
+  where?: ReplaceOptions['where']
 }

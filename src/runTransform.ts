@@ -1,8 +1,5 @@
-import {
-  runTransformOnFile,
-  Transform,
-  TransformResult,
-} from './runTransformOnFile'
+import { runTransformOnFile, TransformResult } from './runTransformOnFile'
+import { Transform } from './variant'
 import resolveGlobsAndDirs from './util/resolveGlobsAndDirs'
 import { clearCache } from 'babel-parse-wild-code'
 
