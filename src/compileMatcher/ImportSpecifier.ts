@@ -1,4 +1,4 @@
-import { ImportSpecifier } from 'jscodeshift'
+import { ImportSpecifier } from '../variant'
 import { CompiledMatcher, CompileOptions } from '.'
 import compileArrayCaptureMatcher, { unescapeIdentifier } from './Capture'
 

@@ -1,12 +1,12 @@
 import {
-  ASTPath,
+  NodePath,
   ObjectExpression,
   ObjectMethod,
   ObjectProperty,
   Property,
   SpreadElement,
   SpreadProperty,
-} from 'jscodeshift'
+} from '../variant'
 import compileGenericNodeMatcher from './GenericNodeMatcher'
 import indentDebug from './indentDebug'
 import compileMatcher, {
@@ -96,13 +96,13 @@ export default function compileObjectExpressionMatcher(
     }
   }
   return {
-    match: (path: ASTPath<any>, matchSoFar: MatchResult): MatchResult => {
+    match: (path: NodePath<any>, matchSoFar: MatchResult): MatchResult => {
       const { node } = path
       if (node.type !== query.type) return null
       const remainingSimpleProperties = new Map(simpleProperties.entries())
       const remainingOtherProperties = new Set(otherProperties)
       const capturedRestProperties:
-        | ASTPath<any>[]
+        | NodePath<any>[]
         | undefined = captureRestVariable ? [] : undefined
       for (let i = 0; i < node.properties.length; i++) {
         const property = node.properties[i]

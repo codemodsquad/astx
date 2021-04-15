@@ -1,4 +1,4 @@
-import { ASTNode, ASTPath } from 'jscodeshift'
+import { Node as ASTNode, NodePath } from '../variant'
 import compileMatcher, {
   CompiledMatcher,
   CompileOptions,
@@ -28,10 +28,10 @@ export default function compileGenericArrayMatcher(
   }
 
   function slicePath(
-    path: ASTPath,
+    path: NodePath,
     start: number,
     end: number = path.value.length
-  ): ASTPath[] {
+  ): NodePath[] {
     const result = []
     for (let i = start; i < end; i++) {
       result.push(path.get(i))
@@ -40,7 +40,7 @@ export default function compileGenericArrayMatcher(
   }
 
   function matchElem(
-    path: ASTPath,
+    path: NodePath,
     sliceStart: number,
     arrayIndex: number,
     matcherIndex: number,
@@ -99,7 +99,7 @@ export default function compileGenericArrayMatcher(
 
   if (matchers.some((m) => m.captureAs || m.arrayCaptureAs)) {
     return {
-      match: (path: ASTPath, matchSoFar: MatchResult): MatchResult => {
+      match: (path: NodePath, matchSoFar: MatchResult): MatchResult => {
         debug('Array')
         if (!Array.isArray(path.value)) {
           debug('  path.value is not an array')
@@ -126,7 +126,7 @@ export default function compileGenericArrayMatcher(
   }
 
   return {
-    match: (path: ASTPath, matchSoFar: MatchResult): MatchResult => {
+    match: (path: NodePath, matchSoFar: MatchResult): MatchResult => {
       debug('Array')
       if (!Array.isArray(path.value)) {
         debug('  path.value is not an array')

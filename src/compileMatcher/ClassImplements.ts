@@ -1,4 +1,4 @@
-import { ClassImplements } from 'jscodeshift'
+import { ClassImplements } from '../variant'
 import { CompiledMatcher, CompileOptions } from '.'
 import compileArrayCaptureMatcher, { unescapeIdentifier } from './Capture'
 

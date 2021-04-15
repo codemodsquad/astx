@@ -1,4 +1,4 @@
-import { ASTPath, BooleanLiteral } from 'jscodeshift'
+import { NodePath, BooleanLiteral } from '../variant'
 import { CompiledMatcher, convertPredicateMatcher, CompileOptions } from './'
 
 export default function matchBooleanLiteral(
@@ -9,7 +9,7 @@ export default function matchBooleanLiteral(
     query,
     {
       predicate: true,
-      match: (path: ASTPath<any>): boolean => {
+      match: (path: NodePath<any>): boolean => {
         const { node } = path
         return node.type === 'BooleanLiteral' && query.value === node.value
       },

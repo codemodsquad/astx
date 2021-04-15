@@ -1,4 +1,4 @@
-import { ASTPath, NumericLiteral } from 'jscodeshift'
+import { NodePath, NumericLiteral } from '../variant'
 import { CompileOptions, convertPredicateMatcher, CompiledMatcher } from './'
 
 export default function matchNumericLiteral(
@@ -10,7 +10,7 @@ export default function matchNumericLiteral(
     {
       predicate: true,
 
-      match: (path: ASTPath<any>): boolean => {
+      match: (path: NodePath<any>): boolean => {
         const { node } = path
         return node.type === 'NumericLiteral' && query.value === node.value
       },

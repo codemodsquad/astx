@@ -1,5 +1,4 @@
-import { ASTPath, ASTNode } from 'jscodeshift'
-import t from 'ast-types'
+import { NodeType, NodePath, Node as ASTNode } from '../variant'
 import __debug, { Debugger } from 'debug'
 import BooleanLiteral from './BooleanLiteral'
 import ClassImplements from './ClassImplements'
@@ -32,17 +31,17 @@ import VariableDeclarator from './VariableDeclarator'
 const _debug = __debug('astx:match')
 
 export type RootCompileOptions = {
-  where?: { [captureName: string]: (path: ASTPath<any>) => boolean }
+  where?: { [captureName: string]: (path: NodePath<any>) => boolean }
   debug?: Debugger
 }
 
 export type CompileOptions = {
-  where?: { [captureName: string]: (path: ASTPath<any>) => boolean }
+  where?: { [captureName: string]: (path: NodePath<any>) => boolean }
   debug: Debugger
 }
 
-export type Captures = Record<string, ASTPath<any>>
-export type ArrayCaptures = Record<string, ASTPath<any>[]>
+export type Captures = Record<string, NodePath<any>>
+export type ArrayCaptures = Record<string, NodePath<any>[]>
 export type StringCaptures = Record<string, string>
 
 export type MatchResult = {
@@ -76,16 +75,24 @@ export function mergeCaptures(...results: MatchResult[]): MatchResult {
 
 export type PredicateMatcher = {
   predicate: true
-  match: (path: ASTPath<any>, matchSoFar: MatchResult) => boolean
-  nodeType?: keyof typeof t.namedTypes | (keyof typeof t.namedTypes)[]
+  match: (path: NodePath<any>, matchSoFar: MatchResult) => boolean
+  nodeType?: NodeType | NodeType[]
 }
 
 export interface CompiledMatcher {
   predicate?: false
   captureAs?: string
   arrayCaptureAs?: string
-  match: (path: ASTPath<any>, matchSoFar: MatchResult) => MatchResult
-  nodeType?: keyof typeof t.namedTypes | (keyof typeof t.namedTypes)[]
+  match: (path: NodePath<any>, matchSoFar: MatchResult) => MatchResult
+  nodeType?: NodeType | NodeType[]
+}
+
+export function isCompiledMatcher(obj: unknown): obj is CompiledMatcher {
+  return (
+    obj instanceof Object &&
+    Object.getPrototypeOf(obj) === Object.getPrototypeOf({}) &&
+    typeof (obj as any).match === 'function'
+  )
 }
 
 const nodeMatchers: Record<
@@ -127,7 +134,7 @@ export function convertPredicateMatcher(
 ): CompiledMatcher {
   return {
     nodeType: matcher.nodeType,
-    match: (path: ASTPath<any>, matchSoFar: MatchResult): MatchResult => {
+    match: (path: NodePath<any>, matchSoFar: MatchResult): MatchResult => {
       debug('%s (specific)', query.type)
       const result = matcher.match(path, matchSoFar)
       if (result) {

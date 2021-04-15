@@ -1,4 +1,4 @@
-import { FunctionTypeParam } from 'jscodeshift'
+import { FunctionTypeParam } from '../variant'
 import { CompiledMatcher, CompileOptions } from '.'
 import compileArrayCaptureMatcher, { unescapeIdentifier } from './Capture'
 

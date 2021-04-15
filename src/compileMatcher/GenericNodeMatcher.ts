@@ -1,4 +1,4 @@
-import { ASTNode, ASTPath } from 'jscodeshift'
+import { Node as ASTNode, NodePath, getFieldNames } from '../variant'
 import compileMatcher, {
   CompiledMatcher,
   CompileOptions,
@@ -6,8 +6,6 @@ import compileMatcher, {
 } from './index'
 import t, { Type } from 'ast-types'
 import indentDebug from './indentDebug'
-
-import getFieldNames from '../util/getFieldNames'
 
 const equivalenceClassesArray: {
   nodeTypes: Set<ASTNode['type']>
@@ -66,7 +64,7 @@ export default function compileGenericNodeMatcher(
             key,
             {
               match: (
-                path: ASTPath<any>,
+                path: NodePath<any>,
                 matchSoFar: MatchResult
               ): MatchResult => {
                 if (value !== path.node[key]) {
@@ -92,7 +90,7 @@ export default function compileGenericNodeMatcher(
   )
 
   return {
-    match: (path: ASTPath<any>, matchSoFar: MatchResult): MatchResult => {
+    match: (path: NodePath<any>, matchSoFar: MatchResult): MatchResult => {
       debug('%s (generic)', query.type)
       if (isCorrectType(path.node)) {
         for (const key in keyMatchers) {

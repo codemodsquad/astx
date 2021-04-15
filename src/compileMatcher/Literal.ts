@@ -1,4 +1,4 @@
-import { ASTPath, Literal } from 'jscodeshift'
+import { NodePath, Literal } from '../variant'
 import { compileStringCaptureMatcher } from './Capture'
 import {
   CompiledMatcher,
@@ -19,7 +19,7 @@ export default function matchLiteral(
       {
         predicate: true,
 
-        match: (path: ASTPath<any>): boolean => {
+        match: (path: NodePath<any>): boolean => {
           const { node } = path
           if (node.type !== 'Literal') return false
           return (
@@ -47,7 +47,7 @@ export default function matchLiteral(
     {
       predicate: true,
 
-      match: (path: ASTPath<any>): boolean => {
+      match: (path: NodePath<any>): boolean => {
         const { node } = path
         if (node.type !== 'Literal' || node.regex) return false
         return node.value === query.value

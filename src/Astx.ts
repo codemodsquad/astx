@@ -1,15 +1,14 @@
-import {
-  ASTNode,
-  Collection,
-  Expression,
-  JSCodeshift,
-  Statement,
-} from 'jscodeshift'
+import { ASTNode, Root, Expression, Statement } from './variant'
+import { JSCodeshift } from 'jscodeshift'
 import find, { FindOptions, Match, StatementsMatch } from './find'
 import { replaceMatches, replaceStatementsMatches } from './replace'
 import parseFindOrReplace from './util/parseFindOrReplace'
 import t from 'ast-types'
 import template from './util/template'
+import compileMatcher, {
+  CompiledMatcher,
+  RootCompileOptions,
+} from './compileMatcher'
 
 export type ParseTag = (
   strings: TemplateStringsArray,
@@ -111,7 +110,7 @@ export class StatementsMatchArray extends Array<StatementsMatch> {
 
 function bindFind(
   jscodeshift: JSCodeshift,
-  root: Collection,
+  root: Root,
   query: ASTNode
 ): BoundFind {
   const result = (options?: FindOptions): MatchArray<any> =>
@@ -124,7 +123,7 @@ function bindFind(
 
 function bindFindStatements(
   jscodeshift: JSCodeshift,
-  root: Collection,
+  root: Root,
   query: Statement[]
 ): BoundFindStatements {
   const result = (options?: FindOptions): StatementsMatchArray =>
@@ -137,15 +136,30 @@ function bindFindStatements(
 
 export default class Astx {
   jscodeshift: JSCodeshift
-  root: Collection
+  root: Root
 
-  constructor(jscodeshift: JSCodeshift, root: Collection) {
+  constructor(jscodeshift: JSCodeshift, root: Root) {
     this.jscodeshift = jscodeshift
     this.root = root
   }
 
-  on(root: Collection): Astx {
+  on(root: Root): Astx {
     return new Astx(this.jscodeshift, root)
+  }
+
+  compileMatcher(
+    query: string | ASTNode | ASTNode[],
+    options: RootCompileOptions = {}
+  ): CompiledMatcher | CompiledMatcher[] {
+    if (typeof query === 'string') {
+      const parsed = parseFindOrReplace(this.jscodeshift, [query] as any)
+      return Array.isArray(parsed)
+        ? parsed.map((statement) =>
+            compileMatcher(statement as ASTNode, options)
+          )
+        : compileMatcher(parsed as ASTNode, options)
+    }
+    return compileMatcher(query, options)
   }
 
   find(
@@ -153,13 +167,22 @@ export default class Astx {
     options?: FindOptions
   ): MatchArray<any> | StatementsMatchArray
   find<Node extends ASTNode>(
-    node: ASTNode,
+    node: ASTNode | CompiledMatcher,
     options?: FindOptions
   ): MatchArray<Node>
-  find(statements: Statement[], options?: FindOptions): StatementsMatchArray
+  find(
+    statements: Statement[] | CompiledMatcher[],
+    options?: FindOptions
+  ): StatementsMatchArray
   find(strings: TemplateStringsArray, ...quasis: any[]): BoundFind
   find(
-    arg0: string | ASTNode | Statement[] | TemplateStringsArray,
+    arg0:
+      | string
+      | ASTNode
+      | CompiledMatcher
+      | Statement[]
+      | CompiledMatcher[]
+      | TemplateStringsArray,
     ...rest: any[]
   ): BoundFind | MatchArray<any> | StatementsMatchArray {
     function requireNotArray(
@@ -211,7 +234,7 @@ export default class Astx {
 
   findStatements(code: string, options?: FindOptions): StatementsMatchArray
   findStatements(
-    statements: Statement[],
+    statements: Statement[] | CompiledMatcher[],
     options?: FindOptions
   ): StatementsMatchArray
   findStatements(
@@ -219,7 +242,7 @@ export default class Astx {
     ...quasis: any[]
   ): BoundFindStatements
   findStatements(
-    arg0: string | Statement[] | TemplateStringsArray,
+    arg0: string | Statement[] | CompiledMatcher[] | TemplateStringsArray,
     ...quasis: any[]
   ): BoundFindStatements | StatementsMatchArray {
     if (typeof arg0 === 'string') {

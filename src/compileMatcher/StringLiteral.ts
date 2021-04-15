@@ -1,4 +1,4 @@
-import { ASTPath, StringLiteral } from 'jscodeshift'
+import { NodePath, StringLiteral } from '../variant'
 import { CompileOptions, convertPredicateMatcher, CompiledMatcher } from './'
 import { compileStringCaptureMatcher } from './Capture'
 
@@ -18,7 +18,7 @@ export default function matchStringLiteral(
     {
       predicate: true,
 
-      match: (path: ASTPath<any>): boolean => {
+      match: (path: NodePath<any>): boolean => {
         const { node } = path
         return node.type === 'StringLiteral' && query.value === node.value
       },

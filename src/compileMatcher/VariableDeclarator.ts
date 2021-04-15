@@ -1,4 +1,4 @@
-import { VariableDeclarator } from 'jscodeshift'
+import { VariableDeclarator } from '../variant'
 import { CompiledMatcher, CompileOptions } from '.'
 import compileArrayCaptureMatcher, { unescapeIdentifier } from './Capture'
 

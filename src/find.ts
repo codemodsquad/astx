@@ -1,57 +1,68 @@
-import j, { ASTPath, ASTNode, Collection, Statement } from 'jscodeshift'
+import {
+  NodePath,
+  Node as ASTNode,
+  Root,
+  Statement,
+  forEachNode,
+  findStatementArrayPaths,
+} from './variant'
 import mapValues from 'lodash/mapValues'
 import compileMatcher, {
   CompiledMatcher,
   MatchResult,
   mergeCaptures,
+  isCompiledMatcher,
 } from './compileMatcher'
 
 export type Match<Node extends ASTNode> = {
   type: 'node'
-  path: ASTPath<Node>
+  path: NodePath<Node>
   node: Node
-  pathCaptures?: Record<string, ASTPath<any>>
+  pathCaptures?: Record<string, NodePath<any>>
   captures?: Record<string, ASTNode>
-  arrayPathCaptures?: Record<string, ASTPath<any>[]>
+  arrayPathCaptures?: Record<string, NodePath<any>[]>
   arrayCaptures?: Record<string, ASTNode[]>
   stringCaptures?: Record<string, string>
 }
 
 export type StatementsMatch = {
   type: 'statements'
-  paths: ASTPath<Statement>[]
+  paths: NodePath<Statement>[]
   nodes: Statement[]
-  pathCaptures?: Record<string, ASTPath<any>>
+  pathCaptures?: Record<string, NodePath<any>>
   captures?: Record<string, ASTNode>
-  arrayPathCaptures?: Record<string, ASTPath<any>[]>
+  arrayPathCaptures?: Record<string, NodePath<any>[]>
   arrayCaptures?: Record<string, ASTNode[]>
   stringCaptures?: Record<string, string>
 }
 
 export type FindOptions = {
-  where?: { [captureName: string]: (path: ASTPath<any>) => boolean }
+  where?: { [captureName: string]: (path: NodePath<any>) => boolean }
 }
 
 export default function find<Node extends ASTNode>(
-  root: Collection,
-  query: Node,
+  root: Root,
+  query: Node | CompiledMatcher,
   options?: FindOptions
 ): Array<Match<Node>>
 export default function find(
-  root: Collection,
-  query: Statement[],
+  root: Root,
+  query: Statement[] | CompiledMatcher[],
   options?: FindOptions
 ): Array<StatementsMatch>
 export default function find<Node extends ASTNode>(
-  root: Collection,
-  query: Node | Statement[],
+  root: Root,
+  query: Node | CompiledMatcher | Statement[] | CompiledMatcher[],
   options?: FindOptions
 ): Array<Match<Node>> | Array<StatementsMatch> {
   if (Array.isArray(query)) {
     return findStatements(root, query, options)
   }
 
-  const matcher = compileMatcher(query, options)
+  const matcher: CompiledMatcher =
+    typeof (query as any).match === 'function'
+      ? (query as any)
+      : compileMatcher(query as Node, options)
 
   const matches: Array<Match<Node>> = []
 
@@ -61,56 +72,47 @@ export default function find<Node extends ASTNode>(
     ? [matcher.nodeType]
     : ['Node']
 
-  for (const nodeType of nodeTypes) {
-    root.find(j[nodeType]).forEach((path: ASTPath<any>) => {
-      const result = matcher.match(path, null)
-      if (result) {
-        const match: Match<Node> = { type: 'node', path, node: path.node }
-        const {
-          captures: pathCaptures,
-          arrayCaptures: arrayPathCaptures,
-          stringCaptures,
-        } = result
-        if (pathCaptures) {
-          match.pathCaptures = pathCaptures
-          match.captures = mapValues(
-            pathCaptures,
-            (path: ASTPath<any>) => path.node
-          )
-        }
-        if (arrayPathCaptures) {
-          match.arrayPathCaptures = arrayPathCaptures
-          match.arrayCaptures = mapValues(
-            arrayPathCaptures,
-            (paths: ASTPath<any>[]) => paths.map((path) => path.node)
-          )
-        }
-        if (stringCaptures) match.stringCaptures = stringCaptures
-        matches.push(match)
+  forEachNode(root, nodeTypes, (path: NodePath<any>) => {
+    const result = matcher.match(path, null)
+    if (result) {
+      const match: Match<Node> = { type: 'node', path, node: path.node }
+      const {
+        captures: pathCaptures,
+        arrayCaptures: arrayPathCaptures,
+        stringCaptures,
+      } = result
+      if (pathCaptures) {
+        match.pathCaptures = pathCaptures
+        match.captures = mapValues(
+          pathCaptures,
+          (path: NodePath<any>) => path.node
+        )
       }
-    })
-  }
+      if (arrayPathCaptures) {
+        match.arrayPathCaptures = arrayPathCaptures
+        match.arrayCaptures = mapValues(
+          arrayPathCaptures,
+          (paths: NodePath<any>[]) => paths.map((path) => path.node)
+        )
+      }
+      if (stringCaptures) match.stringCaptures = stringCaptures
+      matches.push(match)
+    }
+  })
 
   return matches
 }
 
-function findStatementArrayPaths(root: Collection): ASTPath[] {
-  const result: ASTPath[] = []
-  root.find(j.Statement).forEach((path: ASTPath) => {
-    const { parentPath } = path
-    if (Array.isArray(parentPath.value) && parentPath.value[0] === path.node)
-      result.push(parentPath)
-  })
-  return result
-}
-
 function findStatements(
-  root: Collection,
-  query: Statement[],
+  root: Root,
+  query: Statement[] | CompiledMatcher[],
   options?: FindOptions
 ): Array<StatementsMatch> {
-  const matchers: CompiledMatcher[] = query.map((queryElem) =>
-    compileMatcher(queryElem as any, options)
+  const matchers: CompiledMatcher[] = (query as any).map(
+    (queryElem: Statement | CompiledMatcher): CompiledMatcher =>
+      isCompiledMatcher(queryElem)
+        ? queryElem
+        : compileMatcher(queryElem as any, options)
   )
 
   const firstNonArrayCaptureIndex = matchers.findIndex((m) => !m.arrayCaptureAs)
@@ -130,10 +132,10 @@ function findStatements(
   }
 
   function slicePath(
-    path: ASTPath,
+    path: NodePath,
     start: number,
     end: number = path.value.length
-  ): ASTPath[] {
+  ): NodePath[] {
     const result = []
     for (let i = start; i < end; i++) {
       result.push(path.get(i))
@@ -142,7 +144,7 @@ function findStatements(
   }
 
   function matchElem(
-    path: ASTPath,
+    path: NodePath,
     sliceStart: number,
     arrayIndex: number,
     matcherIndex: number,
@@ -207,7 +209,7 @@ function findStatements(
   // reverse order.  Otherwise, statements in an outer array could get replaced
   // before those in an inner array (for example, a function in root scope might
   // get replaced before a match within the function body gets replaced)
-  const paths: ASTPath = findStatementArrayPaths(root).reverse()
+  const paths: NodePath = findStatementArrayPaths(root).reverse()
 
   const matches: StatementsMatch[] = []
 

@@ -15,6 +15,7 @@ import memoize from 'lodash/memoize'
 import { promisify } from 'util'
 import _resolve from 'resolve'
 import makeTemplate from './util/template'
+import { CompiledMatcher } from './compileMatcher'
 const resolve = promisify(_resolve) as any
 
 type TransformOptions = {
@@ -37,7 +38,7 @@ export type Transform = {
     options: TransformOptions
   ) => Collection | string | null | undefined | void
   parser?: string | Parser
-  find?: string | ASTNode
+  find?: string | ASTNode | CompiledMatcher | CompiledMatcher[]
   replace?: string | GetReplacement<any>
   where?: ReplaceOptions['where']
 }

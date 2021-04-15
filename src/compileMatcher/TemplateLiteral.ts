@@ -1,4 +1,4 @@
-import { TemplateLiteral } from 'jscodeshift'
+import { TemplateLiteral } from '../variant'
 import { CompileOptions, CompiledMatcher } from './'
 import { compileStringCaptureMatcher } from './Capture'
 

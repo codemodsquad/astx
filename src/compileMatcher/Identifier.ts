@@ -1,4 +1,4 @@
-import { Identifier } from 'jscodeshift'
+import { Identifier } from '../variant'
 import { CompiledMatcher, CompileOptions } from './'
 import compileCaptureMatcher, { unescapeIdentifier } from './Capture'
 import compileGenericNodeMatcher from './GenericNodeMatcher'

@@ -1,4 +1,4 @@
-import { JSXAttribute } from 'jscodeshift'
+import { JSXAttribute } from '../variant'
 import { CompiledMatcher, CompileOptions } from '.'
 import compileArrayCaptureMatcher, { unescapeIdentifier } from './Capture'
 

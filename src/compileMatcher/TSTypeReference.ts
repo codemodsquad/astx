@@ -1,4 +1,4 @@
-import { TSTypeReference } from 'jscodeshift'
+import { TSTypeReference } from '../variant'
 import { CompiledMatcher, CompileOptions } from '.'
 import compileArrayCaptureMatcher, { unescapeIdentifier } from './Capture'
 

@@ -1,4 +1,4 @@
-import { ClassProperty } from 'jscodeshift'
+import { ClassProperty } from '../variant'
 import { CompiledMatcher, CompileOptions } from '.'
 import compileCaptureMatcher, { unescapeIdentifier } from './Capture'
 

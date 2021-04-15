@@ -1,4 +1,4 @@
-import { ASTPath, RegExpLiteral } from 'jscodeshift'
+import { NodePath, RegExpLiteral } from '../variant'
 import sortFlags from './sortFlags'
 import { CompileOptions, convertPredicateMatcher, CompiledMatcher } from './'
 
@@ -12,7 +12,7 @@ export default function matchRegExpLiteral(
     {
       predicate: true,
 
-      match: (path: ASTPath<any>): boolean => {
+      match: (path: NodePath<any>): boolean => {
         const { node } = path
         return (
           node.type === 'RegExpLiteral' &&

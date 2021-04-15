@@ -1,4 +1,4 @@
-import { TSPropertySignature } from 'jscodeshift'
+import { TSPropertySignature } from '../variant'
 import { CompiledMatcher, CompileOptions } from '.'
 import compileCaptureMatcher, { unescapeIdentifier } from './Capture'
 

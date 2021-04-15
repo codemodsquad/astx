@@ -1,4 +1,4 @@
-import { TypeParameter } from 'jscodeshift'
+import { TypeParameter } from '../variant'
 import { CompiledMatcher, CompileOptions } from '.'
 import compileCaptureMatcher, { unescapeIdentifier } from './Capture'
 
