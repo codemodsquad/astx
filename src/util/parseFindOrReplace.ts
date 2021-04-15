@@ -3,7 +3,7 @@ import template from './template'
 
 export default function parseFindOrReplace(
   j: JSCodeshift,
-  strings: TemplateStringsArray,
+  strings: TemplateStringsArray | string[],
   ...quasis: any[]
 ): Expression | Statement | Statement[] {
   const { expression, statements } = template(j)

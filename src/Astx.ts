@@ -199,7 +199,7 @@ export default class Astx {
         this.jscodeshift,
         find(
           this.root,
-          requireNotArray(parseFindOrReplace(this.jscodeshift, [arg0] as any)),
+          requireNotArray(parseFindOrReplace(this.jscodeshift, [arg0])),
           rest[0]
         )
       )
@@ -213,7 +213,7 @@ export default class Astx {
         this.jscodeshift,
         this.root,
         requireNotArray(
-          parseFindOrReplace(this.jscodeshift, arg0 as any, ...rest)
+          parseFindOrReplace(this.jscodeshift, arg0 as string[], ...rest)
         )
       )
     }
@@ -259,7 +259,7 @@ export default class Astx {
       return bindFindStatements(
         this.jscodeshift,
         this.root,
-        parseFindOrReplace(this.jscodeshift, arg0 as any, ...quasis) as any
+        parseFindOrReplace(this.jscodeshift, arg0 as string[], ...quasis) as any
       )
     }
   }
