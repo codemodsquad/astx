@@ -1,28 +1,28 @@
-import j, {
-  ASTNode,
-  ASTPath,
-  Collection,
+import {
+  Node as ASTNode,
+  NodePath,
+  Root,
   Expression,
   Identifier,
   Statement,
-} from 'jscodeshift'
-import t from 'ast-types'
+  isStatement,
+  visit,
+  TemplateLiteral,
+} from './variant'
+import j from 'jscodeshift'
 import find, { Match, StatementsMatch } from './find'
 import cloneDeep from 'lodash/cloneDeep'
 
 export function replaceCaptures(
-  path: ASTPath<any>,
+  path: NodePath<any>,
   captures: Record<string, ASTNode>
 ): void {
-  const doReplace = (path: ASTPath<any>) => {
+  const doReplace = (path: NodePath<any>) => {
     const captureMatch = /^\$[a-z0-9]+/i.exec(path.node.name)
     const captureName = captureMatch ? captureMatch[0] : null
     const capture = captureName ? captures[captureName] : null
     if (capture) {
-      if (
-        t.namedTypes.Statement.check(capture) &&
-        !t.namedTypes.Statement.check(path.parentPath.node)
-      ) {
+      if (isStatement(capture) && !isStatement(path.parentPath.node)) {
         if (path.parentPath.node?.type !== 'ExpressionStatement') {
           throw new Error(
             `can't replace ${captureName} because it captured a statement, but a statement can't go in replacement position`
@@ -37,16 +37,18 @@ export function replaceCaptures(
       if (escaped !== path.node.name) path.replace(j.identifier(escaped))
     }
   }
-  j([path]).find(j.Identifier).forEach(doReplace)
-  j([path]).find(j.TypeParameter).forEach(doReplace)
-  j([path]).find(j.TSTypeParameter).forEach(doReplace)
+  visit(path, {
+    Identifier: doReplace,
+    TypeParameter: doReplace,
+    TSTypeParameter: doReplace,
+  })
 }
 
 export function replaceStringCaptures(
-  path: ASTPath<any>,
+  path: NodePath<any>,
   captures: Record<string, string>
 ): void {
-  const replaceOnLiteral = (path: ASTPath<any>) => {
+  const replaceOnLiteral = (path: NodePath<any>) => {
     const captureMatch = /^\$[a-z0-9]+/i.exec(path.node.value)
     const captureName = captureMatch ? captureMatch[0] : null
     const capture = captureName ? captures[captureName] : null
@@ -57,12 +59,10 @@ export function replaceStringCaptures(
       if (escaped !== path.node.value) path.node.value = escaped
     }
   }
-  j([path]).find(j.StringLiteral).forEach(replaceOnLiteral)
-  j([path]).find(j.Literal).forEach(replaceOnLiteral)
-
-  j([path])
-    .find(j.TemplateLiteral)
-    .forEach((path: ASTPath<any>) => {
+  visit(path, {
+    StringLiteral: replaceOnLiteral,
+    Literal: replaceOnLiteral,
+    TemplateLiteral: (path: NodePath<TemplateLiteral>) => {
       if (path.node.quasis.length !== 1) return
       const [quasi] = path.node.quasis
       const { cooked } = quasi.value
@@ -80,22 +80,23 @@ export function replaceStringCaptures(
         const escaped = cooked.replace(/^\$\$/, '$')
         if (escaped !== cooked) quasi.value = { raw: escaped, cooked: escaped }
       }
-    })
+    },
+  })
 }
 
-function getCaptureHolder(path: ASTPath<any>): ASTPath<any> | null {
+function getCaptureHolder(path: NodePath<any>): NodePath<any> | null {
   while (path && path.node?.type !== 'Program' && path.parentPath) {
     if (Array.isArray(path.parentPath.value)) return path
-    if (path.parentPath.node?.type === 'Statement') return null
     path = path.parentPath
   }
+  return null
 }
 
 export function replaceArrayCaptures(
-  path: ASTPath<any>,
+  path: NodePath<any>,
   arrayCaptures: Record<string, ASTNode[]>
 ): void {
-  const doReplace = (path: ASTPath<any>) => {
+  const doReplace = (path: NodePath<any>) => {
     const { parentPath: parent } = path
     const captureHolder = getCaptureHolder(path)
     if (!captureHolder) return
@@ -117,36 +118,38 @@ export function replaceArrayCaptures(
     captureHolder.prune()
   }
 
-  j([path])
-    .find(j.Identifier)
-    // filter out identifiers that are the value node of shorthand properties, or the local node of shorthand import specifiers.
-    // it was causing problems when the value node was getting visited after the property was replaced
-    .filter((path: ASTPath<Identifier>): boolean => {
+  const replacePaths: NodePath<any>[] = []
+
+  visit(path, {
+    Identifier: (path: NodePath<Identifier>): void => {
+      const included = (() => {
+        const { parentPath: parent } = path
+        switch (parent.node.type) {
+          case 'ObjectProperty':
+          case 'Property':
+            return !parent.node.shorthand || path.node !== parent.node.value
+          case 'ImportSpecifier':
+            return (
+              path.node === parent.node.imported ||
+              (path.node === parent.node.local &&
+                parent.node.local.name !== parent.node.imported.name)
+            )
+          default:
+            return true
+        }
+      })()
+      if (included) replacePaths.push(path)
+    },
+    JSXAttribute: (path: NodePath<Identifier>): void => {
       const { parentPath: parent } = path
-      switch (parent.node.type) {
-        case 'ObjectProperty':
-        case 'Property':
-          return !parent.node.shorthand || path.node !== parent.node.value
-        case 'ImportSpecifier':
-          return (
-            path.node === parent.node.imported ||
-            (path.node === parent.node.local &&
-              parent.node.local.name !== parent.node.imported.name)
-          )
-        default:
-          return true
-      }
-    })
-    .forEach(doReplace)
-  j([path])
-    .find(j.JSXAttribute)
-    .filter((path: ASTPath<Identifier>): boolean => {
-      const { parentPath: parent } = path
-      return parent.node.type !== 'JSXAttribute' || parent.node.value == null
-    })
-    .forEach(doReplace)
-  j([path]).find(j.TypeParameter).forEach(doReplace)
-  j([path]).find(j.TSTypeParameter).forEach(doReplace)
+      if (parent.node.type !== 'JSXAttribute' || parent.node.value == null)
+        replacePaths.push(path)
+    },
+    TypeParameter: doReplace,
+    TSTypeParameter: doReplace,
+  })
+
+  for (const identifier of replacePaths) doReplace(identifier)
 }
 
 export function generateReplacements<Node extends ASTNode>(
@@ -193,7 +196,7 @@ function ensureStatements(
   value: Expression | Statement | Statement[]
 ): Statement[] {
   if (Array.isArray(value)) return value
-  if (t.namedTypes.Statement.check(value)) return [value]
+  if (isStatement(value)) return [value]
   return [j.expressionStatement(value as Expression)]
 }
 
@@ -225,16 +228,16 @@ export function replaceStatementsMatches(
 }
 
 export type ReplaceOptions = {
-  where?: { [captureName: string]: (path: ASTPath<any>) => boolean }
+  where?: { [captureName: string]: (path: NodePath<any>) => boolean }
 }
 export default function replace<Node extends ASTNode>(
-  root: Collection,
+  root: Root,
   query: Node,
   replace: ASTNode | ((match: Match<Node>) => ASTNode),
   options?: ReplaceOptions
 ): void
 export default function replace(
-  root: Collection,
+  root: Root,
   query: Statement[],
   replace:
     | Statement
@@ -243,7 +246,7 @@ export default function replace(
   options?: ReplaceOptions
 ): void
 export default function replace<Node extends ASTNode>(
-  root: Collection,
+  root: Root,
   query: Node | Statement[],
   replace:
     | ASTNode

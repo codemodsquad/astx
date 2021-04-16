@@ -3,7 +3,7 @@ import {
   Node as ASTNode,
   Root,
   Statement,
-  forEachNode,
+  visit,
   findStatementArrayPaths,
 } from './variant'
 import mapValues from 'lodash/mapValues'
@@ -72,33 +72,41 @@ export default function find<Node extends ASTNode>(
     ? [matcher.nodeType]
     : ['Node']
 
-  forEachNode(root, nodeTypes, (path: NodePath<any>) => {
-    const result = matcher.match(path, null)
-    if (result) {
-      const match: Match<Node> = { type: 'node', path, node: path.node }
-      const {
-        captures: pathCaptures,
-        arrayCaptures: arrayPathCaptures,
-        stringCaptures,
-      } = result
-      if (pathCaptures) {
-        match.pathCaptures = pathCaptures
-        match.captures = mapValues(
-          pathCaptures,
-          (path: NodePath<any>) => path.node
-        )
-      }
-      if (arrayPathCaptures) {
-        match.arrayPathCaptures = arrayPathCaptures
-        match.arrayCaptures = mapValues(
-          arrayPathCaptures,
-          (paths: NodePath<any>[]) => paths.map((path) => path.node)
-        )
-      }
-      if (stringCaptures) match.stringCaptures = stringCaptures
-      matches.push(match)
-    }
-  })
+  visit(
+    root,
+    Object.fromEntries(
+      nodeTypes.map((nodeType) => [
+        nodeType,
+        (path: NodePath<any>) => {
+          const result = matcher.match(path, null)
+          if (result) {
+            const match: Match<Node> = { type: 'node', path, node: path.node }
+            const {
+              captures: pathCaptures,
+              arrayCaptures: arrayPathCaptures,
+              stringCaptures,
+            } = result
+            if (pathCaptures) {
+              match.pathCaptures = pathCaptures
+              match.captures = mapValues(
+                pathCaptures,
+                (path: NodePath<any>) => path.node
+              )
+            }
+            if (arrayPathCaptures) {
+              match.arrayPathCaptures = arrayPathCaptures
+              match.arrayCaptures = mapValues(
+                arrayPathCaptures,
+                (paths: NodePath<any>[]) => paths.map((path) => path.node)
+              )
+            }
+            if (stringCaptures) match.stringCaptures = stringCaptures
+            matches.push(match)
+          }
+        },
+      ])
+    )
+  )
 
   return matches
 }

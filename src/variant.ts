@@ -1,3 +1,9 @@
+// Eventually, the plan is to move all references to jscodeshift into this file.
+// Then, I'll move everything in src to src/jscodeshift, and make a separate
+// src/babel directory with variant.ts that hooks up to the babel API.  Build scripts
+// will keep the rest of the files in sync.
+// Haven't worked out what I'll do about node types from Flow parser though.
+
 import t from 'ast-types'
 import j, {
   ASTNode,
@@ -15,20 +21,28 @@ import { CompiledMatcher } from './compileMatcher'
 import { ReplaceOptions } from './replace'
 
 export * from 'ast-types/gen/nodes'
+export * from 'ast-types/gen/builders'
 
-export type NodeType = keyof typeof t.namedTypes
+type NodeTypes = typeof t.namedTypes
+
+export type NodeType = keyof NodeTypes
 
 export type Node = ASTNode
 export type NodePath<N = Node> = ASTPath<N>
-export type Root = Collection
+export type Root = Collection | ASTPath<any>
 
-export function forEachNode(
+function normalizeRoot(root: Root): Collection {
+  return (root as any).node instanceof Object ? j([root]) : root
+}
+
+export function visit(
   root: Root,
-  nodeTypes: string | string[],
-  iteratee: (path: NodePath) => void
+  visitors: { [K in keyof NodeTypes]?: (path: NodePath<NodeTypes[K]>) => void }
 ): void {
-  for (const nodeType of Array.isArray(nodeTypes) ? nodeTypes : [nodeTypes]) {
-    root.find(j[nodeType]).forEach(iteratee)
+  const collection = normalizeRoot(root)
+  for (const [nodeType, visitor] of Object.entries(visitors)) {
+    if (!visitor) continue
+    collection.find(j[nodeType]).forEach(visitor)
   }
 }
 
@@ -113,4 +127,8 @@ export type Transform = {
   find?: string | ASTNode | CompiledMatcher | CompiledMatcher[]
   replace?: string | GetReplacement<any>
   where?: ReplaceOptions['where']
+}
+
+export function isStatement(node: Expression | ASTNode): boolean {
+  return t.namedTypes.Statement.check(node)
 }
