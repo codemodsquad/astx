@@ -20,5 +20,16 @@ export const expectedFind = [
 export const replace = `$1(d, $_a, e, $c, f)`
 
 export const expectedReplace = `
-foo(d, a, { b: 3, c: 4 }, c, e, [1, 2, 3], f)
+foo(
+  d,
+  a,
+  {
+    b: 3,
+    c: 4,
+  },
+  c,
+  e,
+  [1, 2, 3],
+  f
+);
 `

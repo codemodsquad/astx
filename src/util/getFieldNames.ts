@@ -11,7 +11,12 @@ function addFieldNames(type: ASTNode['type'], ...fields: string[]): string[] {
 
 const arrayPattern = addFieldNames('ArrayPattern', 'typeAnnotation')
 const objectPattern = addFieldNames('ObjectPattern', 'typeAnnotation')
-const callExpression = addFieldNames('CallExpression', 'typeAnnotation')
+const callExpression = addFieldNames(
+  'CallExpression',
+  'typeAnnotation',
+  'typeArguments'
+)
+const newExpression = addFieldNames('NewExpression', 'typeParameters')
 
 export default function getFieldNames(node: ASTNode): string[] {
   switch (node.type) {
@@ -21,6 +26,8 @@ export default function getFieldNames(node: ASTNode): string[] {
       return objectPattern
     case 'CallExpression':
       return callExpression
+    case 'NewExpression':
+      return newExpression
     default:
       return t.getFieldNames(node)
   }

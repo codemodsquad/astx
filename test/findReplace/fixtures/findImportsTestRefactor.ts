@@ -54,7 +54,10 @@ it(\`leaves existing default imports untouched\`, function () {
     code: \`import Baz from 'baz'\`,
     add: \`import Foo from 'baz'\`,
     expectedCode: \`import Baz from 'baz'\`,
-    expectedReturn: { Foo: "Baz" },
+    
+    expectedReturn: {
+      Foo: "Baz"
+    },
   });
 });
 it(\`adds missing default imports\`, function () {
@@ -75,7 +78,10 @@ it(\`leaves existing funky default imports untouched\`, function () {
     code: \`import {default as Baz} from 'baz'\`,
     add: \`import {default as Foo} from 'baz'\`,
     expectedCode: \`import {default as Baz} from 'baz'\`,
-    expectedReturn: { Foo: "Baz" },
+
+    expectedReturn: {
+      Foo: "Baz"
+    },
   });
 });
 `

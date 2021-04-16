@@ -2,15 +2,24 @@ import { CompileOptions, MatchResult, mergeCaptures, CompiledMatcher } from './'
 import { ASTNode, ASTPath } from 'jscodeshift'
 import areASTsEqual from '../util/areASTsEqual'
 
-export const unescapeIdentifier = (identifier: string): string =>
-  identifier.replace(/^\$\$/, '$')
+export function unescapeIdentifier(identifier: string): string {
+  return identifier.replace(/^\$\$/, '$')
+}
+
+export function getCaptureAs(identifier: string): string | undefined {
+  return /^\$[a-z0-9]+/i.exec(identifier)?.[0]
+}
+
+export function getArrayCaptureAs(identifier: string): string | undefined {
+  return /^\$_[a-z0-9]+/i.exec(identifier)?.[0]
+}
 
 export function compileArrayCaptureMatcher(
   identifier: string,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   compileOptions: CompileOptions
 ): CompiledMatcher | void {
-  const arrayCaptureAs = /^\$_[a-z0-9]+/i.exec(identifier)?.[0]
+  const arrayCaptureAs = getArrayCaptureAs(identifier)
   if (arrayCaptureAs) {
     return {
       arrayCaptureAs,
@@ -28,7 +37,7 @@ export default function compileCaptureMatcher(
   compileOptions: CompileOptions
 ): CompiledMatcher | void {
   const { debug } = compileOptions
-  const captureAs = /^\$[a-z0-9]+/i.exec(identifier)?.[0]
+  const captureAs = getCaptureAs(identifier)
   if (captureAs) {
     const whereCondition = compileOptions?.where?.[captureAs]
     return {
@@ -61,7 +70,7 @@ export function compileStringCaptureMatcher<Node extends ASTNode>(
   const { debug } = compileOptions
   const string = getString(query)
   if (!string) return
-  const captureAs = /^\$[a-z0-9]+/i.exec(string)?.[0]
+  const captureAs = getCaptureAs(string)
   if (captureAs) {
     return {
       captureAs,

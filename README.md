@@ -338,12 +338,12 @@ An `ObjectExpression` (aka object literal) pattern will match any `ObjectExpress
 It will not match if there are missing or additional properties. For example, `{ foo: 1, bar: $bar }` will match `{ foo: 1, bar: 2 }` or `{ bar: 'hello', foo: 1 }`
 but not `{ foo: 1 }` or `{ foo: 1, bar: 2, baz: 3 }`.
 
-You can match additional properties by using `...$captureName`, for example `{ foo: 1, ...$rest }` will match `{ foo: 1 }`, `{ foo: 1, bar: 2 }`, `{ foo: 1, bar: 2, ...props }` etc.
+You can match additional properties by using `...$_captureName`, for example `{ foo: 1, ...$_rest }` will match `{ foo: 1 }`, `{ foo: 1, bar: 2 }`, `{ foo: 1, bar: 2, ...props }` etc.
 The additional properties will be captured in `match.arrayCaptures`/`match.arrayPathCaptures`, and can be spread in replacement expressions. For example,
-`` astx.find`{ foo: 1, ...$rest }`.replace`{ bar: 1, ...$rest }` `` will transform `{ foo: 1, qux: {}, ...props }` into `{ bar: 1, qux: {}, ...props }`.
+`` astx.find`{ foo: 1, ...$_rest }`.replace`{ bar: 1, ...$_rest }` `` will transform `{ foo: 1, qux: {}, ...props }` into `{ bar: 1, qux: {}, ...props }`.
 
-A spread property that isn't of the form `/^\$[a-z0-9]+$/i` is not a capture variable, for example `{ ...foo }` will only match `{ ...foo }` and `{ ...$$foo }` will only
-match `{ ...$foo }` (leading `$$` is an escape for `$`).
+A spread property that isn't of the form `/^\$_[a-z0-9]+$/i` is not a capture variable, for example `{ ...foo }` will only match `{ ...foo }` and `{ ...$$_foo }` will only
+match `{ ...$_foo }` (leading `$$` is an escape for `$`).
 
 There is currently no way to match properties in a specific order, but it could be added in the future.
 

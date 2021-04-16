@@ -29,7 +29,7 @@ import TSTypeReference from './TSTypeReference'
 import TypeParameter from './TypeParameter'
 import VariableDeclarator from './VariableDeclarator'
 
-const _debug = __debug('astx:match')
+const _debug = __debug('astx:compileMatcher')
 
 export type RootCompileOptions = {
   where?: { [captureName: string]: (path: ASTPath<any>) => boolean }
@@ -153,5 +153,5 @@ export default function compileMatcher(
     const matcher = nodeMatchers[query.type](query, compileOptions)
     if (matcher) return matcher
   }
-  return compileGenericNodeMatcher(query, { ...compileOptions, debug })
+  return compileGenericNodeMatcher(query, compileOptions)
 }

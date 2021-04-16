@@ -42,5 +42,6 @@ export const expectedReplace = `
 import foo from 'foo'
 import bar from 'bar'
 const baz = require('baz' + 'qux')
+
 import {glom, qlx} from 'foo'
 `

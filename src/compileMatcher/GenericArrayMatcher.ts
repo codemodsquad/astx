@@ -12,11 +12,12 @@ export default function compileGenericArrayMatcher(
   compileOptions: CompileOptions
 ): CompiledMatcher {
   const { debug } = compileOptions
+  const elemOptions = {
+    ...compileOptions,
+    debug: indentDebug(debug, 2),
+  }
   const matchers: CompiledMatcher[] = query.map((queryElem) =>
-    compileMatcher(queryElem, {
-      ...compileOptions,
-      debug: indentDebug(debug, 2),
-    })
+    compileMatcher(queryElem, elemOptions)
   )
 
   function remainingElements(matcherIndex: number): number {

@@ -16,6 +16,8 @@ import compileMatcher, {
   mergeCaptures,
 } from './index'
 
+import { getArrayCaptureAs } from './Capture'
+
 function getSimpleKey(
   property:
     | ObjectProperty
@@ -54,8 +56,7 @@ function getCaptureRestVariable(
     return undefined
   const { argument } = property
   if (argument.type !== 'Identifier') return undefined
-  const captureMatch = /^\$[a-z0-9]+/i.exec(argument.name)
-  return captureMatch?.[0]
+  return getArrayCaptureAs(argument.name)
 }
 
 export default function compileObjectExpressionMatcher(

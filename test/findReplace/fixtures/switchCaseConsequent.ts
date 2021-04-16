@@ -52,6 +52,7 @@ export const expectedReplace = `
 switch (foo) {
   case a:
     if (c) break
+
     const y = 4
     const x = 1
     console.log(b)
