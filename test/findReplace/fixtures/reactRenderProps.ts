@@ -8,7 +8,7 @@ function foo(): React.Node {
 }
 `
 export const find = `
-<BreakpointMedia max={$max}>{$_children}</BreakpointMedia>
+<BreakpointMedia max={$max}>{$$children}</BreakpointMedia>
 `
 
 export const expectedFind = [
@@ -17,7 +17,7 @@ export const expectedFind = [
       $max: '{NARROW_WIDTH}',
     },
     arrayCaptures: {
-      $_children: ['\n  ', '{(matches) => <div />}', '\n'],
+      $$children: ['\n  ', '{(matches) => <div />}', '\n'],
     },
     node: `<BreakpointMedia max={NARROW_WIDTH}>
   {(matches) => <div />}
@@ -27,7 +27,7 @@ export const expectedFind = [
 
 export const replace = `
 <MediaQuery query={\`(max-width: \${$max}px)\`}>
-  {$_children}
+  {$$children}
 </MediaQuery>
 `
 

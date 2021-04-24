@@ -2,7 +2,7 @@ export const input = `
 foo(a, {b: 3, c: 4}, c, d, [1, 2, 3])
 `
 
-export const find = `$1($_a, d, $c)`
+export const find = `$1($$a, d, $c)`
 
 export const expectedFind = [
   {
@@ -12,12 +12,12 @@ export const expectedFind = [
       $c: '[1, 2, 3]',
     },
     arrayCaptures: {
-      $_a: ['a', '{b: 3, c: 4}', 'c'],
+      $$a: ['a', '{b: 3, c: 4}', 'c'],
     },
   },
 ]
 
-export const replace = `$1(d, $_a, e, $c, f)`
+export const replace = `$1(d, $$a, e, $c, f)`
 
 export const expectedReplace = `
 foo(

@@ -2,7 +2,7 @@ export const input = `
 const foo = <Foo a b c={2} e={d} />
 `
 
-export const find = `<$a $_b c={$c} $_d />`
+export const find = `<$a $$b c={$c} $$d />`
 
 export const expectedFind = [
   {
@@ -12,8 +12,8 @@ export const expectedFind = [
       $c: '{2}',
     },
     arrayCaptures: {
-      $_b: ['a', 'b'],
-      $_d: ['e={d}'],
+      $$b: ['a', 'b'],
+      $$d: ['e={d}'],
     },
   },
 ]

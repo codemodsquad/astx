@@ -12,9 +12,9 @@ export const find = `
 switch (foo) {
   case a:
     $a
-    $_b
+    $$b
     if (c) $d
-    $_c
+    $$c
 }
 `
 
@@ -32,8 +32,8 @@ export const expectedFind = [
       $d: 'break',
     },
     arrayCaptures: {
-      $_b: ['console.log(b)'],
-      $_c: ['const y = 4'],
+      $$b: ['console.log(b)'],
+      $$c: ['const y = 4'],
     },
   },
 ]
@@ -42,9 +42,9 @@ export const replace = `
 switch (foo) {
   case a:
     if (c) $d
-    $_c
+    $$c
     $a
-    $_b
+    $$b
 }
 `
 

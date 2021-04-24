@@ -7,7 +7,7 @@ if (foo) {
 `
 
 export const find = `if ($a) {
-  $_b
+  $$b
   const $c = 1
 }`
 
@@ -20,7 +20,7 @@ export const expectedFind = [
 }`,
     captures: { $a: 'foo', $c: 'x' },
     arrayCaptures: {
-      $_b: ['const bar = foo', 'const baz = 3'],
+      $$b: ['const bar = foo', 'const baz = 3'],
     },
   },
 ]

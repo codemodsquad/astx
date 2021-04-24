@@ -3,7 +3,7 @@ type Foo = (a: number, b: string, c: [number, string], d: any) => any
 `
 
 export const find = `
-type $1 = ($_a, c: [number, $_b], $d) => any
+type $1 = ($$a, c: [number, $$b], $d) => any
 `
 
 export const expectedFind = [
@@ -14,14 +14,14 @@ export const expectedFind = [
       $d: 'd: any',
     },
     arrayCaptures: {
-      $_a: ['a: number', 'b: string'],
-      $_b: ['string'],
+      $$a: ['a: number', 'b: string'],
+      $$b: ['string'],
     },
   },
 ]
 
 export const replace = `
-type $1 = (c: [$_b, number], $d, x: number, $_a) => any
+type $1 = (c: [$$b, number], $d, x: number, $$a) => any
 `
 
 export const expectedReplace = `

@@ -15,14 +15,14 @@ const g = f + 3
 
 export const find = `
 const $a = $b
-$_c
+$$c
 const $d = $a + $e
 `
 
 export const expectedFind = [
   {
     arrayCaptures: {
-      $_c: ['const d = 6'],
+      $$c: ['const d = 6'],
     },
     captures: {
       $a: 'c',
@@ -35,7 +35,7 @@ export const expectedFind = [
   {
     nodes: ['const a = 1', 'const b = a + 3'],
     captures: { $a: 'a', $b: '1', $d: 'b', $e: '3' },
-    arrayCaptures: { $_c: [] },
+    arrayCaptures: { $$c: [] },
   },
   {
     nodes: [
@@ -49,7 +49,7 @@ export const expectedFind = [
     ],
     captures: { $a: 'f', $b: '1', $d: 'g', $e: '3' },
     arrayCaptures: {
-      $_c: [
+      $$c: [
         `function foo() {
   const c = 5
   const d = 6
@@ -63,7 +63,7 @@ export const expectedFind = [
 export const replace = `
 const $d = $b
 const $a = $d + $e
-$_c
+$$c
 `
 
 export const expectedReplace = `
