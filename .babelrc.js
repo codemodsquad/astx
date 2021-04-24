@@ -17,5 +17,10 @@ module.exports = function (api) {
     plugins.push('babel-plugin-istanbul')
   }
 
-  return { plugins, presets }
+  const result = { plugins, presets }
+  if (api.env('development')) {
+    result.sourceMaps = 'inline'
+    result.retainLines = true
+  }
+  return result
 }

@@ -60,7 +60,7 @@ function getCaptureRestVariable(
 }
 
 export default function compileObjectExpressionMatcher(
-  query: ObjectExpression,
+  pattern: ObjectExpression,
   compileOptions: CompileOptions
 ): CompiledMatcher {
   const { debug } = compileOptions
@@ -71,7 +71,7 @@ export default function compileObjectExpressionMatcher(
   const simpleProperties: Map<string, CompiledMatcher> = new Map()
   let captureRestVariable: string | undefined
   const otherProperties: CompiledMatcher[] = []
-  for (const property of query.properties) {
+  for (const property of pattern.properties) {
     const simpleKey = getSimpleKey(property)
     if (simpleKey) {
       simpleProperties.set(
@@ -93,18 +93,18 @@ export default function compileObjectExpressionMatcher(
   }
   for (const m of simpleProperties.values()) {
     if (m.captureAs || m.arrayCaptureAs) {
-      return compileGenericNodeMatcher(query, { ...compileOptions, debug })
+      return compileGenericNodeMatcher(pattern, { ...compileOptions, debug })
     }
   }
   return {
-    match: (path: ASTPath<any>, matchSoFar: MatchResult): MatchResult => {
+    match: (path: ASTPath, matchSoFar: MatchResult): MatchResult => {
       const { node } = path
-      if (node.type !== query.type) return null
+      if (node.type !== pattern.type) return null
       const remainingSimpleProperties = new Map(simpleProperties.entries())
       const remainingOtherProperties = new Set(otherProperties)
-      const capturedRestProperties:
-        | ASTPath<any>[]
-        | undefined = captureRestVariable ? [] : undefined
+      const capturedRestProperties: ASTPath[] | undefined = captureRestVariable
+        ? []
+        : undefined
       for (let i = 0; i < node.properties.length; i++) {
         const property = node.properties[i]
         const propertyPath = path.get('properties', i)

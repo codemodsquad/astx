@@ -5,7 +5,7 @@ import compileCaptureReplacement, { unescapeIdentifier } from './Capture'
 export default function compileJSXIdentifierReplacement(
   path: ASTPath<JSXIdentifier>,
   compileOptions: CompileReplacementOptions
-): CompiledReplacement<any> | void {
+): CompiledReplacement | void {
   const pattern = path.node
   const captureReplacement = compileCaptureReplacement(
     pattern,

@@ -11,14 +11,14 @@ function generateValue(cooked: string): { raw: string; cooked: string } {
 
 export default function compileTemplateLiteralReplacement(
   path: ASTPath<TemplateLiteral>
-): CompiledReplacement<TemplateLiteral> | void {
+): CompiledReplacement | void {
   const pattern = path.node
   if (pattern.quasis.length === 1) {
     const [quasi] = pattern.quasis
     const captureAs = getCaptureAs(quasi.value.cooked)
     if (captureAs) {
       return {
-        generate: (match: Match<any> | StatementsMatch): TemplateLiteral => {
+        generate: (match: Match | StatementsMatch): TemplateLiteral => {
           const captured = match.stringCaptures?.[captureAs]
           return captured
             ? j.templateLiteral(

@@ -63,19 +63,19 @@ export default function compileCaptureMatcher(
 }
 
 export function compileStringCaptureMatcher<Node extends ASTNode>(
-  query: Node,
+  pattern: Node,
   getString: (node: Node) => string | null,
   compileOptions: CompileOptions
 ): CompiledMatcher | void {
   const { debug } = compileOptions
-  const string = getString(query)
+  const string = getString(pattern)
   if (!string) return
   const captureAs = getCaptureAs(string)
   if (captureAs) {
     return {
       captureAs,
       match: (path: ASTPath, matchSoFar: MatchResult): MatchResult => {
-        if (path.node.type !== query.type) return null
+        if (path.node.type !== pattern.type) return null
         debug('String Capture', captureAs)
         const string = getString(path.node)
         if (!string) return null

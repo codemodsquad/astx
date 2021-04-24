@@ -3,17 +3,17 @@ import { CompiledMatcher, CompileOptions } from '.'
 import compileArrayCaptureMatcher, { unescapeIdentifier } from './Capture'
 
 export default function compileJSXAttributeMatcher(
-  query: JSXAttribute,
+  pattern: JSXAttribute,
   compileOptions: CompileOptions
 ): CompiledMatcher | void {
-  if (query.name.type === 'JSXIdentifier') {
-    if (query.value == null) {
+  if (pattern.name.type === 'JSXIdentifier') {
+    if (pattern.value == null) {
       const captureMatcher = compileArrayCaptureMatcher(
-        query.name.name,
+        pattern.name.name,
         compileOptions
       )
       if (captureMatcher) return captureMatcher
     }
-    query.name.name = unescapeIdentifier(query.name.name)
+    pattern.name.name = unescapeIdentifier(pattern.name.name)
   }
 }

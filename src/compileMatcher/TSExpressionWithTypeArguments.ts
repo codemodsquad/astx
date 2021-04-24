@@ -3,17 +3,17 @@ import { CompiledMatcher, CompileOptions } from '.'
 import compileArrayCaptureMatcher, { unescapeIdentifier } from './Capture'
 
 export default function compileTSExpressionWithTypeArgumentsMatcher(
-  query: TSExpressionWithTypeArguments,
+  pattern: TSExpressionWithTypeArguments,
   compileOptions: CompileOptions
 ): CompiledMatcher | void {
-  if (query.expression.type === 'Identifier') {
-    if (query.typeParameters == null) {
+  if (pattern.expression.type === 'Identifier') {
+    if (pattern.typeParameters == null) {
       const captureMatcher = compileArrayCaptureMatcher(
-        query.expression.name,
+        pattern.expression.name,
         compileOptions
       )
       if (captureMatcher) return captureMatcher
     }
-    query.expression.name = unescapeIdentifier(query.expression.name)
+    pattern.expression.name = unescapeIdentifier(pattern.expression.name)
   }
 }

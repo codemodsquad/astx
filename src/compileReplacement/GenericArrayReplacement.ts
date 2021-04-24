@@ -1,4 +1,4 @@
-import { ASTNode, ASTPath } from 'jscodeshift'
+import { ASTPath, ASTNode } from 'jscodeshift'
 import compileReplacement, {
   CompiledReplacement,
   CompileReplacementOptions,
@@ -6,11 +6,11 @@ import compileReplacement, {
 import { Match, StatementsMatch } from '../find'
 import indentDebug from '../compileMatcher/indentDebug'
 
-export default function compileGenericArrayReplacement<N extends ASTNode>(
-  path: ASTPath<N[]> | ASTPath<N>[],
+export default function compileGenericArrayReplacement(
+  path: ASTPath<any[]> | ASTPath[],
   compileOptions: CompileReplacementOptions
-): CompiledReplacement<N[]> {
-  const elemPaths = Array.isArray(path)
+): CompiledReplacement {
+  const elemPaths: ASTPath[] = Array.isArray(path)
     ? path
     : path.value.map((value: any, i: number) => path.get(i))
   const { debug } = compileOptions
@@ -19,13 +19,13 @@ export default function compileGenericArrayReplacement<N extends ASTNode>(
     ...compileOptions,
     debug: indentDebug(debug, 2),
   }
-  const elemReplacements = elemPaths.map((elemPath) =>
+  const elemReplacements = elemPaths.map((elemPath: ASTPath) =>
     compileReplacement(elemPath, elemOptions)
   )
 
   return {
-    generate: (match: Match<any> | StatementsMatch): N[] => {
-      const result: N[] = []
+    generate: (match: Match | StatementsMatch): ASTNode | ASTNode[] => {
+      const result: ASTNode[] = []
       for (const elem of elemReplacements) {
         const replacement = elem.generate(match)
         if (Array.isArray(replacement)) {

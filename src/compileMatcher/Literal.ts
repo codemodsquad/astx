@@ -8,18 +8,18 @@ import {
 import sortFlags from './sortFlags'
 
 export default function matchLiteral(
-  query: Literal,
+  pattern: Literal,
   compileOptions: CompileOptions
 ): CompiledMatcher {
-  const { regex } = query
+  const { regex } = pattern
   if (regex) {
     const regexFlags = sortFlags(regex.flags)
     return convertPredicateMatcher(
-      query,
+      pattern,
       {
         predicate: true,
 
-        match: (path: ASTPath<any>): boolean => {
+        match: (path: ASTPath): boolean => {
           const { node } = path
           if (node.type !== 'Literal') return false
           return (
@@ -34,23 +34,23 @@ export default function matchLiteral(
       compileOptions
     )
   }
-  if (typeof query.value === 'string') {
+  if (typeof pattern.value === 'string') {
     const captureMatcher = compileStringCaptureMatcher(
-      query,
+      pattern,
       (node: Literal) => (typeof node.value === 'string' ? node.value : null),
       compileOptions
     )
     if (captureMatcher) return captureMatcher
   }
   return convertPredicateMatcher(
-    query,
+    pattern,
     {
       predicate: true,
 
-      match: (path: ASTPath<any>): boolean => {
+      match: (path: ASTPath): boolean => {
         const { node } = path
         if (node.type !== 'Literal' || node.regex) return false
-        return node.value === query.value
+        return node.value === pattern.value
       },
 
       nodeType: 'Literal',

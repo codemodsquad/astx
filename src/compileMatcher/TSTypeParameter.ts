@@ -3,17 +3,17 @@ import { CompiledMatcher, CompileOptions } from '.'
 import compileCaptureMatcher, { unescapeIdentifier } from './Capture'
 
 export default function compileTSTypeParameterMatcher(
-  query: TSTypeParameter,
+  pattern: TSTypeParameter,
   compileOptions: CompileOptions
 ): CompiledMatcher | void {
   if (
-    query.constraint == null &&
-    query.typeAnnotation == null &&
-    query.default == null &&
-    !query.optional
+    pattern.constraint == null &&
+    pattern.typeAnnotation == null &&
+    pattern.default == null &&
+    !pattern.optional
   ) {
-    const captureMatcher = compileCaptureMatcher(query.name, compileOptions)
+    const captureMatcher = compileCaptureMatcher(pattern.name, compileOptions)
     if (captureMatcher) return captureMatcher
   }
-  query.name = unescapeIdentifier(query.name)
+  pattern.name = unescapeIdentifier(pattern.name)
 }

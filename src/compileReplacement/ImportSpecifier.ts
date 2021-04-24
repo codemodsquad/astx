@@ -1,19 +1,11 @@
-import j, {
-  ImportSpecifier,
-  ImportDefaultSpecifier,
-  ImportNamespaceSpecifier,
-  ASTNode,
-  ASTPath,
-} from 'jscodeshift'
+import j, { ImportSpecifier, ASTNode, ASTPath } from 'jscodeshift'
 import { CompiledReplacement, CompileReplacementOptions } from '.'
 import compileCaptureReplacement, { unescapeIdentifier } from './Capture'
 import getKeyValueIdentifierish from './getKeyValueIdentifierish'
 
 import getIdentifierish from './getIdentifierish'
 
-export function convertCaptureForImportSpecifiers(
-  node: ASTNode
-): (ImportSpecifier | ImportDefaultSpecifier | ImportNamespaceSpecifier)[] {
+export function convertCaptureForImportSpecifiers(node: ASTNode): ASTNode[] {
   switch (node.type) {
     case 'ImportSpecifier':
     case 'ImportDefaultSpecifier':
@@ -22,11 +14,7 @@ export function convertCaptureForImportSpecifiers(
     case 'ObjectExpression':
     case 'ObjectTypeAnnotation':
     case 'ObjectPattern': {
-      const specifiers: (
-        | ImportSpecifier
-        | ImportDefaultSpecifier
-        | ImportNamespaceSpecifier
-      )[] = []
+      const specifiers: ASTNode[] = []
       for (const prop of node.properties) {
         const converted = convertCaptureForImportSpecifiers(prop)
         converted.forEach((s) => specifiers.push(s))
@@ -55,13 +43,7 @@ const captureOptions = {
 export default function compileImportSpecifierReplacement(
   path: ASTPath<ImportSpecifier>,
   compileOptions: CompileReplacementOptions
-): CompiledReplacement<
-  | ImportDefaultSpecifier
-  | ImportNamespaceSpecifier
-  | ImportSpecifier
-  | (ImportSpecifier | ImportDefaultSpecifier | ImportNamespaceSpecifier)[]
-  | ASTNode[]
-> | void {
+): CompiledReplacement | void {
   const pattern = path.node
   if (!pattern.local || pattern.local.name === pattern.imported.name) {
     if ((pattern as any).importKind == null) {

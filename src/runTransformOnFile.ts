@@ -38,7 +38,7 @@ export type Transform = {
   ) => Collection | string | null | undefined | void
   parser?: string | Parser
   find?: string | ASTNode
-  replace?: string | GetReplacement<any>
+  replace?: string | GetReplacement
   where?: ReplaceOptions['where']
 }
 
@@ -48,7 +48,7 @@ export type TransformResult = {
   transformed?: string
   reports?: any[]
   error?: Error
-  matches?: MatchArray<any> | StatementsMatchArray
+  matches?: MatchArray | StatementsMatchArray
 }
 
 const getPrettier = memoize(
@@ -83,7 +83,7 @@ export const runTransformOnFile = (transform: Transform) => async (
     let transformed
     const reports: any[] = []
 
-    let matches: MatchArray<any> | StatementsMatchArray | undefined
+    let matches: MatchArray | StatementsMatchArray | undefined
 
     let transformFn = transform.astx
 

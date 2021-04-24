@@ -6,9 +6,13 @@ function isValidIdentifier(s: string) {
 
 export default function getIdentifierish(node: ASTNode): string | void {
   switch (node.type) {
+    case 'ExpressionStatement':
+      return getIdentifierish(node.expression)
     case 'Identifier':
     case 'JSXIdentifier':
       return node.name
+    case 'JSXExpressionContainer':
+      return getIdentifierish(node.expression)
     case 'StringLiteral':
     case 'Literal':
       if (isValidIdentifier(String(node.value))) return String(node.value)

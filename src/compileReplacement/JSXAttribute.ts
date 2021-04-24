@@ -1,7 +1,8 @@
 import j, { ASTNode, JSXAttribute, ASTPath } from 'jscodeshift'
 import { CompiledReplacement, CompileReplacementOptions } from '.'
 import compileCaptureReplacement, { unescapeIdentifier } from './Capture'
-import { convertCaptureToJSXExpressionContainer } from './JSXExpressionContainer'
+import { convertCaptureToJSXAttributeValue } from './JSXExpressionContainer'
+import getKeyValueExpressionish from './getKeyValueExpressionish'
 
 export function convertCaptureToJSXAttribute(node: ASTNode): JSXAttribute {
   switch (node.type) {
@@ -10,7 +11,7 @@ export function convertCaptureToJSXAttribute(node: ASTNode): JSXAttribute {
       if (node.key.type === 'Identifier' && !node.computed) {
         return j.jsxAttribute(
           j.jsxIdentifier(node.key.name),
-          convertCaptureToJSXExpressionContainer(node.value)
+          convertCaptureToJSXAttributeValue(node.value)
         )
       }
       return j.jsxSpreadAttribute(j.objectExpression([node]))
@@ -19,6 +20,11 @@ export function convertCaptureToJSXAttribute(node: ASTNode): JSXAttribute {
       return j.jsxSpreadAttribute(node.argument)
     case 'JSXAttribute':
       return node
+  }
+  const keyValue = getKeyValueExpressionish(node)
+  if (keyValue) {
+    const { key, value } = keyValue
+    return j.jsxAttribute(j.jsxIdentifier(key), j.jsxExpressionContainer(value))
   }
   throw new Error(`converting ${node.type} to JSXAttribute isn't supported`)
 }
@@ -30,7 +36,7 @@ const captureOptions = {
 export default function compileJSXAttributeReplacement(
   path: ASTPath<JSXAttribute>,
   compileOptions: CompileReplacementOptions
-): CompiledReplacement<JSXAttribute | ASTNode[]> | void {
+): CompiledReplacement | void {
   const pattern = path.node
   if (pattern.name.type === 'JSXIdentifier') {
     if (pattern.value == null) {

@@ -1,11 +1,11 @@
-import { TSExpressionWithTypeArguments, ASTNode, ASTPath } from 'jscodeshift'
+import { TSExpressionWithTypeArguments, ASTPath } from 'jscodeshift'
 import { CompiledReplacement, CompileReplacementOptions } from '.'
 import compileCaptureReplacement, { unescapeIdentifier } from './Capture'
 
 export default function compileTSExpressionWithTypeArgumentsReplacement(
   path: ASTPath<TSExpressionWithTypeArguments>,
   compileOptions: CompileReplacementOptions
-): CompiledReplacement<TSExpressionWithTypeArguments | ASTNode[]> | void {
+): CompiledReplacement | void {
   const pattern = path.node
   if (pattern.expression.type === 'Identifier') {
     if (pattern.typeParameters == null) {

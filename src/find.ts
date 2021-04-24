@@ -6,13 +6,13 @@ import compileMatcher, {
   mergeCaptures,
 } from './compileMatcher'
 
-export type Match<Node extends ASTNode> = {
+export type Match = {
   type: 'node'
-  path: ASTPath<Node>
-  node: Node
-  pathCaptures?: Record<string, ASTPath<any>>
+  path: ASTPath
+  node: ASTNode
+  pathCaptures?: Record<string, ASTPath>
   captures?: Record<string, ASTNode>
-  arrayPathCaptures?: Record<string, ASTPath<any>[]>
+  arrayPathCaptures?: Record<string, ASTPath[]>
   arrayCaptures?: Record<string, ASTNode[]>
   stringCaptures?: Record<string, string>
 }
@@ -21,39 +21,39 @@ export type StatementsMatch = {
   type: 'statements'
   paths: ASTPath<Statement>[]
   nodes: Statement[]
-  pathCaptures?: Record<string, ASTPath<any>>
+  pathCaptures?: Record<string, ASTPath>
   captures?: Record<string, ASTNode>
-  arrayPathCaptures?: Record<string, ASTPath<any>[]>
+  arrayPathCaptures?: Record<string, ASTPath[]>
   arrayCaptures?: Record<string, ASTNode[]>
   stringCaptures?: Record<string, string>
 }
 
 export type FindOptions = {
-  where?: { [captureName: string]: (path: ASTPath<any>) => boolean }
+  where?: { [captureName: string]: (path: ASTPath) => boolean }
 }
 
 export default function find<Node extends ASTNode>(
   root: Collection,
-  query: Node,
+  pattern: Node,
   options?: FindOptions
-): Array<Match<Node>>
+): Array<Match>
 export default function find(
   root: Collection,
-  query: Statement[],
+  pattern: Statement[],
   options?: FindOptions
 ): Array<StatementsMatch>
 export default function find<Node extends ASTNode>(
   root: Collection,
-  query: Node | Statement[],
+  pattern: Node | Statement[],
   options?: FindOptions
-): Array<Match<Node>> | Array<StatementsMatch> {
-  if (Array.isArray(query)) {
-    return findStatements(root, query, options)
+): Array<Match> | Array<StatementsMatch> {
+  if (Array.isArray(pattern)) {
+    return findStatements(root, pattern, options)
   }
 
-  const matcher = compileMatcher(query, options)
+  const matcher = compileMatcher(pattern, options)
 
-  const matches: Array<Match<Node>> = []
+  const matches: Array<Match> = []
 
   const nodeTypes = Array.isArray(matcher.nodeType)
     ? matcher.nodeType
@@ -62,10 +62,10 @@ export default function find<Node extends ASTNode>(
     : ['Node']
 
   for (const nodeType of nodeTypes) {
-    root.find(j[nodeType]).forEach((path: ASTPath<any>) => {
+    root.find(j[nodeType]).forEach((path: ASTPath) => {
       const result = matcher.match(path, null)
       if (result) {
-        const match: Match<Node> = { type: 'node', path, node: path.node }
+        const match: Match = { type: 'node', path, node: path.node }
         const {
           captures: pathCaptures,
           arrayCaptures: arrayPathCaptures,
@@ -73,16 +73,13 @@ export default function find<Node extends ASTNode>(
         } = result
         if (pathCaptures) {
           match.pathCaptures = pathCaptures
-          match.captures = mapValues(
-            pathCaptures,
-            (path: ASTPath<any>) => path.node
-          )
+          match.captures = mapValues(pathCaptures, (path: ASTPath) => path.node)
         }
         if (arrayPathCaptures) {
           match.arrayPathCaptures = arrayPathCaptures
           match.arrayCaptures = mapValues(
             arrayPathCaptures,
-            (paths: ASTPath<any>[]) => paths.map((path) => path.node)
+            (paths: ASTPath[]) => paths.map((path) => path.node)
           )
         }
         if (stringCaptures) match.stringCaptures = stringCaptures
@@ -106,10 +103,10 @@ function findStatementArrayPaths(root: Collection): ASTPath[] {
 
 function findStatements(
   root: Collection,
-  query: Statement[],
+  pattern: Statement[],
   options?: FindOptions
 ): Array<StatementsMatch> {
-  const matchers: CompiledMatcher[] = query.map((queryElem) =>
+  const matchers: CompiledMatcher[] = pattern.map((queryElem) =>
     compileMatcher(queryElem as any, options)
   )
 
@@ -117,7 +114,7 @@ function findStatements(
 
   if (firstNonArrayCaptureIndex < 0) {
     throw new Error(
-      `query would match every single array of statements, this is unsupported`
+      `pattern would match every single array of statements, this is unsupported`
     )
   }
 

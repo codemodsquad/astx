@@ -3,17 +3,21 @@ import { CompiledMatcher, CompileOptions } from '.'
 import compileCaptureMatcher, { unescapeIdentifier } from './Capture'
 
 export default function compileObjectPropertyMatcher(
-  query: ObjectProperty,
+  pattern: ObjectProperty,
   compileOptions: CompileOptions
 ): CompiledMatcher | void {
-  if (query.key.type === 'Identifier') {
-    if (query.shorthand && !query.computed && query.accessibility == null) {
+  if (pattern.key.type === 'Identifier') {
+    if (
+      pattern.shorthand &&
+      !pattern.computed &&
+      pattern.accessibility == null
+    ) {
       const captureMatcher = compileCaptureMatcher(
-        query.key.name,
+        pattern.key.name,
         compileOptions
       )
       if (captureMatcher) return captureMatcher
     }
-    query.key.name = unescapeIdentifier(query.key.name)
+    pattern.key.name = unescapeIdentifier(pattern.key.name)
   }
 }

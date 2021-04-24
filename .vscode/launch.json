@@ -14,6 +14,22 @@
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen",
       "port": 9229
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Debug -f",
+      "program": "${workspaceFolder}/src/cli/index.ts",
+      "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/babel-node",
+      "runtimeArgs": ["--nolazy", "--extensions", ".ts"],
+      "args": [
+        "-f",
+        "function $fn<$_params>($_args): CompiledReplacement<$_f> { $_body }",
+        "src/compileReplacement/Capture.ts"
+      ],
+      "env": {
+        "BABEL_ENV": "development"
+      }
     }
   ]
 }

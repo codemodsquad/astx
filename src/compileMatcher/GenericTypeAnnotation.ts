@@ -3,17 +3,17 @@ import { CompiledMatcher, CompileOptions } from '.'
 import compileCaptureMatcher, { unescapeIdentifier } from './Capture'
 
 export default function compileGenericTypeAnnotationMatcher(
-  query: GenericTypeAnnotation,
+  pattern: GenericTypeAnnotation,
   compileOptions: CompileOptions
 ): CompiledMatcher | void {
-  if (query.id.type === 'Identifier') {
-    if (query.typeParameters == null) {
+  if (pattern.id.type === 'Identifier') {
+    if (pattern.typeParameters == null) {
       const captureMatcher = compileCaptureMatcher(
-        query.id.name,
+        pattern.id.name,
         compileOptions
       )
       if (captureMatcher) return captureMatcher
     }
-    query.id.name = unescapeIdentifier(query.id.name)
+    pattern.id.name = unescapeIdentifier(pattern.id.name)
   }
 }

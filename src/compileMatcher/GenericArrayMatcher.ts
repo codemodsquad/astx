@@ -8,7 +8,7 @@ import compileMatcher, {
 import indentDebug from './indentDebug'
 
 export default function compileGenericArrayMatcher(
-  query: ASTNode[],
+  pattern: ASTNode[],
   compileOptions: CompileOptions
 ): CompiledMatcher {
   const { debug } = compileOptions
@@ -16,7 +16,7 @@ export default function compileGenericArrayMatcher(
     ...compileOptions,
     debug: indentDebug(debug, 2),
   }
-  const matchers: CompiledMatcher[] = query.map((queryElem) =>
+  const matchers: CompiledMatcher[] = pattern.map((queryElem) =>
     compileMatcher(queryElem, elemOptions)
   )
 
@@ -133,11 +133,11 @@ export default function compileGenericArrayMatcher(
         debug('  path.value is not an array')
         return null
       }
-      if (path.value.length !== query.length) {
+      if (path.value.length !== pattern.length) {
         debug(
-          '  path.value.length (%d) !== query.length (%d)',
+          '  path.value.length (%d) !== pattern.length (%d)',
           path.value.length,
-          query.length
+          pattern.length
         )
         return null
       }

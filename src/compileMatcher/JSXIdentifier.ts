@@ -3,10 +3,10 @@ import { CompiledMatcher, CompileOptions } from '.'
 import compileCaptureMatcher, { unescapeIdentifier } from './Capture'
 
 export default function compileJSXIdentifierMatcher(
-  query: JSXIdentifier,
+  pattern: JSXIdentifier,
   compileOptions: CompileOptions
 ): CompiledMatcher | void {
-  const captureMatcher = compileCaptureMatcher(query.name, compileOptions)
+  const captureMatcher = compileCaptureMatcher(pattern.name, compileOptions)
   if (captureMatcher) return captureMatcher
-  query.name = unescapeIdentifier(query.name)
+  pattern.name = unescapeIdentifier(pattern.name)
 }

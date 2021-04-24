@@ -3,22 +3,22 @@ import { CompiledMatcher, CompileOptions } from '.'
 import compileCaptureMatcher, { unescapeIdentifier } from './Capture'
 
 export default function compileClassPropertyMatcher(
-  query: ClassProperty,
+  pattern: ClassProperty,
   compileOptions: CompileOptions
 ): CompiledMatcher | void {
-  if (query.key.type === 'Identifier') {
+  if (pattern.key.type === 'Identifier') {
     if (
-      !query.computed &&
-      !query.static &&
-      query.variance == null &&
-      query.value == null
+      !pattern.computed &&
+      !pattern.static &&
+      pattern.variance == null &&
+      pattern.value == null
     ) {
       const captureMatcher = compileCaptureMatcher(
-        query.key.name,
+        pattern.key.name,
         compileOptions
       )
       if (captureMatcher) return captureMatcher
     }
-    query.key.name = unescapeIdentifier(query.key.name)
+    pattern.key.name = unescapeIdentifier(pattern.key.name)
   }
 }

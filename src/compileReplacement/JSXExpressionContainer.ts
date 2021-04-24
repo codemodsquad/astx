@@ -51,30 +51,17 @@ const jsxChildCaptureOptions = {
 export default function compileJSXExpressionContainerReplacement(
   path: ASTPath<JSXExpressionContainer>,
   compileOptions: CompileReplacementOptions
-):
-  | CompiledReplacement<
-      JSXExpressionContainer | Literal | StringLiteral | ASTNode[]
-    >
-  | CompiledReplacement<
-      JSXExpressionContainer | JSXElement | JSXText | ASTNode[]
-    >
-  | void {
+): CompiledReplacement | void {
   const pattern = path.node
   if (pattern.expression.type === 'Identifier') {
-    const captureReplacement =
+    const captureReplacement = compileCaptureReplacement(
+      pattern,
+      pattern.expression.name,
+      compileOptions,
       path.parentPath.node.type === 'JSXElement'
-        ? compileCaptureReplacement(
-            pattern,
-            pattern.expression.name,
-            compileOptions,
-            jsxChildCaptureOptions
-          )
-        : compileCaptureReplacement(
-            pattern,
-            pattern.expression.name,
-            compileOptions,
-            jsxAttributeValueCaptureOptions
-          )
+        ? jsxChildCaptureOptions
+        : jsxAttributeValueCaptureOptions
+    )
     if (captureReplacement) return captureReplacement
     pattern.expression.name = unescapeIdentifier(pattern.expression.name)
   }

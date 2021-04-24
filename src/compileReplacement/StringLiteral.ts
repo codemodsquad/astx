@@ -7,12 +7,12 @@ import { unescapeIdentifier } from './Capture'
 
 export default function compileStringLiteralReplacement(
   path: ASTPath<StringLiteral>
-): CompiledReplacement<StringLiteral> | void {
+): CompiledReplacement | void {
   const pattern = path.node
   const captureAs = getCaptureAs(pattern.value)
   if (captureAs) {
     return {
-      generate: (match: Match<any> | StatementsMatch): StringLiteral => {
+      generate: (match: Match | StatementsMatch): StringLiteral => {
         const captured = match.stringCaptures?.[captureAs]
         return captured ? j.stringLiteral(captured) : cloneDeep(pattern)
       },

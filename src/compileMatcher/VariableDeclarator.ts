@@ -3,17 +3,17 @@ import { CompiledMatcher, CompileOptions } from '.'
 import compileArrayCaptureMatcher, { unescapeIdentifier } from './Capture'
 
 export default function compileVariableDeclaratorMatcher(
-  query: VariableDeclarator,
+  pattern: VariableDeclarator,
   compileOptions: CompileOptions
 ): CompiledMatcher | void {
-  if (query.id.type === 'Identifier') {
-    if (query.init == null) {
+  if (pattern.id.type === 'Identifier') {
+    if (pattern.init == null) {
       const captureMatcher = compileArrayCaptureMatcher(
-        query.id.name,
+        pattern.id.name,
         compileOptions
       )
       if (captureMatcher) return captureMatcher
     }
-    query.id.name = unescapeIdentifier(query.id.name)
+    pattern.id.name = unescapeIdentifier(pattern.id.name)
   }
 }

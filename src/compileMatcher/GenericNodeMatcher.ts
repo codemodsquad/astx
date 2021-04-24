@@ -41,11 +41,12 @@ for (const klass of equivalenceClassesArray) {
 }
 
 export default function compileGenericNodeMatcher(
-  query: ASTNode,
+  pattern: ASTNode,
   compileOptions: CompileOptions
 ): CompiledMatcher {
-  const { baseType, nodeTypes } = equivalenceClasses[query.type] || {}
-  const nodeType = baseType || (nodeTypes ? [...nodeTypes] : null) || query.type
+  const { baseType, nodeTypes } = equivalenceClasses[pattern.type] || {}
+  const nodeType =
+    baseType || (nodeTypes ? [...nodeTypes] : null) || pattern.type
 
   const namedType: Type<any> = baseType ? (t.namedTypes[baseType] as any) : null
 
@@ -53,22 +54,19 @@ export default function compileGenericNodeMatcher(
     ? (node: ASTNode) => namedType.check(node)
     : nodeTypes
     ? (node: ASTNode) => nodeTypes.has(node.type)
-    : (node: ASTNode) => node.type === query.type
+    : (node: ASTNode) => node.type === pattern.type
 
   const { debug } = compileOptions
   const keyMatchers: Record<string, CompiledMatcher> = Object.fromEntries(
-    getFieldNames(query)
+    getFieldNames(pattern)
       .filter((key) => key !== 'type')
       .map((key: string): [string, CompiledMatcher] => {
-        const value = (query as any)[key]
+        const value = (pattern as any)[key]
         if (typeof value !== 'object' || value == null) {
           return [
             key,
             {
-              match: (
-                path: ASTPath<any>,
-                matchSoFar: MatchResult
-              ): MatchResult => {
+              match: (path: ASTPath, matchSoFar: MatchResult): MatchResult => {
                 if (value !== path.node[key]) {
                   debug('    %s !== %s', value, path.node[key])
                   return null
@@ -92,8 +90,8 @@ export default function compileGenericNodeMatcher(
   )
 
   return {
-    match: (path: ASTPath<any>, matchSoFar: MatchResult): MatchResult => {
-      debug('%s (generic)', query.type)
+    match: (path: ASTPath, matchSoFar: MatchResult): MatchResult => {
+      debug('%s (generic)', pattern.type)
       if (isCorrectType(path.node)) {
         for (const key in keyMatchers) {
           debug('  .%s', key)
@@ -104,9 +102,9 @@ export default function compileGenericNodeMatcher(
         return matchSoFar || {}
       } else {
         debug(
-          '  path.node?.type (%s) is not compatible with query.type (%s)',
+          '  path.node?.type (%s) is not compatible with pattern.type (%s)',
           path.node?.type,
-          query.type
+          pattern.type
         )
         return null
       }

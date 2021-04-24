@@ -16,21 +16,18 @@ export type ParseTag = (
   ...quasis: any[]
 ) => ASTNode
 
-export type GetReplacement<Node extends ASTNode> = (
-  match: Match<Node>,
-  parse: ParseTag
-) => string | ASTNode
+export type GetReplacement = (match: Match, parse: ParseTag) => string | ASTNode
 
 export type GetStatementsReplacement = (
   match: StatementsMatch,
   parse: ParseTag
 ) => string | Expression | Statement | Statement[]
 
-export class MatchArray<Node extends ASTNode> extends Array<Match<Node>> {
+export class MatchArray extends Array<Match> {
   private jscodeshift: JSCodeshift
   private parseTag: ParseTag
 
-  constructor(jscodeshift: JSCodeshift, matches: Array<Match<Node>>) {
+  constructor(jscodeshift: JSCodeshift, matches: Array<Match>) {
     super()
     this.jscodeshift = jscodeshift
     for (const key in matches) this[key] = matches[key]
@@ -38,16 +35,16 @@ export class MatchArray<Node extends ASTNode> extends Array<Match<Node>> {
   }
 
   replace(code: string): void
-  replace(getReplacement: GetReplacement<Node>): void
+  replace(getReplacement: GetReplacement): void
   replace(strings: TemplateStringsArray, ...quasis: any[]): void
   replace(
-    arg0: string | GetReplacement<Node> | TemplateStringsArray,
+    arg0: string | GetReplacement | TemplateStringsArray,
     ...quasis: any[]
   ): void {
     if (typeof arg0 === 'function') {
       replaceMatches(
         this,
-        (match: Match<Node>): ASTNode => {
+        (match: Match): ASTNode => {
           const result = arg0(match, this.parseTag)
           return typeof result === 'string'
             ? (parseFindOrReplace(this.jscodeshift, [result] as any) as any)
@@ -112,10 +109,10 @@ export class StatementsMatchArray extends Array<StatementsMatch> {
 function bindFind(
   jscodeshift: JSCodeshift,
   root: Collection,
-  query: ASTNode
+  pattern: ASTNode
 ): BoundFind {
-  const result = (options?: FindOptions): MatchArray<any> =>
-    new MatchArray(jscodeshift, find(root, query, options))
+  const result = (options?: FindOptions): MatchArray =>
+    new MatchArray(jscodeshift, find(root, pattern, options))
   result.replace = (first: any, ...rest: any[]): void =>
     result().replace(first, ...rest)
 
@@ -125,10 +122,10 @@ function bindFind(
 function bindFindStatements(
   jscodeshift: JSCodeshift,
   root: Collection,
-  query: Statement[]
+  pattern: Statement[]
 ): BoundFindStatements {
   const result = (options?: FindOptions): StatementsMatchArray =>
-    new StatementsMatchArray(jscodeshift, find(root, query, options))
+    new StatementsMatchArray(jscodeshift, find(root, pattern, options))
   result.replace = (first: any, ...rest: any[]): void =>
     result().replace(first, ...rest)
 
@@ -148,20 +145,14 @@ export default class Astx {
     return new Astx(this.jscodeshift, root)
   }
 
-  find(
-    code: string,
-    options?: FindOptions
-  ): MatchArray<any> | StatementsMatchArray
-  find<Node extends ASTNode>(
-    node: ASTNode,
-    options?: FindOptions
-  ): MatchArray<Node>
+  find(code: string, options?: FindOptions): MatchArray | StatementsMatchArray
+  find(node: ASTNode, options?: FindOptions): MatchArray
   find(statements: Statement[], options?: FindOptions): StatementsMatchArray
   find(strings: TemplateStringsArray, ...quasis: any[]): BoundFind
   find(
     arg0: string | ASTNode | Statement[] | TemplateStringsArray,
     ...rest: any[]
-  ): BoundFind | MatchArray<any> | StatementsMatchArray {
+  ): BoundFind | MatchArray | StatementsMatchArray {
     function requireNotArray(
       parsed: Expression | Statement | Statement[]
     ): ASTNode {
@@ -199,14 +190,17 @@ export default class Astx {
   findAuto(
     code: string,
     options?: FindOptions
-  ): MatchArray<any> | StatementsMatchArray {
-    const query = parseFindOrReplace(this.jscodeshift, [code] as any)
-    return Array.isArray(query)
+  ): MatchArray | StatementsMatchArray {
+    const pattern = parseFindOrReplace(this.jscodeshift, [code] as any)
+    return Array.isArray(pattern)
       ? new StatementsMatchArray(
           this.jscodeshift,
-          find(this.root, query, options)
+          find(this.root, pattern, options)
         )
-      : new MatchArray(this.jscodeshift, find(this.root, query as any, options))
+      : new MatchArray(
+          this.jscodeshift,
+          find(this.root, pattern as any, options)
+        )
   }
 
   findStatements(code: string, options?: FindOptions): StatementsMatchArray
@@ -243,9 +237,9 @@ export default class Astx {
 }
 
 interface BoundFind {
-  (options?: FindOptions): MatchArray<any>
+  (options?: FindOptions): MatchArray
   replace(code: string): void
-  replace(getReplacement: GetReplacement<any>): void
+  replace(getReplacement: GetReplacement): void
   replace(strings: TemplateStringsArray, ...quasis: any[]): void
 }
 

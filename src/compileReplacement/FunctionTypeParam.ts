@@ -1,11 +1,11 @@
-import { FunctionTypeParam, ASTNode, ASTPath } from 'jscodeshift'
+import { FunctionTypeParam, ASTPath } from 'jscodeshift'
 import { CompiledReplacement, CompileReplacementOptions } from '.'
 import compileCaptureReplacement, { unescapeIdentifier } from './Capture'
 
 export default function compileFunctionTypeParamReplacement(
   path: ASTPath<FunctionTypeParam>,
   compileOptions: CompileReplacementOptions
-): CompiledReplacement<FunctionTypeParam | ASTNode[]> | void {
+): CompiledReplacement | void {
   const pattern = path.node
   if (pattern.name?.type === 'Identifier') {
     if (pattern.typeAnnotation == null) {

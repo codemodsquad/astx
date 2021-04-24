@@ -4,12 +4,12 @@ import compileCaptureMatcher, { unescapeIdentifier } from './Capture'
 import compileGenericNodeMatcher from './GenericNodeMatcher'
 
 export default function compileIdentifierMatcher(
-  query: Identifier,
+  pattern: Identifier,
   compileOptions: CompileOptions
 ): CompiledMatcher | void {
-  if (query.typeAnnotation != null)
-    return compileGenericNodeMatcher(query, compileOptions)
-  const captureMatcher = compileCaptureMatcher(query.name, compileOptions)
+  if (pattern.typeAnnotation != null)
+    return compileGenericNodeMatcher(pattern, compileOptions)
+  const captureMatcher = compileCaptureMatcher(pattern.name, compileOptions)
   if (captureMatcher) return captureMatcher
-  query.name = unescapeIdentifier(query.name)
+  pattern.name = unescapeIdentifier(pattern.name)
 }

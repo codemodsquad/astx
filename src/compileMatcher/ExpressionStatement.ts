@@ -3,15 +3,15 @@ import { CompiledMatcher, CompileOptions } from '.'
 import compileCaptureMatcher, { unescapeIdentifier } from './Capture'
 
 export default function compileExpressionStatementMatcher(
-  query: ExpressionStatement,
+  pattern: ExpressionStatement,
   compileOptions: CompileOptions
 ): CompiledMatcher | void {
-  if (query.expression.type === 'Identifier') {
+  if (pattern.expression.type === 'Identifier') {
     const captureMatcher = compileCaptureMatcher(
-      query.expression.name,
+      pattern.expression.name,
       compileOptions
     )
     if (captureMatcher) return captureMatcher
-    query.expression.name = unescapeIdentifier(query.expression.name)
+    pattern.expression.name = unescapeIdentifier(pattern.expression.name)
   }
 }

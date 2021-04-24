@@ -7,15 +7,15 @@ import compileReplacement, {
 import { Match, StatementsMatch } from '../find'
 import indentDebug from '../compileMatcher/indentDebug'
 
-export default function compileGenericNodeReplacement<N extends ASTNode>(
-  path: ASTPath<N>,
+export default function compileGenericNodeReplacement(
+  path: ASTPath,
   compileOptions: CompileReplacementOptions
-): CompiledReplacement<N> {
+): CompiledReplacement {
   const pattern = path.node
   const { debug } = compileOptions
 
   const propertyValues: [string, any][] = []
-  const childReplacements: [string, CompiledReplacement<any>][] = []
+  const childReplacements: [string, CompiledReplacement][] = []
 
   for (const key of getFieldNames(pattern)) {
     if (key === 'type' || key === 'extra') continue
@@ -34,7 +34,7 @@ export default function compileGenericNodeReplacement<N extends ASTNode>(
   }
 
   return {
-    generate: (match: Match<any> | StatementsMatch): N => {
+    generate: (match: Match | StatementsMatch): ASTNode | ASTNode[] => {
       const result: any = { type: pattern.type }
       for (const [key, replacement] of childReplacements) {
         const value = replacement.generate(match)

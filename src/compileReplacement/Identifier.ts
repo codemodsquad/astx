@@ -1,11 +1,11 @@
 import t from 'ast-types'
-import { ASTNode, Expression, Identifier, ASTPath } from 'jscodeshift'
+import { ASTNode, Identifier, ASTPath } from 'jscodeshift'
 import { CompiledReplacement, CompileReplacementOptions } from './'
 import compileCaptureReplacement from './Capture'
 import compileGenericNodeReplacement from './GenericNodeReplacement'
 import { unescapeIdentifier } from '../compileReplacement/Capture'
 
-export function convertCaptureToExpression(node: ASTNode): Expression {
+export function convertCaptureToExpression(node: ASTNode): ASTNode | ASTNode[] {
   switch (node.type) {
     case 'JSXExpressionContainer':
     case 'ExpressionStatement':
@@ -25,13 +25,13 @@ export function convertCaptureToExpression(node: ASTNode): Expression {
 }
 
 const captureOptions = {
-  convertCapture: convertCaptureToExpression as any,
+  convertCapture: convertCaptureToExpression,
 }
 
 export default function compileIdentifierReplacement(
   path: ASTPath<Identifier>,
   compileOptions: CompileReplacementOptions
-): CompiledReplacement<any> | void {
+): CompiledReplacement | void {
   const pattern = path.node
   if (pattern.typeAnnotation != null)
     return compileGenericNodeReplacement(path, compileOptions)

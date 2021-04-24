@@ -32,17 +32,17 @@ import VariableDeclarator from './VariableDeclarator'
 const _debug = __debug('astx:compileMatcher')
 
 export type RootCompileOptions = {
-  where?: { [captureName: string]: (path: ASTPath<any>) => boolean }
+  where?: { [captureName: string]: (path: ASTPath) => boolean }
   debug?: Debugger
 }
 
 export type CompileOptions = {
-  where?: { [captureName: string]: (path: ASTPath<any>) => boolean }
+  where?: { [captureName: string]: (path: ASTPath) => boolean }
   debug: Debugger
 }
 
-export type Captures = Record<string, ASTPath<any>>
-export type ArrayCaptures = Record<string, ASTPath<any>[]>
+export type Captures = Record<string, ASTPath>
+export type ArrayCaptures = Record<string, ASTPath[]>
 export type StringCaptures = Record<string, string>
 
 export type MatchResult = {
@@ -76,7 +76,7 @@ export function mergeCaptures(...results: MatchResult[]): MatchResult {
 
 export type PredicateMatcher = {
   predicate: true
-  match: (path: ASTPath<any>, matchSoFar: MatchResult) => boolean
+  match: (path: ASTPath, matchSoFar: MatchResult) => boolean
   nodeType?: keyof typeof t.namedTypes | (keyof typeof t.namedTypes)[]
 }
 
@@ -84,13 +84,13 @@ export interface CompiledMatcher {
   predicate?: false
   captureAs?: string
   arrayCaptureAs?: string
-  match: (path: ASTPath<any>, matchSoFar: MatchResult) => MatchResult
+  match: (path: ASTPath, matchSoFar: MatchResult) => MatchResult
   nodeType?: keyof typeof t.namedTypes | (keyof typeof t.namedTypes)[]
 }
 
 const nodeMatchers: Record<
   string,
-  (query: any, options: CompileOptions) => CompiledMatcher | undefined | void
+  (pattern: any, options: CompileOptions) => CompiledMatcher | undefined | void
 > = {
   BooleanLiteral,
   ClassImplements,
@@ -121,14 +121,14 @@ const nodeMatchers: Record<
 }
 
 export function convertPredicateMatcher(
-  query: ASTNode,
+  pattern: ASTNode,
   matcher: PredicateMatcher,
   { debug }: CompileOptions
 ): CompiledMatcher {
   return {
     nodeType: matcher.nodeType,
-    match: (path: ASTPath<any>, matchSoFar: MatchResult): MatchResult => {
-      debug('%s (specific)', query.type)
+    match: (path: ASTPath, matchSoFar: MatchResult): MatchResult => {
+      debug('%s (specific)', pattern.type)
       const result = matcher.match(path, matchSoFar)
       if (result) {
         if (result === true) debug('  matched')
@@ -142,16 +142,16 @@ export function convertPredicateMatcher(
 }
 
 export default function compileMatcher(
-  query: ASTNode | ASTNode[],
+  pattern: ASTNode | ASTNode[],
   rootCompileOptions: RootCompileOptions = {}
 ): CompiledMatcher {
   const { debug = _debug } = rootCompileOptions
   const compileOptions = { ...rootCompileOptions, debug }
-  if (Array.isArray(query)) {
-    return compileGenericArrayMatcher(query, compileOptions)
-  } else if (nodeMatchers[query.type]) {
-    const matcher = nodeMatchers[query.type](query, compileOptions)
+  if (Array.isArray(pattern)) {
+    return compileGenericArrayMatcher(pattern, compileOptions)
+  } else if (nodeMatchers[pattern.type]) {
+    const matcher = nodeMatchers[pattern.type](pattern, compileOptions)
     if (matcher) return matcher
   }
-  return compileGenericNodeMatcher(query, compileOptions)
+  return compileGenericNodeMatcher(pattern, compileOptions)
 }

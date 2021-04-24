@@ -3,24 +3,24 @@ import { CompiledMatcher, CompileOptions } from '.'
 import compileCaptureMatcher, { unescapeIdentifier } from './Capture'
 
 export default function compileObjectTypePropertyMatcher(
-  query: ObjectTypeProperty,
+  pattern: ObjectTypeProperty,
   compileOptions: CompileOptions
 ): CompiledMatcher | void {
-  if (query.key.type === 'Identifier') {
+  if (pattern.key.type === 'Identifier') {
     if (
-      !(query as any).static &&
-      !(query as any).proto &&
-      !(query as any).method &&
-      !query.optional &&
-      query.value.type === 'AnyTypeAnnotation' &&
-      query.variance == null
+      !(pattern as any).static &&
+      !(pattern as any).proto &&
+      !(pattern as any).method &&
+      !pattern.optional &&
+      pattern.value.type === 'AnyTypeAnnotation' &&
+      pattern.variance == null
     ) {
       const captureMatcher = compileCaptureMatcher(
-        query.key.name,
+        pattern.key.name,
         compileOptions
       )
       if (captureMatcher) return captureMatcher
     }
-    query.key.name = unescapeIdentifier(query.key.name)
+    pattern.key.name = unescapeIdentifier(pattern.key.name)
   }
 }

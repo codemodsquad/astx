@@ -1,11 +1,11 @@
-import { ClassProperty, ASTNode, ASTPath } from 'jscodeshift'
+import { ClassProperty, ASTPath } from 'jscodeshift'
 import { CompiledReplacement, CompileReplacementOptions } from '.'
 import compileCaptureReplacement, { unescapeIdentifier } from './Capture'
 
 export default function compileClassPropertyReplacement(
   path: ASTPath<ClassProperty>,
   compileOptions: CompileReplacementOptions
-): CompiledReplacement<ClassProperty | ASTNode[]> | void {
+): CompiledReplacement | void {
   const pattern = path.node
   if (pattern.key.type === 'Identifier') {
     if (

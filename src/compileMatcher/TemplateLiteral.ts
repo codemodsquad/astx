@@ -3,11 +3,11 @@ import { CompileOptions, CompiledMatcher } from './'
 import { compileStringCaptureMatcher } from './Capture'
 
 export default function matchTemplateLiteral(
-  query: TemplateLiteral,
+  pattern: TemplateLiteral,
   compileOptions: CompileOptions
 ): CompiledMatcher | void {
   const captureMatcher = compileStringCaptureMatcher(
-    query,
+    pattern,
     (node: TemplateLiteral) =>
       node.quasis.length === 1 ? node.quasis[0].value.cooked ?? null : null,
     compileOptions

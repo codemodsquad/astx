@@ -3,22 +3,22 @@ import { CompiledMatcher, CompileOptions } from '.'
 import compileCaptureMatcher, { unescapeIdentifier } from './Capture'
 
 export default function compileTSPropertySignatureMatcher(
-  query: TSPropertySignature,
+  pattern: TSPropertySignature,
   compileOptions: CompileOptions
 ): CompiledMatcher | void {
-  if (query.key.type === 'Identifier') {
+  if (pattern.key.type === 'Identifier') {
     if (
-      !query.optional &&
-      !query.computed &&
-      (query.typeAnnotation == null ||
-        query.typeAnnotation?.typeAnnotation?.type === 'TSAnyKeyword')
+      !pattern.optional &&
+      !pattern.computed &&
+      (pattern.typeAnnotation == null ||
+        pattern.typeAnnotation?.typeAnnotation?.type === 'TSAnyKeyword')
     ) {
       const captureMatcher = compileCaptureMatcher(
-        query.key.name,
+        pattern.key.name,
         compileOptions
       )
       if (captureMatcher) return captureMatcher
     }
-    query.key.name = unescapeIdentifier(query.key.name)
+    pattern.key.name = unescapeIdentifier(pattern.key.name)
   }
 }

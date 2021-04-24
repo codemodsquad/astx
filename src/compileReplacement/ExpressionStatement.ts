@@ -1,19 +1,16 @@
 import t from 'ast-types'
-import j, {
-  ExpressionStatement,
-  ASTNode,
-  Statement,
-  ASTPath,
-} from 'jscodeshift'
+import j, { ExpressionStatement, ASTNode, ASTPath } from 'jscodeshift'
 import { CompiledReplacement, CompileReplacementOptions } from '.'
 import compileCaptureReplacement, { unescapeIdentifier } from './Capture'
 
-export function convertCaptureToStatement(capture: ASTNode): Statement {
+export function convertCaptureToStatement(
+  capture: ASTNode
+): ASTNode | ASTNode[] {
   switch (capture.type) {
     case 'ClassExpression':
       return { ...capture, type: 'ClassDeclaration' }
     case 'FunctionExpression':
-      return { ...capture, type: 'FunctionDeclaration' }
+      return { ...capture, type: 'FunctionDeclaration' } as ASTNode
   }
   if (t.namedTypes.Statement.check(capture)) return capture
   if (t.namedTypes.Expression.check(capture))
@@ -28,7 +25,7 @@ const captureOptions = {
 export default function compileExpressionStatementReplacement(
   path: ASTPath<ExpressionStatement>,
   compileOptions: CompileReplacementOptions
-): CompiledReplacement<Statement | Statement[] | ASTNode[]> | void {
+): CompiledReplacement | void {
   const pattern = path.node
   if (pattern.expression.type === 'Identifier') {
     const captureReplacement = compileCaptureReplacement(

@@ -1,5 +1,5 @@
 import { CompileReplacementOptions, CompiledReplacement } from './'
-import { ASTNode, ASTPath } from 'jscodeshift'
+import { ASTNode } from 'jscodeshift'
 import { StatementsMatch, Match } from '../find'
 import cloneDeep from 'lodash/cloneDeep'
 import {
@@ -10,24 +10,21 @@ import {
 
 export { unescapeIdentifier }
 
-export function compileArrayCaptureReplacement<Converted>(
+export function compileArrayCaptureReplacement(
   pattern: ASTNode,
   identifier: string,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   compileReplacementOptions: CompileReplacementOptions,
   {
     convertCapture = (capture) => capture as any,
-  }: { convertCapture?: (capture: ASTNode) => Converted | Converted[] } = {}
-): CompiledReplacement<Converted[] | ASTNode[]> | void {
+  }: { convertCapture?: (capture: ASTNode) => ASTNode | ASTNode[] } = {}
+): CompiledReplacement | void {
   const arrayCaptureAs = getArrayCaptureAs(identifier)
   if (arrayCaptureAs) {
     return {
-      generate: (
-        match: Match<any> | StatementsMatch
-      ): Converted[] | ASTNode[] => {
+      generate: (match: Match | StatementsMatch): ASTNode | ASTNode[] => {
         const captures = match.arrayCaptures?.[arrayCaptureAs]
         if (captures) {
-          const result: Converted[] = []
+          const result: ASTNode[] = []
           for (const capture of captures) {
             const converted = convertCapture(cloneDeep(capture))
             if (Array.isArray(converted))
@@ -42,23 +39,18 @@ export function compileArrayCaptureReplacement<Converted>(
   }
 }
 
-export default function compileCaptureReplacement<
-  Pattern extends ASTNode,
-  Converted = Pattern
->(
-  pattern: Pattern,
+export default function compileCaptureReplacement(
+  pattern: ASTNode,
   identifier: string,
   compileReplacementOptions: CompileReplacementOptions,
   {
     convertCapture = (capture) => capture as any,
-  }: { convertCapture?: (capture: ASTNode) => Converted | Converted[] } = {}
-): CompiledReplacement<Converted | Pattern | Converted[] | ASTNode[]> | void {
+  }: { convertCapture?: (capture: ASTNode) => ASTNode | ASTNode[] } = {}
+): CompiledReplacement | void {
   const captureAs = getCaptureAs(identifier)
   if (captureAs) {
     return {
-      generate: (
-        match: Match<any> | StatementsMatch
-      ): Converted | Pattern | Converted[] => {
+      generate: (match: Match | StatementsMatch): ASTNode | ASTNode[] => {
         const capture = match.captures?.[captureAs]
         return capture ? convertCapture(cloneDeep(capture)) : cloneDeep(pattern)
       },

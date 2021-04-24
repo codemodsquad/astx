@@ -31,8 +31,8 @@ import VariableDeclarator from './VariableDeclarator'
 
 const _debug = __debug('astx:compileReplacement')
 
-export interface CompiledReplacement<N> {
-  generate: (match: Match<any> | StatementsMatch) => N
+export interface CompiledReplacement {
+  generate: (match: Match | StatementsMatch) => ASTNode | ASTNode[]
 }
 
 export type RootCompileReplacementOptions = {
@@ -46,9 +46,9 @@ export type CompileReplacementOptions = {
 const nodeCompilers: Record<
   string,
   (
-    pattern: ASTPath<any>,
+    pattern: ASTPath,
     options: CompileReplacementOptions
-  ) => CompiledReplacement<any> | undefined | void
+  ) => CompiledReplacement | undefined | void
 > = {
   ClassImplements,
   ClassProperty,
@@ -77,16 +77,16 @@ const nodeCompilers: Record<
   VariableDeclarator,
 }
 
-export default function compileReplacement<N extends ASTNode | ASTNode[]>(
-  pattern: ASTPath<N> | ASTPath<N>[],
+export default function compileReplacement(
+  pattern: ASTPath | ASTPath[],
   rootCompileReplacementOptions: RootCompileReplacementOptions = {}
-): CompiledReplacement<N> {
+): CompiledReplacement {
   const { debug = _debug } = rootCompileReplacementOptions
   const compileOptions = { ...rootCompileReplacementOptions, debug }
   if (Array.isArray(pattern) || Array.isArray(pattern.value)) {
     return compileGenericArrayReplacement(pattern as any, compileOptions) as any
   }
-  const nodePattern = pattern as ASTPath<N extends ASTNode ? N : never>
+  const nodePattern = pattern as ASTPath
   if (nodeCompilers[nodePattern.node.type]) {
     const replacement = nodeCompilers[nodePattern.node.type](
       pattern,

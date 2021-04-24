@@ -208,7 +208,7 @@ const captureColors = [
 function formatMatch(
   source: string,
   lineCount: number,
-  match: Match<any> | StatementsMatch
+  match: Match | StatementsMatch
 ): string {
   const lineNumberLength = String(lineCount).length
 
@@ -222,7 +222,7 @@ function formatMatch(
     },
   } =
     match.type === 'node'
-      ? match.node
+      ? (match.node as any)
       : {
           start: (match.nodes[0] as any).start,
           end: (match.nodes[match.nodes.length - 1] as any).end,
