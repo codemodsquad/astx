@@ -205,6 +205,25 @@ const captureColors = [
   chalk.red,
 ]
 
+function deriveLineAndColumn(
+  source: string,
+  index: number
+): { line: number; column: number } {
+  const rx = /\r\n?|\n/gm
+
+  let lastIndex = 0
+  let line = 1
+
+  while (lastIndex < index) {
+    rx.lastIndex = lastIndex + 1
+    const match = rx.exec(source)
+    if (!match) break
+    line++
+    lastIndex = match.index
+  }
+  return { line, column: index - lastIndex }
+}
+
 function formatMatch(
   source: string,
   lineCount: number,
@@ -214,13 +233,7 @@ function formatMatch(
 
   if (match.type === 'statements' && !match.nodes.length)
     return `${' '.repeat(lineNumberLength)} | (zero statements)`
-  const {
-    start: nodeStart,
-    end: nodeEnd,
-    loc: {
-      start: { line: startLine, column: startCol },
-    },
-  } =
+  const { start: nodeStart, end: nodeEnd, loc } =
     match.type === 'node'
       ? (match.node as any)
       : {
@@ -228,6 +241,8 @@ function formatMatch(
           end: (match.nodes[match.nodes.length - 1] as any).end,
           loc: { start: (match.nodes[0] as any).loc.start },
         }
+  const { line: startLine, column: startCol } =
+    loc?.start || deriveLineAndColumn(source, nodeStart)
   const { captures, arrayCaptures } = match
   const start = nodeStart - startCol
   const eolRegex = /\r\n?|\n/gm
