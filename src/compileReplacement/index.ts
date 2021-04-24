@@ -1,4 +1,4 @@
-import { ASTNode } from 'jscodeshift'
+import { ASTNode, ASTPath } from 'jscodeshift'
 import { StatementsMatch, Match } from '../find'
 import __debug, { Debugger } from 'debug'
 import compileGenericNodeReplacement from './GenericNodeReplacement'
@@ -9,6 +9,7 @@ import ExpressionStatement from './ExpressionStatement'
 import FunctionTypeParam from './FunctionTypeParam'
 import GenericTypeAnnotation from './GenericTypeAnnotation'
 import Identifier from './Identifier'
+import ImportDefaultSpecifier from './ImportDefaultSpecifier'
 import ImportSpecifier from './ImportSpecifier'
 import JSXAttribute from './JSXAttribute'
 import JSXExpressionContainer from './JSXExpressionContainer'
@@ -45,7 +46,7 @@ export type CompileReplacementOptions = {
 const nodeCompilers: Record<
   string,
   (
-    query: any,
+    pattern: ASTPath<any>,
     options: CompileReplacementOptions
   ) => CompiledReplacement<any> | undefined | void
 > = {
@@ -55,6 +56,7 @@ const nodeCompilers: Record<
   FunctionTypeParam,
   GenericTypeAnnotation,
   Identifier,
+  ImportDefaultSpecifier,
   ImportSpecifier,
   JSXAttribute,
   JSXExpressionContainer,
@@ -76,17 +78,20 @@ const nodeCompilers: Record<
 }
 
 export default function compileReplacement<N extends ASTNode | ASTNode[]>(
-  pattern: N,
+  pattern: ASTPath<N> | ASTPath<N>[],
   rootCompileReplacementOptions: RootCompileReplacementOptions = {}
 ): CompiledReplacement<N> {
   const { debug = _debug } = rootCompileReplacementOptions
   const compileOptions = { ...rootCompileReplacementOptions, debug }
-  if (Array.isArray(pattern)) {
+  if (Array.isArray(pattern) || Array.isArray(pattern.value)) {
     return compileGenericArrayReplacement(pattern as any, compileOptions) as any
   }
-  const nodePattern = pattern as N extends ASTNode ? N : never
-  if (nodeCompilers[nodePattern.type]) {
-    const replacement = nodeCompilers[nodePattern.type](pattern, compileOptions)
+  const nodePattern = pattern as ASTPath<N extends ASTNode ? N : never>
+  if (nodeCompilers[nodePattern.node.type]) {
+    const replacement = nodeCompilers[nodePattern.node.type](
+      pattern,
+      compileOptions
+    )
     if (replacement) return replacement
   }
   return compileGenericNodeReplacement(nodePattern, compileOptions)

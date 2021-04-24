@@ -1,4 +1,4 @@
-import { ASTNode } from 'jscodeshift'
+import { ASTNode, ASTPath } from 'jscodeshift'
 import getFieldNames from '../util/getFieldNames'
 import compileReplacement, {
   CompiledReplacement,
@@ -8,23 +8,24 @@ import { Match, StatementsMatch } from '../find'
 import indentDebug from '../compileMatcher/indentDebug'
 
 export default function compileGenericNodeReplacement<N extends ASTNode>(
-  pattern: N,
+  path: ASTPath<N>,
   compileOptions: CompileReplacementOptions
 ): CompiledReplacement<N> {
+  const pattern = path.node
   const { debug } = compileOptions
 
   const propertyValues: [string, any][] = []
   const childReplacements: [string, CompiledReplacement<any>][] = []
 
   for (const key of getFieldNames(pattern)) {
-    if (key === 'type') continue
+    if (key === 'type' || key === 'extra') continue
     const value = (pattern as any)[key]
     if (typeof value !== 'object' || value == null) {
       propertyValues.push([key, value])
     } else {
       childReplacements.push([
         key,
-        compileReplacement(value, {
+        compileReplacement(path.get(key), {
           ...compileOptions,
           debug: indentDebug(debug, 2),
         }),

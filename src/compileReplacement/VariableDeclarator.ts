@@ -1,20 +1,21 @@
-import { VariableDeclarator, ASTNode } from 'jscodeshift'
+import { VariableDeclarator, ASTNode, ASTPath } from 'jscodeshift'
 import { CompiledReplacement, CompileReplacementOptions } from '.'
 import compileCaptureReplacement, { unescapeIdentifier } from './Capture'
 
 export default function compileVariableDeclaratorReplacement(
-  query: VariableDeclarator,
+  path: ASTPath<VariableDeclarator>,
   compileOptions: CompileReplacementOptions
 ): CompiledReplacement<VariableDeclarator | ASTNode[]> | void {
-  if (query.id.type === 'Identifier') {
-    if (query.init == null) {
+  const pattern = path.node
+  if (pattern.id.type === 'Identifier') {
+    if (pattern.init == null) {
       const captureReplacement = compileCaptureReplacement(
-        query,
-        query.id.name,
+        pattern,
+        pattern.id.name,
         compileOptions
       )
       if (captureReplacement) return captureReplacement
     }
-    query.id.name = unescapeIdentifier(query.id.name)
+    pattern.id.name = unescapeIdentifier(pattern.id.name)
   }
 }

@@ -1,4 +1,4 @@
-import j, { ASTNode, JSXAttribute } from 'jscodeshift'
+import j, { ASTNode, JSXAttribute, ASTPath } from 'jscodeshift'
 import { CompiledReplacement, CompileReplacementOptions } from '.'
 import compileCaptureReplacement, { unescapeIdentifier } from './Capture'
 import { convertCaptureToJSXExpressionContainer } from './JSXExpressionContainer'
@@ -28,19 +28,20 @@ const captureOptions = {
 }
 
 export default function compileJSXAttributeReplacement(
-  query: JSXAttribute,
+  path: ASTPath<JSXAttribute>,
   compileOptions: CompileReplacementOptions
 ): CompiledReplacement<JSXAttribute | ASTNode[]> | void {
-  if (query.name.type === 'JSXIdentifier') {
-    if (query.value == null) {
+  const pattern = path.node
+  if (pattern.name.type === 'JSXIdentifier') {
+    if (pattern.value == null) {
       const captureReplacement = compileCaptureReplacement(
-        query,
-        query.name.name,
+        pattern,
+        pattern.name.name,
         compileOptions,
         captureOptions
       )
       if (captureReplacement) return captureReplacement
     }
-    query.name.name = unescapeIdentifier(query.name.name)
+    pattern.name.name = unescapeIdentifier(pattern.name.name)
   }
 }

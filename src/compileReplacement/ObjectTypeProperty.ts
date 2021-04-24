@@ -1,27 +1,28 @@
-import { ObjectTypeProperty, ASTNode } from 'jscodeshift'
+import { ObjectTypeProperty, ASTNode, ASTPath } from 'jscodeshift'
 import { CompiledReplacement, CompileReplacementOptions } from '.'
 import compileCaptureReplacement, { unescapeIdentifier } from './Capture'
 
 export default function compileObjectTypePropertyReplacement(
-  query: ObjectTypeProperty,
+  path: ASTPath<ObjectTypeProperty>,
   compileOptions: CompileReplacementOptions
 ): CompiledReplacement<ObjectTypeProperty | ASTNode[]> | void {
-  if (query.key.type === 'Identifier') {
+  const pattern = path.node
+  if (pattern.key.type === 'Identifier') {
     if (
-      !(query as any).static &&
-      !(query as any).proto &&
-      !(query as any).method &&
-      !query.optional &&
-      query.value.type === 'AnyTypeAnnotation' &&
-      query.variance == null
+      !(pattern as any).static &&
+      !(pattern as any).proto &&
+      !(pattern as any).method &&
+      !pattern.optional &&
+      pattern.value.type === 'AnyTypeAnnotation' &&
+      pattern.variance == null
     ) {
       const captureReplacement = compileCaptureReplacement(
-        query,
-        query.key.name,
+        pattern,
+        pattern.key.name,
         compileOptions
       )
       if (captureReplacement) return captureReplacement
     }
-    query.key.name = unescapeIdentifier(query.key.name)
+    pattern.key.name = unescapeIdentifier(pattern.key.name)
   }
 }

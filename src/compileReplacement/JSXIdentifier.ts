@@ -1,16 +1,17 @@
-import { JSXIdentifier } from 'jscodeshift'
+import { JSXIdentifier, ASTPath } from 'jscodeshift'
 import { CompiledReplacement, CompileReplacementOptions } from '.'
 import compileCaptureReplacement, { unescapeIdentifier } from './Capture'
 
 export default function compileJSXIdentifierReplacement(
-  query: JSXIdentifier,
+  path: ASTPath<JSXIdentifier>,
   compileOptions: CompileReplacementOptions
 ): CompiledReplacement<any> | void {
+  const pattern = path.node
   const captureReplacement = compileCaptureReplacement(
-    query,
-    query.name,
+    pattern,
+    pattern.name,
     compileOptions
   )
   if (captureReplacement) return captureReplacement
-  query.name = unescapeIdentifier(query.name)
+  pattern.name = unescapeIdentifier(pattern.name)
 }

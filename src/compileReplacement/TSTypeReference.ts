@@ -1,20 +1,21 @@
-import { TSTypeReference, ASTNode } from 'jscodeshift'
+import { TSTypeReference, ASTNode, ASTPath } from 'jscodeshift'
 import { CompiledReplacement, CompileReplacementOptions } from '.'
 import compileCaptureReplacement, { unescapeIdentifier } from './Capture'
 
 export default function compileTSTypeReferenceReplacement(
-  query: TSTypeReference,
+  path: ASTPath<TSTypeReference>,
   compileOptions: CompileReplacementOptions
 ): CompiledReplacement<TSTypeReference | ASTNode[]> | void {
-  if (query.typeName.type === 'Identifier') {
-    if (query.typeParameters == null) {
+  const pattern = path.node
+  if (pattern.typeName.type === 'Identifier') {
+    if (pattern.typeParameters == null) {
       const captureReplacement = compileCaptureReplacement(
-        query,
-        query.typeName.name,
+        pattern,
+        pattern.typeName.name,
         compileOptions
       )
       if (captureReplacement) return captureReplacement
     }
-    query.typeName.name = unescapeIdentifier(query.typeName.name)
+    pattern.typeName.name = unescapeIdentifier(pattern.typeName.name)
   }
 }

@@ -1,15 +1,16 @@
-import { SpreadProperty, ObjectProperty } from 'jscodeshift'
+import { SpreadProperty, ObjectProperty, ASTPath } from 'jscodeshift'
 import { CompiledReplacement, CompileReplacementOptions } from '.'
 import { unescapeIdentifier, compileArrayCaptureReplacement } from './Capture'
 
 export default function compileSpreadPropertyReplacement(
-  query: SpreadProperty,
+  path: ASTPath<SpreadProperty>,
   compileOptions: CompileReplacementOptions
 ): CompiledReplacement<ObjectProperty> | void {
-  const { argument } = query
+  const pattern = path.node
+  const { argument } = pattern
   if (argument.type === 'Identifier') {
     const captureReplacement = compileArrayCaptureReplacement(
-      query,
+      pattern,
       argument.name,
       compileOptions
     )

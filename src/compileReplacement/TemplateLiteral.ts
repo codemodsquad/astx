@@ -1,4 +1,4 @@
-import j, { TemplateLiteral } from 'jscodeshift'
+import j, { TemplateLiteral, ASTPath } from 'jscodeshift'
 import { getCaptureAs } from '../compileMatcher/Capture'
 import { CompiledReplacement } from './'
 import { Match, StatementsMatch } from '../find'
@@ -10,10 +10,11 @@ function generateValue(cooked: string): { raw: string; cooked: string } {
 }
 
 export default function compileTemplateLiteralReplacement(
-  query: TemplateLiteral
+  path: ASTPath<TemplateLiteral>
 ): CompiledReplacement<TemplateLiteral> | void {
-  if (query.quasis.length === 1) {
-    const [quasi] = query.quasis
+  const pattern = path.node
+  if (pattern.quasis.length === 1) {
+    const [quasi] = pattern.quasis
     const captureAs = getCaptureAs(quasi.value.cooked)
     if (captureAs) {
       return {
@@ -24,7 +25,7 @@ export default function compileTemplateLiteralReplacement(
                 [j.templateElement(generateValue(captured), true)],
                 []
               )
-            : cloneDeep(query)
+            : cloneDeep(pattern)
         },
       }
     }

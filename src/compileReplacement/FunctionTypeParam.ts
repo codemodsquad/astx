@@ -1,36 +1,37 @@
-import { FunctionTypeParam, ASTNode } from 'jscodeshift'
+import { FunctionTypeParam, ASTNode, ASTPath } from 'jscodeshift'
 import { CompiledReplacement, CompileReplacementOptions } from '.'
 import compileCaptureReplacement, { unescapeIdentifier } from './Capture'
 
 export default function compileFunctionTypeParamReplacement(
-  query: FunctionTypeParam,
+  path: ASTPath<FunctionTypeParam>,
   compileOptions: CompileReplacementOptions
 ): CompiledReplacement<FunctionTypeParam | ASTNode[]> | void {
-  if (query.name?.type === 'Identifier') {
-    if (query.typeAnnotation == null) {
+  const pattern = path.node
+  if (pattern.name?.type === 'Identifier') {
+    if (pattern.typeAnnotation == null) {
       const captureReplacement = compileCaptureReplacement(
-        query,
-        query.name.name,
+        pattern,
+        pattern.name.name,
         compileOptions
       )
       if (captureReplacement) return captureReplacement
     }
-    query.name.name = unescapeIdentifier(query.name.name)
+    pattern.name.name = unescapeIdentifier(pattern.name.name)
   }
   if (
-    query.typeAnnotation?.type === 'GenericTypeAnnotation' &&
-    query.typeAnnotation.id.type === 'Identifier'
+    pattern.typeAnnotation?.type === 'GenericTypeAnnotation' &&
+    pattern.typeAnnotation.id.type === 'Identifier'
   ) {
-    if (query.typeAnnotation.typeParameters == null) {
+    if (pattern.typeAnnotation.typeParameters == null) {
       const captureReplacement = compileCaptureReplacement(
-        query,
-        query.typeAnnotation.id.name,
+        pattern,
+        pattern.typeAnnotation.id.name,
         compileOptions
       )
       if (captureReplacement) return captureReplacement
     }
-    query.typeAnnotation.id.name = unescapeIdentifier(
-      query.typeAnnotation.id.name
+    pattern.typeAnnotation.id.name = unescapeIdentifier(
+      pattern.typeAnnotation.id.name
     )
   }
 }

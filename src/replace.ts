@@ -16,7 +16,7 @@ export function generateReplacements<Node extends ASTNode>(
   return matches.map(
     (match: Match<Node>): ASTNode => {
       const replacement = compileReplacement(
-        typeof replace === 'function' ? replace(match) : replace
+        j([typeof replace === 'function' ? replace(match) : replace]).paths()[0]
       ).generate(match)
       if (
         t.namedTypes.Statement.check(match.node) !==
@@ -57,12 +57,17 @@ export function replaceMatches<Node extends ASTNode>(
   }
 }
 
+function ensureStatement(value: Expression | Statement): Statement {
+  if (t.namedTypes.Statement.check(value)) return value
+  if (t.namedTypes.Expression.check(value)) return j.expressionStatement(value)
+  throw new Error(`expected an expression or statement, but got: ${value.type}`)
+}
+
 function ensureStatements(
-  value: Expression | Statement | Statement[]
+  value: Expression | Expression[] | Statement | Statement[]
 ): Statement[] {
-  if (Array.isArray(value)) return value
-  if (t.namedTypes.Statement.check(value)) return [value]
-  return [j.expressionStatement(value as Expression)]
+  if (Array.isArray(value)) return value.map(ensureStatement)
+  return [ensureStatement(value)]
 }
 
 export function replaceStatementsMatches(
@@ -76,7 +81,7 @@ export function replaceStatementsMatches(
   for (const match of matches) {
     const replacements = ensureStatements(
       compileReplacement(
-        typeof replace === 'function' ? replace(match) : replace
+        j(typeof replace === 'function' ? replace(match) : replace).paths()
       ).generate(match)
     )
     const parent = match.paths[0].parentPath

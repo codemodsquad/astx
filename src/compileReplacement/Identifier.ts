@@ -1,5 +1,5 @@
 import t from 'ast-types'
-import { ASTNode, Expression, Identifier } from 'jscodeshift'
+import { ASTNode, Expression, Identifier, ASTPath } from 'jscodeshift'
 import { CompiledReplacement, CompileReplacementOptions } from './'
 import compileCaptureReplacement from './Capture'
 import compileGenericNodeReplacement from './GenericNodeReplacement'
@@ -29,11 +29,12 @@ const captureOptions = {
 }
 
 export default function compileIdentifierReplacement(
-  pattern: Identifier,
+  path: ASTPath<Identifier>,
   compileOptions: CompileReplacementOptions
 ): CompiledReplacement<any> | void {
+  const pattern = path.node
   if (pattern.typeAnnotation != null)
-    return compileGenericNodeReplacement(pattern, compileOptions)
+    return compileGenericNodeReplacement(path, compileOptions)
   const captureReplacement = compileCaptureReplacement(
     pattern,
     pattern.name,

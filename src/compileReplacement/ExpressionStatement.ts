@@ -1,5 +1,10 @@
 import t from 'ast-types'
-import j, { ExpressionStatement, ASTNode, Statement } from 'jscodeshift'
+import j, {
+  ExpressionStatement,
+  ASTNode,
+  Statement,
+  ASTPath,
+} from 'jscodeshift'
 import { CompiledReplacement, CompileReplacementOptions } from '.'
 import compileCaptureReplacement, { unescapeIdentifier } from './Capture'
 
@@ -21,17 +26,18 @@ const captureOptions = {
 }
 
 export default function compileExpressionStatementReplacement(
-  query: ExpressionStatement,
+  path: ASTPath<ExpressionStatement>,
   compileOptions: CompileReplacementOptions
-): CompiledReplacement<Statement | ASTNode[]> | void {
-  if (query.expression.type === 'Identifier') {
+): CompiledReplacement<Statement | Statement[] | ASTNode[]> | void {
+  const pattern = path.node
+  if (pattern.expression.type === 'Identifier') {
     const captureReplacement = compileCaptureReplacement(
-      query,
-      query.expression.name,
+      pattern,
+      pattern.expression.name,
       compileOptions,
       captureOptions
     )
     if (captureReplacement) return captureReplacement
-    query.expression.name = unescapeIdentifier(query.expression.name)
+    pattern.expression.name = unescapeIdentifier(pattern.expression.name)
   }
 }

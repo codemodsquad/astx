@@ -1,15 +1,16 @@
-import { SpreadElement, Property } from 'jscodeshift'
+import { SpreadElement, Property, ASTPath } from 'jscodeshift'
 import { CompiledReplacement, CompileReplacementOptions } from '.'
 import { unescapeIdentifier, compileArrayCaptureReplacement } from './Capture'
 
 export default function compileSpreadElementReplacement(
-  query: SpreadElement,
+  path: ASTPath<SpreadElement>,
   compileOptions: CompileReplacementOptions
 ): CompiledReplacement<Property[]> | void {
-  const { argument } = query
+  const pattern = path.node
+  const { argument } = pattern
   if (argument.type === 'Identifier') {
     const captureReplacement = compileArrayCaptureReplacement(
-      query,
+      pattern,
       argument.name,
       compileOptions
     )

@@ -1,18 +1,19 @@
-import { TypeParameter, ASTNode } from 'jscodeshift'
+import { TypeParameter, ASTNode, ASTPath } from 'jscodeshift'
 import { CompiledReplacement, CompileReplacementOptions } from '.'
 import compileCaptureReplacement, { unescapeIdentifier } from './Capture'
 
 export default function compileTSTypeParameterReplacement(
-  query: TypeParameter,
+  path: ASTPath<TypeParameter>,
   compileOptions: CompileReplacementOptions
 ): CompiledReplacement<TypeParameter | ASTNode[]> | void {
-  if (query.variance == null && query.bound == null) {
+  const pattern = path.node
+  if (pattern.variance == null && pattern.bound == null) {
     const captureReplacement = compileCaptureReplacement(
-      query,
-      query.name,
+      pattern,
+      pattern.name,
       compileOptions
     )
     if (captureReplacement) return captureReplacement
   }
-  query.name = unescapeIdentifier(query.name)
+  pattern.name = unescapeIdentifier(pattern.name)
 }

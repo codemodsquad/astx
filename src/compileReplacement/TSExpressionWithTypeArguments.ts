@@ -1,20 +1,21 @@
-import { TSExpressionWithTypeArguments, ASTNode } from 'jscodeshift'
+import { TSExpressionWithTypeArguments, ASTNode, ASTPath } from 'jscodeshift'
 import { CompiledReplacement, CompileReplacementOptions } from '.'
 import compileCaptureReplacement, { unescapeIdentifier } from './Capture'
 
 export default function compileTSExpressionWithTypeArgumentsReplacement(
-  query: TSExpressionWithTypeArguments,
+  path: ASTPath<TSExpressionWithTypeArguments>,
   compileOptions: CompileReplacementOptions
 ): CompiledReplacement<TSExpressionWithTypeArguments | ASTNode[]> | void {
-  if (query.expression.type === 'Identifier') {
-    if (query.typeParameters == null) {
+  const pattern = path.node
+  if (pattern.expression.type === 'Identifier') {
+    if (pattern.typeParameters == null) {
       const captureReplacement = compileCaptureReplacement(
-        query,
-        query.expression.name,
+        pattern,
+        pattern.expression.name,
         compileOptions
       )
       if (captureReplacement) return captureReplacement
     }
-    query.expression.name = unescapeIdentifier(query.expression.name)
+    pattern.expression.name = unescapeIdentifier(pattern.expression.name)
   }
 }

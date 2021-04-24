@@ -11,7 +11,7 @@ import getKeyValueIdentifierish from './getKeyValueIdentifierish'
 
 import getIdentifierish from './getIdentifierish'
 
-export function convertCaptureForImportSpecifiers(
+export function convertCaptureForImportDefaultSpecifier(
   node: ASTNode
 ): (ImportSpecifier | ImportDefaultSpecifier | ImportNamespaceSpecifier)[] {
   switch (node.type) {
@@ -28,8 +28,8 @@ export function convertCaptureForImportSpecifiers(
         | ImportNamespaceSpecifier
       )[] = []
       for (const prop of node.properties) {
-        const converted = convertCaptureForImportSpecifiers(prop)
-        converted.forEach((s) => specifiers.push(s))
+        const converted = convertCaptureForImportDefaultSpecifier(prop)
+        if (converted) converted.forEach((s) => specifiers.push(s))
       }
       return specifiers
     }
@@ -38,22 +38,22 @@ export function convertCaptureForImportSpecifiers(
   if (keyValue) {
     const { key, value } = keyValue
     return key === 'default'
-      ? j.importDefaultSpecifier(j.identifier(value))
-      : j.importSpecifier(j.identifier(key), j.identifier(value))
+      ? [j.importDefaultSpecifier(j.identifier(value))]
+      : [j.importSpecifier(j.identifier(key), j.identifier(value))]
   }
   const name = getIdentifierish(node)
-  if (name) return [j.importSpecifier(j.identifier(name), j.identifier(name))]
+  if (name) return [j.importDefaultSpecifier(j.identifier(name))]
   throw new Error(
-    `converting ${node.type} to replace ImportSpecifier isn't supported`
+    `converting ${node.type} to replace ImportDefaultSpecifier isn't supported`
   )
 }
 
 const captureOptions = {
-  convertCapture: convertCaptureForImportSpecifiers,
+  convertCapture: convertCaptureForImportDefaultSpecifier,
 }
 
-export default function compileImportSpecifierReplacement(
-  path: ASTPath<ImportSpecifier>,
+export default function compileImportDefaultSpecifierReplacement(
+  path: ASTPath<ImportDefaultSpecifier>,
   compileOptions: CompileReplacementOptions
 ): CompiledReplacement<
   | ImportDefaultSpecifier
@@ -63,16 +63,17 @@ export default function compileImportSpecifierReplacement(
   | ASTNode[]
 > | void {
   const pattern = path.node
-  if (!pattern.local || pattern.local.name === pattern.imported.name) {
+  const { local } = pattern
+  if (local != null) {
     if ((pattern as any).importKind == null) {
       const captureReplacement = compileCaptureReplacement(
         pattern,
-        pattern.imported.name,
+        local.name,
         compileOptions,
         captureOptions
       )
       if (captureReplacement) return captureReplacement
     }
-    pattern.imported.name = unescapeIdentifier(pattern.imported.name)
+    local.name = unescapeIdentifier(local.name)
   }
 }

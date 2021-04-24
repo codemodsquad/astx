@@ -1,4 +1,4 @@
-import { ASTNode } from 'jscodeshift'
+import { ASTNode, ASTPath } from 'jscodeshift'
 import compileReplacement, {
   CompiledReplacement,
   CompileReplacementOptions,
@@ -7,17 +7,20 @@ import { Match, StatementsMatch } from '../find'
 import indentDebug from '../compileMatcher/indentDebug'
 
 export default function compileGenericArrayReplacement<N extends ASTNode>(
-  pattern: N[],
+  path: ASTPath<N[]> | ASTPath<N>[],
   compileOptions: CompileReplacementOptions
 ): CompiledReplacement<N[]> {
+  const elemPaths = Array.isArray(path)
+    ? path
+    : path.value.map((value: any, i: number) => path.get(i))
   const { debug } = compileOptions
 
   const elemOptions = {
     ...compileOptions,
     debug: indentDebug(debug, 2),
   }
-  const elemReplacements = pattern.map((elem) =>
-    compileReplacement(elem, elemOptions)
+  const elemReplacements = elemPaths.map((elemPath) =>
+    compileReplacement(elemPath, elemOptions)
   )
 
   return {
