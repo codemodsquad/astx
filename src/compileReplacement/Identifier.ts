@@ -5,6 +5,8 @@ import compileCaptureReplacement from './Capture'
 import compileGenericNodeReplacement from './GenericNodeReplacement'
 import { unescapeIdentifier } from '../compileReplacement/Capture'
 
+import { Match, StatementsMatch } from '../find'
+
 export function convertCaptureToExpression(node: ASTNode): ASTNode | ASTNode[] {
   switch (node.type) {
     case 'JSXExpressionContainer':
@@ -33,14 +35,33 @@ export default function compileIdentifierReplacement(
   compileOptions: CompileReplacementOptions
 ): CompiledReplacement | void {
   const pattern = path.node
-  if (pattern.typeAnnotation != null)
-    return compileGenericNodeReplacement(path, compileOptions)
+  const { typeAnnotation } = pattern
   const captureReplacement = compileCaptureReplacement(
     pattern,
     pattern.name,
     compileOptions,
     captureOptions
   )
-  if (captureReplacement) return captureReplacement
+  if (captureReplacement) {
+    if (typeAnnotation) {
+      const typeAnnotationReplacement = compileGenericNodeReplacement(
+        path.get('typeAnnotation'),
+        compileOptions
+      )
+      return {
+        ...captureReplacement,
+        generate: (match: Match | StatementsMatch): ASTNode | ASTNode[] => {
+          const generated = captureReplacement.generate(match)
+          if (!Array.isArray(generated)) {
+            ;(generated as any).typeAnnotation = typeAnnotationReplacement.generate(
+              match
+            )
+          }
+          return generated
+        },
+      }
+    }
+    return captureReplacement
+  }
   pattern.name = unescapeIdentifier(pattern.name)
 }

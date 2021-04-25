@@ -1,7 +1,6 @@
 import j, { TypeParameter, ASTPath, ASTNode } from 'jscodeshift'
 import { CompiledReplacement, CompileReplacementOptions } from '.'
 import compileCaptureReplacement, { unescapeIdentifier } from './Capture'
-
 import getIdentifierish from './getIdentifierish'
 
 export function convertCaptureToTypeParameter(capture: ASTNode): ASTNode {
