@@ -34,13 +34,21 @@ export function compileArrayCaptureMatcher(
 
 export function capturesAreEquivalent(a: ASTNode, b: ASTNode): boolean {
   if (areASTsEqual(a, b)) return true
-  if (a.type === 'JSXIdentifier' && b.type === 'Identifier') {
-    const swap = a
-    a = b
-    b = swap
-  }
-  if (a.type === 'Identifier' && b.type === 'JSXIdentifier') {
-    if (!a.typeAnnotation && a.name === b.name) return true
+  if (a.type === 'Identifier') {
+    switch (b.type) {
+      case 'JSXIdentifier':
+        return !a.typeAnnotation && a.name === b.name
+      case 'ObjectProperty':
+      case 'Property':
+        return (
+          !a.typeAnnotation &&
+          b.shorthand &&
+          b.key.type === 'Identifier' &&
+          a.name === b.key.name
+        )
+    }
+  } else if (b.type === 'Identifier') {
+    return capturesAreEquivalent(b, a)
   }
   return false
 }
