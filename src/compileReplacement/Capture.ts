@@ -52,7 +52,13 @@ export default function compileCaptureReplacement(
     return {
       generate: (match: Match | StatementsMatch): ASTNode | ASTNode[] => {
         const capture = match.captures?.[captureAs]
-        return capture ? convertCapture(cloneDeep(capture)) : cloneDeep(pattern)
+        if (capture) {
+          const clone = cloneDeep(capture)
+          if ((capture as any).astx?.excludeTypeAnnotationFromCapture)
+            delete (clone as any).typeAnnotation
+          return convertCapture(clone)
+        }
+        return cloneDeep(pattern)
       },
     }
   }
