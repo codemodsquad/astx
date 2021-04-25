@@ -32,6 +32,19 @@ export function compileArrayCaptureMatcher(
   }
 }
 
+export function capturesAreEquivalent(a: ASTNode, b: ASTNode): boolean {
+  if (areASTsEqual(a, b)) return true
+  if (a.type === 'JSXIdentifier' && b.type === 'Identifier') {
+    const swap = a
+    a = b
+    b = swap
+  }
+  if (a.type === 'Identifier' && b.type === 'JSXIdentifier') {
+    if (!a.typeAnnotation && a.name === b.name) return true
+  }
+  return false
+}
+
 export default function compileCaptureMatcher(
   identifier: string,
   compileOptions: CompileOptions
@@ -46,7 +59,7 @@ export default function compileCaptureMatcher(
         debug('Capture', captureAs)
         const existingCapture = matchSoFar?.captures?.[captureAs]
         if (existingCapture) {
-          return areASTsEqual(existingCapture.node, path.node)
+          return capturesAreEquivalent(existingCapture.node, path.node)
             ? matchSoFar || {}
             : null
         }
