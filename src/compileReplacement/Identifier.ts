@@ -1,11 +1,12 @@
 import t from 'ast-types'
-import { ASTNode, Identifier, ASTPath } from 'jscodeshift'
+import j, { ASTNode, Identifier, ASTPath } from 'jscodeshift'
 import { CompiledReplacement, CompileReplacementOptions } from './'
 import compileCaptureReplacement from './Capture'
 import compileGenericNodeReplacement from './GenericNodeReplacement'
 import { unescapeIdentifier } from '../compileReplacement/Capture'
-
 import { Match, StatementsMatch } from '../find'
+
+import getIdentifierish from './getIdentifierish'
 
 export function convertCaptureToExpression(node: ASTNode): ASTNode | ASTNode[] {
   switch (node.type) {
@@ -23,13 +24,34 @@ export function convertCaptureToExpression(node: ASTNode): ASTNode | ASTNode[] {
     default:
       if (t.namedTypes.Expression.check(node)) return node
   }
-  throw new Error(`converting ${node.type} to Expression isn't supported`)
+  if (t.namedTypes.Expression.check(node)) return node
+
+  throw new Error(`can't convert ${node.type} to Expression`)
 }
 
-const captureOptions = {
+export function convertCaptureToPatternKind(
+  node: ASTNode
+): ASTNode | ASTNode[] {
+  switch (node.type) {
+    case 'ObjectPattern':
+    case 'ArrayPattern':
+    case 'Identifier':
+      return node
+  }
+
+  const name = getIdentifierish(node)
+  if (name) return j.identifier(name)
+
+  throw new Error(`can't convert ${node.type} to PatternKind`)
+}
+
+const expressionCaptureOptions = {
   convertCapture: convertCaptureToExpression,
 }
 
+const variableDeclaratorIdCaptureOptions = {
+  convertCapture: convertCaptureToPatternKind,
+}
 export default function compileIdentifierReplacement(
   path: ASTPath<Identifier>,
   compileOptions: CompileReplacementOptions
@@ -40,7 +62,11 @@ export default function compileIdentifierReplacement(
     pattern,
     pattern.name,
     compileOptions,
-    captureOptions
+    path.parentPath &&
+      path.parentPath.node.type === 'VariableDeclarator' &&
+      path.node === path.parentPath.node.id
+      ? variableDeclaratorIdCaptureOptions
+      : expressionCaptureOptions
   )
   if (captureReplacement) {
     if (typeAnnotation) {
