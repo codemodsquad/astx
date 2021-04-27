@@ -22,7 +22,7 @@ type Fixture = {
   find: string
   findOptions?: FindOptions
   where?: FindOptions['where']
-  replace: string | ((match: Match<any>) => ASTNode)
+  replace: string | ((match: Match) => ASTNode)
   replaceOptions?: ReplaceOptions
   expectedFind?: ExpectedMatch[]
   expectedReplace?: string
@@ -33,13 +33,13 @@ type Fixture = {
 
 export function formatMatches(
   j: JSCodeshift,
-  matches: Match<any>[] | StatementsMatch[]
+  matches: Match[] | StatementsMatch[]
 ): ExpectedMatch[] {
   function toSource(path: ASTPath<any>): string {
     return j([path]).toSource().replace(/,$/, '')
   }
   const result = []
-  matches.forEach((_match: Match<any> | StatementsMatch) => {
+  matches.forEach((_match: Match | StatementsMatch) => {
     const { pathCaptures, arrayPathCaptures, stringCaptures } = _match
     const { path, paths }: { path?: ASTPath; paths?: ASTPath[] } = _match as any
     const match: ExpectedMatch = {}

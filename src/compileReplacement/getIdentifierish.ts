@@ -6,6 +6,10 @@ function isValidIdentifier(s: string) {
 
 export default function getIdentifierish(node: ASTNode): string | void {
   switch (node.type) {
+    case 'ObjectProperty':
+    case 'Property':
+      if (node.shorthand) return getIdentifierish(node.key)
+      break
     case 'ExpressionStatement':
       return getIdentifierish(node.expression)
     case 'Identifier':
