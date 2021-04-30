@@ -57,17 +57,17 @@ export function formatMatches(
 }
 
 describe(`find`, function () {
-  const fixtures = requireGlob.sync(`./fixtures/*${path.extname(__filename)}`)
+  const testcases = requireGlob.sync(`./testcases/*${path.extname(__filename)}`)
 
   const groups = {}
 
-  for (const key in fixtures) {
-    const fixture = fixtures[key]
-    const { parsers = ['babylon', 'flow', 'tsx'] } = fixture
+  for (const key in testcases) {
+    const testcase = testcases[key]
+    const { parsers = ['babylon', 'flow', 'tsx'] } = testcase
 
     for (const parser of parsers) {
       const group = groups[parser] || (groups[parser] = {})
-      group[key] = fixtures[key]
+      group[key] = testcases[key]
     }
   }
 
@@ -97,7 +97,7 @@ describe(`find`, function () {
           expectedReplace,
           only,
           skip,
-        } = fixtures[key] as Fixture
+        } = testcases[key] as Fixture
         ;(skip ? it.skip : only ? it.only : it)(
           path.basename(key).replace(/\.[^.]+$/, ''),
           function () {

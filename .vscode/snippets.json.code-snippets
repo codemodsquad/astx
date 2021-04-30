@@ -1,0 +1,61 @@
+{
+	"findTestcase": {
+		"prefix": "find-testcase",
+		"body": [
+			"export const input = `",
+			"$0",
+			"`",
+			"",
+			"export const find = `",
+			"",
+			"`",
+			"",
+			"export const expectedFind = [",
+			"",
+			"]",
+			""
+		]
+	},
+	"findReplaceTestcase": {
+	  "prefix": "find-replace-testcase",
+	  "body": [
+	    "export const input = `",
+	    "$0",
+	    "`",
+	    "",
+	    "export const find = `",
+	    "",
+	    "`",
+	    "",
+	    "export const expectedFind = [",
+	    "",
+	    "]",
+	    "",
+	    "export const replace = `",
+	    "",
+	    "`",
+	    "",
+	    "export const expectedReplace = `",
+	    "",
+	    "`",
+	    ""
+	  ]
+	},
+	"replaceTestcase": {
+	  "prefix": "replace-testcase",
+	  "body": [
+	    "export const input = `",
+	    "$0",
+	    "`",
+	    "",
+	    "export const replace = `",
+	    "",
+	    "`",
+	    "",
+	    "export const expectedReplace = `",
+	    "",
+	    "`",
+	    ""
+	  ]
+	}
+}
