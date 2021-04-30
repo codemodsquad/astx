@@ -42,7 +42,8 @@ for (const klass of equivalenceClassesArray) {
 
 export default function compileGenericNodeMatcher(
   pattern: ASTNode,
-  compileOptions: CompileOptions
+  compileOptions: CompileOptions,
+  options?: { keyMatchers?: Record<string, CompiledMatcher> }
 ): CompiledMatcher {
   const { baseType, nodeTypes } = equivalenceClasses[pattern.type] || {}
   const nodeType =
@@ -61,6 +62,8 @@ export default function compileGenericNodeMatcher(
     getFieldNames(pattern)
       .filter((key) => key !== 'type')
       .map((key: string): [string, CompiledMatcher] => {
+        const custom = options?.keyMatchers?.[key]
+        if (custom) return [key, custom]
         const value = (pattern as any)[key]
         if (typeof value !== 'object' || value == null) {
           return [

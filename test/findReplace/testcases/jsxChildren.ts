@@ -32,8 +32,8 @@ export const expectedFind = [
       $a: 'Foo',
     },
     arrayCaptures: {
-      $$a: ['{a}'],
-      $$b: ['{b}', '\n  ', '<div>world</div>'],
+      $$a: ['\n  ', '{a}', '\n  '],
+      $$b: ['\n  ', '{b}', '\n  ', '<div>world</div>', '\n'],
     },
   },
 ]
@@ -48,8 +48,10 @@ export const expectedReplace = `
 const foo = (
   <Foo>
     <div>blah</div>
+
     {b}
     <div>world</div>
+
     {a}
   </Foo>
 );
