@@ -12,8 +12,10 @@ import GenericTypeAnnotation from './GenericTypeAnnotation'
 import Identifier from './Identifier'
 import ImportSpecifier from './ImportSpecifier'
 import JSXAttribute from './JSXAttribute'
+import JSXElement from './JSXElement'
 import JSXExpressionContainer from './JSXExpressionContainer'
 import JSXIdentifier from './JSXIdentifier'
+import JSXText from './JSXText'
 import Literal from './Literal'
 import NumericLiteral from './NumericLiteral'
 import ObjectExpression from './ObjectExpression'
@@ -101,8 +103,10 @@ const nodeMatchers: Record<
   Identifier,
   ImportSpecifier,
   JSXAttribute,
+  JSXElement,
   JSXExpressionContainer,
   JSXIdentifier,
+  JSXText,
   Literal,
   NumericLiteral,
   ObjectExpression,

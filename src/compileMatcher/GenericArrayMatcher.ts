@@ -9,7 +9,10 @@ import indentDebug from './indentDebug'
 
 export default function compileGenericArrayMatcher(
   pattern: ASTNode[],
-  compileOptions: CompileOptions
+  compileOptions: CompileOptions,
+  {
+    skipElement = () => false,
+  }: { skipElement?: (path: ASTPath) => boolean } = {}
 ): CompiledMatcher {
   const { debug } = compileOptions
   const elemOptions = {
@@ -47,6 +50,8 @@ export default function compileGenericArrayMatcher(
     matcherIndex: number,
     matchSoFar: MatchResult
   ): MatchResult {
+    while (arrayIndex < path.value.length && skipElement(path.get(arrayIndex)))
+      arrayIndex++
     if (arrayIndex === path.value.length) {
       return remainingElements(matcherIndex) === 0 ? matchSoFar || {} : null
     }
@@ -76,7 +81,9 @@ export default function compileGenericArrayMatcher(
         ? path.value.length - remainingElements(matcherIndex + 1)
         : arrayIndex + 1
       for (let i = arrayIndex; i < end; i++) {
-        matchSoFar = matcher.match(path.get(i), origMatchSoFar)
+        const elemPath = path.get(i)
+        if (skipElement(elemPath)) continue
+        matchSoFar = matcher.match(elemPath, origMatchSoFar)
         if (!matchSoFar) continue
         if (prevArrayCaptureAs) {
           matchSoFar = mergeCaptures(matchSoFar, {
@@ -133,18 +140,20 @@ export default function compileGenericArrayMatcher(
         debug('  path.value is not an array')
         return null
       }
-      if (path.value.length !== pattern.length) {
-        debug(
-          '  path.value.length (%d) !== pattern.length (%d)',
-          path.value.length,
-          pattern.length
-        )
-        return null
-      }
-      for (let i = 0; i < matchers.length; i++) {
+      let m = 0,
+        i = 0
+      while (i < path.value.length || m < matchers.length) {
         debug('  [%d]', i)
-        matchSoFar = matchers[i].match(path.get(i), matchSoFar)
+        const elemPath = path.get(i)
+        if (skipElement(elemPath)) {
+          i++
+          continue
+        }
+        if (m >= matchers.length) return null
+        matchSoFar = matchers[m].match(elemPath, matchSoFar)
         if (!matchSoFar) return null
+        m++
+        i++
       }
       return matchSoFar || {}
     },
