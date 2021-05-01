@@ -7,7 +7,7 @@ export default function compileVariableDeclaratorMatcher(
   compileOptions: CompileOptions
 ): CompiledMatcher | void {
   const pattern: VariableDeclarator = path.node
-  if (pattern.id.type === 'Identifier') {
+  if (pattern.id.type === 'Identifier' && pattern.id.typeAnnotation == null) {
     if (pattern.init == null) {
       const captureMatcher = compileArrayCaptureMatcher(
         pattern.id.name,

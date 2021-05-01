@@ -85,13 +85,15 @@ export type PredicateMatcher = {
   nodeType?: keyof typeof t.namedTypes | (keyof typeof t.namedTypes)[]
 }
 
+export type NodeType = keyof typeof t.namedTypes
+
 export interface CompiledMatcher {
   optional?: true
   predicate?: false
   captureAs?: string
   arrayCaptureAs?: string
   match: (path: ASTPath, matchSoFar: MatchResult) => MatchResult
-  nodeType?: keyof typeof t.namedTypes | (keyof typeof t.namedTypes)[]
+  nodeType?: NodeType | NodeType[]
 }
 
 const nodeMatchers: Record<
