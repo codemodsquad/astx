@@ -27,8 +27,10 @@ import StringLiteral from './StringLiteral'
 import TemplateLiteral from './TemplateLiteral'
 import TSExpressionWithTypeArguments from './TSExpressionWithTypeArguments'
 import TSPropertySignature from './TSPropertySignature'
+import TSTypeAnnotation from './TSTypeAnnotation'
 import TSTypeParameter from './TSTypeParameter'
 import TSTypeReference from './TSTypeReference'
+import TypeAnnotation from './TypeAnnotation'
 import TypeParameter from './TypeParameter'
 import VariableDeclarator from './VariableDeclarator'
 
@@ -84,6 +86,7 @@ export type PredicateMatcher = {
 }
 
 export interface CompiledMatcher {
+  optional?: true
   predicate?: false
   captureAs?: string
   arrayCaptureAs?: string
@@ -120,8 +123,10 @@ const nodeMatchers: Record<
   TemplateLiteral,
   TSExpressionWithTypeArguments,
   TSPropertySignature,
+  TSTypeAnnotation,
   TSTypeParameter,
   TSTypeReference,
+  TypeAnnotation,
   TypeParameter,
   VariableDeclarator,
 }

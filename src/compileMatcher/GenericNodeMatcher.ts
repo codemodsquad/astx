@@ -95,6 +95,7 @@ export default function compileGenericNodeMatcher(
 
   return {
     match: (path: ASTPath, matchSoFar: MatchResult): MatchResult => {
+      if (!path.value) return null
       debug('%s (generic)', pattern.type)
       if (isCorrectType(path.node)) {
         for (const key in keyMatchers) {
