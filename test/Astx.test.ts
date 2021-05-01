@@ -15,6 +15,24 @@ describe(`Astx`, function () {
       )
     ).to.deep.equal([{ node: 'foo + bar', captures: { $a: 'bar' } }])
   })
+  it(`.captures() works`, function () {
+    expect(
+      formatMatches(
+        j,
+        new Astx(j, j(`foo + bar; baz + qux`)).find`$a + $b`().captures('$a')
+          .matches
+      )
+    ).to.deep.equal([{ node: 'foo' }, { node: 'baz' }])
+  })
+  it(`.arrayCaptures() works`, function () {
+    expect(
+      formatMatches(
+        j,
+        new Astx(j, j(`const a = [1, 2, 3, 4]; const b = [1, 4, 5, 6]`))
+          .find`[1, $$a]`().arrayCaptures('$$a').matches
+      )
+    ).to.deep.equal([{ nodes: ['2', '3', '4'] }, { nodes: ['4', '5', '6'] }])
+  })
   it(`.closest tagged template works`, function () {
     expect(
       formatMatches(

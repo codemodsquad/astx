@@ -65,6 +65,24 @@ export default class Astx {
     )
   }
 
+  captures(name: string): Astx {
+    const matches: Match[] = []
+    for (const match of this.matches) {
+      const capture = match.pathCaptures?.[name]
+      if (capture) matches.push(createMatch(capture, {}))
+    }
+    return new Astx(this.jscodeshift, matches)
+  }
+
+  arrayCaptures(name: string): Astx {
+    const matches: Match[] = []
+    for (const match of this.matches) {
+      const capture = match.arrayPathCaptures?.[name]
+      if (capture) matches.push(createMatch(capture, {}))
+    }
+    return new Astx(this.jscodeshift, matches)
+  }
+
   closest(
     strings: TemplateStringsArray,
     ...quasis: any[]
