@@ -7,10 +7,10 @@ import formatDiff from '../util/formatDiff'
 import isEmpty from 'lodash/isEmpty'
 import inquirer from 'inquirer'
 import fs from 'fs-extra'
-
 import dedent from 'dedent-js'
+import formatMatches from '../util/formatMatches'
 
-import { Match } from '../find'
+import Astx from '../Astx'
 
 /* eslint-disable no-console */
 
@@ -119,12 +119,7 @@ const transform: CommandModule<Options> = {
         !transform.astx
       ) {
         logHeader(console.log)
-        const lineCount = countLines(source)
-        for (let i = 0; i < matches.length; i++) {
-          const match = matches[i]
-          if (i > 0) console.log(' '.repeat(String(lineCount).length + 1) + '|')
-          console.log(formatMatch(source, lineCount, match))
-        }
+        console.log(formatMatches(source, matches))
       } else {
         unchangedCount++
       }
@@ -136,7 +131,11 @@ const transform: CommandModule<Options> = {
             -------
           `)
         )
-        reports?.forEach((r) => console.error(...r))
+        reports?.forEach((r) =>
+          console.error(
+            r instanceof Astx && source ? formatMatches(source, r.matches()) : r
+          )
+        )
       }
     }
 
@@ -187,122 +186,3 @@ const transform: CommandModule<Options> = {
 }
 
 export default transform
-
-function countLines(source: string): number {
-  if (!source) return 0
-  let lines = 1
-  const eolRegex = /\r\n?|\n/gm
-  while (eolRegex.exec(source)) lines++
-  return lines
-}
-
-const captureColors = [
-  chalk.green,
-  chalk.yellow,
-  chalk.blue,
-  chalk.cyan,
-  chalk.magenta,
-  chalk.red,
-]
-
-function deriveLineAndColumn(
-  source: string,
-  index: number
-): { line: number; column: number } {
-  const rx = /\r\n?|\n/gm
-
-  let lastIndex = 0
-  let line = 1
-
-  while (lastIndex < index) {
-    rx.lastIndex = lastIndex + 1
-    const match = rx.exec(source)
-    if (!match) break
-    line++
-    lastIndex = match.index
-  }
-  return { line, column: index - lastIndex }
-}
-
-function formatMatch(source: string, lineCount: number, match: Match): string {
-  const lineNumberLength = String(lineCount).length
-
-  if (match.type === 'nodes' && !match.nodes.length)
-    return `${' '.repeat(lineNumberLength)} | (zero statements)`
-  const { start: nodeStart, end: nodeEnd, loc } =
-    match.type === 'node'
-      ? (match.node as any)
-      : {
-          start: (match.nodes[0] as any).start,
-          end: (match.nodes[match.nodes.length - 1] as any).end,
-          loc: { start: (match.nodes[0] as any).loc.start },
-        }
-  const { line: startLine, column: startCol } =
-    loc?.start || deriveLineAndColumn(source, nodeStart)
-  const { captures, arrayCaptures } = match
-  const start = nodeStart - startCol
-  const eolRegex = /\r\n?|\n/gm
-  eolRegex.lastIndex = nodeEnd
-  const eolMatch = eolRegex.exec(source)
-  const end = eolMatch ? eolMatch.index : nodeEnd
-
-  let captureColor = 0
-
-  const captureRanges = []
-  if (captures) {
-    for (const [key, node] of Object.entries(captures)) {
-      const { start, end } = node as any
-      captureRanges.push({
-        key,
-        start,
-        end,
-        color: captureColors[captureColor++] || chalk.gray,
-      })
-    }
-  }
-  if (arrayCaptures) {
-    for (const [key, nodes] of Object.entries(arrayCaptures)) {
-      const first = nodes[0]
-      const last = nodes[nodes.length - 1]
-      if (!first || !last) continue
-      const { start } = first as any
-      const { end } = last as any
-      captureRanges.push({
-        key,
-        start,
-        end,
-        color: captureColors[captureColor++] || chalk.gray,
-      })
-    }
-  }
-
-  captureRanges.sort((a, b) => a.start - b.start)
-
-  let lastIndex = nodeStart
-  const parts = []
-  for (const { start, end, color } of captureRanges) {
-    if (start < lastIndex) continue
-    parts.push(source.substring(lastIndex, start))
-    parts.push(color(source.substring(start, end)))
-    lastIndex = end
-  }
-  parts.push(source.substring(lastIndex, nodeEnd))
-
-  const bolded =
-    source.substring(start, nodeStart) +
-    chalk.bold(parts.join('')) +
-    source.substring(nodeEnd, end)
-
-  const lines = bolded.split(/\r\n?|\n/gm)
-
-  let line = startLine
-  const result = lines
-    .map((l) => `${String(line++).padStart(lineNumberLength, ' ')} | ${l}`)
-    .join('\n')
-
-  return captureRanges.length
-    ? `${' '.repeat(lineNumberLength)} | ${captureRanges
-        .map(({ key, color }) => color(key))
-        .join(' ')}\n${result}`
-    : result
-}
