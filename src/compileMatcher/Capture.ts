@@ -52,6 +52,7 @@ export default function compileCaptureMatcher(
     return {
       captureAs,
       match: (path: ASTPath, matchSoFar: MatchResult): MatchResult => {
+        if (path.value == null) return null
         debug('Capture', captureAs)
         const existingCapture = matchSoFar?.captures?.[captureAs]
         if (existingCapture) {

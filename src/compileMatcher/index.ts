@@ -2,6 +2,7 @@ import { ASTPath, ASTNode } from 'jscodeshift'
 import t from 'ast-types'
 import __debug, { Debugger } from 'debug'
 import BooleanLiteral from './BooleanLiteral'
+import CallExpression from './CallExpression'
 import ClassImplements from './ClassImplements'
 import ClassProperty from './ClassProperty'
 import compileGenericArrayMatcher from './GenericArrayMatcher'
@@ -95,6 +96,7 @@ const nodeMatchers: Record<
   (path: ASTPath, options: CompileOptions) => CompiledMatcher | undefined | void
 > = {
   BooleanLiteral,
+  CallExpression,
   ClassImplements,
   ClassProperty,
   ExpressionStatement,
