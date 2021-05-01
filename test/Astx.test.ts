@@ -17,6 +17,35 @@ describe(`Astx`, function () {
       )
     ).to.deep.equal([{ node: 'foo + bar', captures: { $a: 'bar' } }])
   })
+  it(`cascading .find`, function () {
+    expect(
+      formatMatches(
+        j,
+        new Astx(j, j(`function foo() { foo(); bar() }`))
+          .find`function $fn() { $$body }`().find`$fn()`().matches()
+      )
+    ).to.deep.equal([
+      {
+        node: 'foo()',
+        captures: { $fn: 'foo' },
+        arrayCaptures: { $$body: ['foo();', 'bar()'] },
+      },
+    ])
+  })
+  it(`.find and .withCaptures`, function () {
+    const astx = new Astx(j, j(`function foo() { foo(); bar() }`))
+
+    const fnMatches = astx.find`function $fn() { $$body }`()
+    expect(
+      formatMatches(j, astx.withCaptures(fnMatches).find`$fn()`().matches())
+    ).to.deep.equal([
+      {
+        node: 'foo()',
+        captures: { $fn: 'foo' },
+        arrayCaptures: { $$body: ['foo();', 'bar()'] },
+      },
+    ])
+  })
   it(`.match()`, function () {
     const astx = new Astx(j, j(`foo + bar; baz + qux, qlomb`)).find`$a + $b`()
     expect(astx.match()).to.equal(astx.matches()[0])
