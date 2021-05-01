@@ -1,6 +1,6 @@
 import find, { Match, FindOptions } from './find'
 import replace, { replaceMatches, ReplaceOptions } from './replace'
-import Astx, { ParseTag, GetReplacement, MatchArray } from './Astx'
+import Astx, { ParseTag, GetReplacement } from './Astx'
 import {
   runTransformOnFile,
   Transform,
@@ -12,7 +12,6 @@ export {
   Astx,
   ParseTag,
   GetReplacement,
-  MatchArray,
   find,
   replace,
   replaceMatches,
