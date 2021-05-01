@@ -1,7 +1,7 @@
 {
   "name": "astx",
   "version": "0.0.0-development",
-  "description": "structural search and replace for JavaScript and TypeScript, using jscodeshift",
+  "description": "super powerful structural search and replace for JavaScript and TypeScript to automate your refactoring",
   "bin": {
     "astx": "cli/index.js"
   },

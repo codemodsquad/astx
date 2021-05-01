@@ -8,11 +8,9 @@ const foo = bar
 
 export const find = `$a + $b`
 
-export const findOptions = {
-  where: {
-    $b: (path: ASTPath<any>): boolean =>
-      typeof path.node.value === 'number' && path.node.value < 4,
-  },
+export const where = {
+  $b: (path: ASTPath<any>): boolean =>
+    typeof path.node.value === 'number' && path.node.value < 4,
 }
 
 export const expectedFind = [
@@ -23,13 +21,6 @@ export const expectedFind = [
 ]
 
 export const replace = `$b + $a`
-
-export const replaceOptions = {
-  where: {
-    $b: (path: ASTPath<any>): boolean =>
-      typeof path.node.value === 'number' && path.node.value < 4,
-  },
-}
 
 export const expectedReplace = `
 2 + 1
