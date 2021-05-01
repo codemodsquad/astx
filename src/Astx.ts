@@ -36,15 +36,15 @@ function isNodePathArray(x: unknown): x is ASTPath[] {
 export default class Astx {
   jscodeshift: JSCodeshift
   root: Collection
-  matches: Match[]
-  private parseTag: ParseTag
+  private _matches: Match[]
+  private _parseTag: ParseTag
 
   constructor(jscodeshift: JSCodeshift, root: Collection | Match[]) {
     this.jscodeshift = jscodeshift
     this.root = Array.isArray(root)
       ? jscodeshift(root.map((m) => m.paths).flat())
       : root
-    this.matches = Array.isArray(root)
+    this._matches = Array.isArray(root)
       ? root
       : root.paths().map((path) => ({
           type: 'node',
@@ -53,7 +53,45 @@ export default class Astx {
           paths: [path],
           nodes: [path.node],
         }))
-    this.parseTag = parseFindOrReplace.bind(undefined, jscodeshift) as any
+    this._parseTag = parseFindOrReplace.bind(undefined, jscodeshift) as any
+  }
+
+  size(): number {
+    return this._matches.length
+  }
+
+  get length(): number {
+    return this._matches.length
+  }
+
+  matches(): Match[] {
+    return this._matches
+  }
+
+  match(): Match {
+    const [match] = this._matches
+    if (!match) {
+      throw new Error(`you can't call match() when there are no matches`)
+    }
+    return match
+  }
+
+  paths(): ASTPath[] {
+    return this.root.paths()
+  }
+
+  nodes(): ASTNode[] {
+    return this.root.nodes()
+  }
+
+  filter(
+    iteratee: (match: Match, index: number, matches: Match[]) => boolean
+  ): Astx {
+    return new Astx(this.jscodeshift, this._matches.filter(iteratee))
+  }
+
+  at(index: number): Astx {
+    return new Astx(this.jscodeshift, [this._matches[index]])
   }
 
   on(root: Collection | ASTNode | ASTNode[] | ASTPath | ASTPath[]): Astx {
@@ -67,7 +105,7 @@ export default class Astx {
 
   captures(name: string): Astx {
     const matches: Match[] = []
-    for (const match of this.matches) {
+    for (const match of this._matches) {
       const capture = match.pathCaptures?.[name]
       if (capture) matches.push(createMatch(capture, {}))
     }
@@ -76,7 +114,7 @@ export default class Astx {
 
   arrayCaptures(name: string): Astx {
     const matches: Match[] = []
-    for (const match of this.matches) {
+    for (const match of this._matches) {
       const capture = match.arrayPathCaptures?.[name]
       if (capture) matches.push(createMatch(capture, {}))
     }
@@ -182,28 +220,28 @@ export default class Astx {
     arg0: string | ASTNode | ASTNode[] | GetReplacement | TemplateStringsArray,
     ...quasis: any[]
   ): void | (() => void) {
-    const { matches, parseTag, jscodeshift } = this
+    const { _matches, _parseTag, jscodeshift } = this
     if (typeof arg0 === 'function') {
       replace(
-        matches,
+        _matches,
         (match: Match): ASTNode => {
-          const result = arg0(match, parseTag)
+          const result = arg0(match, _parseTag)
           return typeof result === 'string'
             ? (parseFindOrReplace(jscodeshift, [result] as any) as any)
             : result
         }
       )
     } else if (typeof arg0 === 'string') {
-      replace(matches, parseFindOrReplace(jscodeshift, [arg0] as any) as any)
+      replace(_matches, parseFindOrReplace(jscodeshift, [arg0] as any) as any)
     } else if (isNode(arg0) || isNodeArray(arg0)) {
-      replace(matches, arg0 as any)
+      replace(_matches, arg0 as any)
     } else {
       const parsed = parseFindOrReplace(
         jscodeshift,
         arg0 as any,
         ...quasis
       ) as any
-      return () => replace(matches, parsed)
+      return () => replace(_matches, parsed)
     }
   }
 }

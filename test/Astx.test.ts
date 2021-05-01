@@ -11,16 +11,69 @@ describe(`Astx`, function () {
     expect(
       formatMatches(
         j,
-        new Astx(j, j(`foo + bar`)).find`${j.identifier('foo')} + $a`().matches
+        new Astx(j, j(`foo + bar`)).find`${j.identifier(
+          'foo'
+        )} + $a`().matches()
       )
     ).to.deep.equal([{ node: 'foo + bar', captures: { $a: 'bar' } }])
   })
-  it(`.captures() works`, function () {
+  it(`.match()`, function () {
+    const astx = new Astx(j, j(`foo + bar; baz + qux, qlomb`)).find`$a + $b`()
+    expect(astx.match()).to.equal(astx.matches()[0])
+  })
+  it(`.at()`, function () {
+    const astx = new Astx(j, j(`foo + bar; baz + qux, qlomb`)).find`$a + $b`()
+    expect(astx.at(1).matches()).to.deep.equal([astx.matches()[1]])
+  })
+  it(`.filter()`, function () {
+    const astx = new Astx(j, j(`foo + bar; baz + qux, qlomb`)).find`$a + $b`()
+    expect(
+      astx.filter((m) => (m.captures?.$a as any)?.name === 'baz').matches()
+    ).to.deep.equal(astx.at(1).matches())
+  })
+  it(`.nodes()`, function () {
+    const astx = new Astx(j, j(`foo + bar; baz + qux, qlomb`)).find`$a + $b`()
+    expect(astx.length).to.be.above(0)
+    expect(astx.nodes()).to.deep.equal(astx.matches().map((m) => m.node))
+  })
+  it(`.paths()`, function () {
+    const astx = new Astx(j, j(`foo + bar; baz + qux, qlomb`)).find`$a + $b`()
+    expect(astx.length).to.be.above(0)
+    expect(astx.paths()).to.deep.equal(astx.matches().map((m) => m.path))
+  })
+  it(`.nodes() -- array capture`, function () {
+    const astx = new Astx(
+      j,
+      j(`const a = [1, 2, 3, 4]; const b = [1, 4, 5, 6]`)
+    ).find`[1, $$a]`()
+    expect(astx.length).to.be.above(0)
+    expect(astx.nodes()).to.deep.equal(
+      astx
+        .matches()
+        .map((m) => m.nodes)
+        .flat()
+    )
+  })
+  it(`.paths() -- array capture`, function () {
+    const astx = new Astx(
+      j,
+      j(`const a = [1, 2, 3, 4]; const b = [1, 4, 5, 6]`)
+    ).find`[1, $$a]`()
+    expect(astx.length).to.be.above(0)
+    expect(astx.paths()).to.deep.equal(
+      astx
+        .matches()
+        .map((m) => m.paths)
+        .flat()
+    )
+  })
+  it(`.captures()`, function () {
     expect(
       formatMatches(
         j,
-        new Astx(j, j(`foo + bar; baz + qux`)).find`$a + $b`().captures('$a')
-          .matches
+        new Astx(j, j(`foo + bar; baz + qux`)).find`$a + $b`()
+          .captures('$a')
+          .matches()
       )
     ).to.deep.equal([{ node: 'foo' }, { node: 'baz' }])
   })
@@ -29,7 +82,9 @@ describe(`Astx`, function () {
       formatMatches(
         j,
         new Astx(j, j(`const a = [1, 2, 3, 4]; const b = [1, 4, 5, 6]`))
-          .find`[1, $$a]`().arrayCaptures('$$a').matches
+          .find`[1, $$a]`()
+          .arrayCaptures('$$a')
+          .matches()
       )
     ).to.deep.equal([{ nodes: ['2', '3', '4'] }, { nodes: ['4', '5', '6'] }])
   })
@@ -38,7 +93,7 @@ describe(`Astx`, function () {
       formatMatches(
         j,
         new Astx(j, j(`foo + bar; baz + qux`).find(j.Identifier))
-          .closest`$a + $b`().matches
+          .closest`$a + $b`().matches()
       )
     ).to.deep.equal([
       { node: 'foo + bar', captures: { $a: 'foo', $b: 'bar' } },
@@ -49,7 +104,7 @@ describe(`Astx`, function () {
     expect(
       formatMatches(
         j,
-        new Astx(j, j(`foo + bar`)).find(j.identifier('foo')).matches
+        new Astx(j, j(`foo + bar`)).find(j.identifier('foo')).matches()
       )
     ).to.deep.equal([{ node: 'foo' }])
   })
@@ -59,7 +114,7 @@ describe(`Astx`, function () {
         j,
         new Astx(j, j(`1 + 2; 3 + 4`)).find`$a + $b`({
           where: { $b: (path) => path.node.value < 4 },
-        }).matches
+        }).matches()
       )
     ).to.deep.equal([{ node: '1 + 2', captures: { $a: '1', $b: '2' } }])
   })
@@ -69,7 +124,7 @@ describe(`Astx`, function () {
         j,
         new Astx(j, j(`1 + 2; 3 + 4`)).find`$a + $b`({
           where: { $b: (path) => path.node.value < 4 },
-        }).matches
+        }).matches()
       )
     ).to.deep.equal([{ node: '1 + 2', captures: { $a: '1', $b: '2' } }])
   })
