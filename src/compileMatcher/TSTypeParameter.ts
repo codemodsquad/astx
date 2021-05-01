@@ -1,11 +1,12 @@
-import { TSTypeParameter } from 'jscodeshift'
+import { TSTypeParameter, ASTPath } from 'jscodeshift'
 import { CompiledMatcher, CompileOptions } from '.'
 import compileCaptureMatcher, { unescapeIdentifier } from './Capture'
 
 export default function compileTSTypeParameterMatcher(
-  pattern: TSTypeParameter,
+  path: ASTPath,
   compileOptions: CompileOptions
 ): CompiledMatcher | void {
+  const pattern: TSTypeParameter = path.node
   if (
     pattern.constraint == null &&
     pattern.typeAnnotation == null &&

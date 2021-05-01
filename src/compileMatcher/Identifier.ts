@@ -4,26 +4,30 @@ import compileCaptureMatcher, { unescapeIdentifier } from './Capture'
 import compileGenericNodeMatcher from './GenericNodeMatcher'
 
 export default function compileIdentifierMatcher(
-  pattern: Identifier,
+  path: ASTPath,
   compileOptions: CompileOptions
 ): CompiledMatcher | void {
+  const pattern: Identifier = path.node
   const { typeAnnotation } = pattern
   const captureMatcher = compileCaptureMatcher(pattern.name, compileOptions)
   if (captureMatcher) {
     const { captureAs } = captureMatcher
     if (typeAnnotation) {
       const typeAnnotationMatcher = compileGenericNodeMatcher(
-        typeAnnotation,
+        path.get('typeAnnotation'),
         compileOptions
       )
       return {
         ...captureMatcher,
+
         match: (path: ASTPath, matchSoFar: MatchResult): MatchResult => {
           matchSoFar = captureMatcher.match(path, matchSoFar)
           if (matchSoFar == null) return null
           const captured = captureAs ? matchSoFar.captures?.[captureAs] : null
           if (captured)
-            captured.node.astx = { excludeTypeAnnotationFromCapture: true }
+            captured.node.astx = {
+              excludeTypeAnnotationFromCapture: true,
+            }
           const typeAnnotation = path.get('typeAnnotation')
           if (!typeAnnotation) return null
           return typeAnnotationMatcher.match(typeAnnotation, matchSoFar)

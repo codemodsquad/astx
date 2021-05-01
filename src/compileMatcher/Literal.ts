@@ -8,9 +8,10 @@ import {
 import sortFlags from './sortFlags'
 
 export default function matchLiteral(
-  pattern: Literal,
+  path: ASTPath,
   compileOptions: CompileOptions
 ): CompiledMatcher {
+  const pattern: Literal = path.node
   const { regex } = pattern
   if (regex) {
     const regexFlags = sortFlags(regex.flags)

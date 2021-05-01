@@ -4,7 +4,7 @@ import { CompiledReplacement, CompileReplacementOptions } from './'
 import compileCaptureReplacement from './Capture'
 import compileGenericNodeReplacement from './GenericNodeReplacement'
 import { unescapeIdentifier } from '../compileReplacement/Capture'
-import { Match, StatementsMatch } from '../find'
+import { Match } from '../find'
 
 import getIdentifierish from './getIdentifierish'
 
@@ -76,7 +76,7 @@ export default function compileIdentifierReplacement(
       )
       return {
         ...captureReplacement,
-        generate: (match: Match | StatementsMatch): ASTNode | ASTNode[] => {
+        generate: (match: Match): ASTNode | ASTNode[] => {
           const generated = captureReplacement.generate(match)
           if (!Array.isArray(generated)) {
             ;(generated as any).typeAnnotation = typeAnnotationReplacement.generate(

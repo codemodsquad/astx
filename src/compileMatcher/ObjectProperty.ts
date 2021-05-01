@@ -1,11 +1,12 @@
-import { ObjectProperty } from 'jscodeshift'
+import { ObjectProperty, ASTPath } from 'jscodeshift'
 import { CompiledMatcher, CompileOptions } from '.'
 import compileCaptureMatcher, { unescapeIdentifier } from './Capture'
 
 export default function compileObjectPropertyMatcher(
-  pattern: ObjectProperty,
+  path: ASTPath,
   compileOptions: CompileOptions
 ): CompiledMatcher | void {
+  const pattern: ObjectProperty = path.node
   if (pattern.key.type === 'Identifier') {
     if (
       pattern.shorthand &&

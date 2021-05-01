@@ -1,25 +1,31 @@
-import { JSXElement, ASTNode } from 'jscodeshift'
+import { JSXElement, ASTPath } from 'jscodeshift'
 import { CompiledMatcher, CompileOptions } from '.'
 import compileGenericNodeMatcher from './GenericNodeMatcher'
 import compileGenericArrayMatcher from './GenericArrayMatcher'
 import normalizeJSXTextValue from '../util/normalizeJSXTextValue'
 
-function shouldSkipChild(node: ASTNode): boolean {
-  return node.type === 'JSXText' && normalizeJSXTextValue(node.value) === ''
+function shouldSkipChild(path: ASTPath): boolean {
+  return (
+    path.node.type === 'JSXText' &&
+    normalizeJSXTextValue(path.node.value) === ''
+  )
 }
 
 export default function compileJSXElementMatcher(
-  pattern: JSXElement,
+  path: ASTPath,
   compileOptions: CompileOptions
 ): CompiledMatcher | void {
+  const pattern: JSXElement = path.node
   const { children } = pattern
   if (children) {
-    return compileGenericNodeMatcher(pattern, compileOptions, {
+    return compileGenericNodeMatcher(path, compileOptions, {
       keyMatchers: {
         children: compileGenericArrayMatcher(
-          children.filter((c) => !shouldSkipChild(c)),
+          path.get('children').filter((p: ASTPath) => !shouldSkipChild(p)),
           compileOptions,
-          { skipElement: (p) => shouldSkipChild(p.node) }
+          {
+            skipElement: shouldSkipChild,
+          }
         ),
       },
     })

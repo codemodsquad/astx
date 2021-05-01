@@ -1,11 +1,12 @@
-import { VariableDeclarator } from 'jscodeshift'
+import { VariableDeclarator, ASTPath } from 'jscodeshift'
 import { CompiledMatcher, CompileOptions } from '.'
 import compileArrayCaptureMatcher, { unescapeIdentifier } from './Capture'
 
 export default function compileVariableDeclaratorMatcher(
-  pattern: VariableDeclarator,
+  path: ASTPath,
   compileOptions: CompileOptions
 ): CompiledMatcher | void {
+  const pattern: VariableDeclarator = path.node
   if (pattern.id.type === 'Identifier') {
     if (pattern.init == null) {
       const captureMatcher = compileArrayCaptureMatcher(

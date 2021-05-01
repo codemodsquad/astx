@@ -1,7 +1,7 @@
 import j, { Literal, ASTPath } from 'jscodeshift'
 import { getCaptureAs } from '../compileMatcher/Capture'
 import { CompiledReplacement } from './'
-import { Match, StatementsMatch } from '../find'
+import { Match } from '../find'
 import cloneDeep from 'lodash/cloneDeep'
 import { unescapeIdentifier } from './Capture'
 
@@ -13,7 +13,7 @@ export default function compileLiteralReplacement(
     const captureAs = getCaptureAs(pattern.value)
     if (captureAs) {
       return {
-        generate: (match: Match | StatementsMatch): Literal => {
+        generate: (match: Match): Literal => {
           const captured = match.stringCaptures?.[captureAs]
           return captured ? j.literal(captured) : cloneDeep(pattern)
         },

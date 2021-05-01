@@ -3,9 +3,10 @@ import { CompileOptions, convertPredicateMatcher, CompiledMatcher } from './'
 import normalizeJSXTextValue from '../util/normalizeJSXTextValue'
 
 export default function matchJSXText(
-  pattern: JSXText,
+  path: ASTPath,
   compileOptions: CompileOptions
 ): CompiledMatcher {
+  const pattern: JSXText = path.node
   const normalizedValue = normalizeJSXTextValue(pattern.value)
   return convertPredicateMatcher(
     pattern,

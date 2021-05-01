@@ -1,4 +1,4 @@
-import { ASTNode, ASTPath } from 'jscodeshift'
+import { ASTPath, ASTNode } from 'jscodeshift'
 import compileMatcher, {
   CompiledMatcher,
   CompileOptions,
@@ -8,19 +8,23 @@ import compileMatcher, {
 import indentDebug from './indentDebug'
 
 export default function compileGenericArrayMatcher(
-  pattern: ASTNode[],
+  path: ASTPath | ASTPath[],
   compileOptions: CompileOptions,
   {
     skipElement = () => false,
   }: { skipElement?: (path: ASTPath) => boolean } = {}
 ): CompiledMatcher {
+  const paths: ASTPath[] = Array.isArray(path)
+    ? path
+    : path.value.map((node: any, i: number) => path.get(i))
+  const pattern: ASTNode[] = paths.map((p: ASTPath) => p.node)
   const { debug } = compileOptions
   const elemOptions = {
     ...compileOptions,
     debug: indentDebug(debug, 2),
   }
-  const matchers: CompiledMatcher[] = pattern.map((queryElem) =>
-    compileMatcher(queryElem, elemOptions)
+  const matchers: CompiledMatcher[] = pattern.map((value, i) =>
+    compileMatcher(paths[i], elemOptions)
   )
 
   function remainingElements(matcherIndex: number): number {

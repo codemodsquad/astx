@@ -1,11 +1,12 @@
-import { ImportSpecifier } from 'jscodeshift'
+import { ImportSpecifier, ASTPath } from 'jscodeshift'
 import { CompiledMatcher, CompileOptions } from '.'
 import compileArrayCaptureMatcher, { unescapeIdentifier } from './Capture'
 
 export default function compileImportSpecifierMatcher(
-  pattern: ImportSpecifier,
+  path: ASTPath,
   compileOptions: CompileOptions
 ): CompiledMatcher | void {
+  const pattern: ImportSpecifier = path.node
   if (!pattern.local || pattern.local.name === pattern.imported.name) {
     if ((pattern as any).importKind == null) {
       const captureMatcher = compileArrayCaptureMatcher(

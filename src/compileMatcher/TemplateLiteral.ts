@@ -1,11 +1,12 @@
-import { TemplateLiteral } from 'jscodeshift'
+import { TemplateLiteral, ASTPath } from 'jscodeshift'
 import { CompileOptions, CompiledMatcher } from './'
 import { compileStringCaptureMatcher } from './Capture'
 
 export default function matchTemplateLiteral(
-  pattern: TemplateLiteral,
+  path: ASTPath,
   compileOptions: CompileOptions
 ): CompiledMatcher | void {
+  const pattern: TemplateLiteral = path.node
   const captureMatcher = compileStringCaptureMatcher(
     pattern,
     (node: TemplateLiteral) =>

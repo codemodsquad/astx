@@ -10,7 +10,7 @@ import fs from 'fs-extra'
 
 import dedent from 'dedent-js'
 
-import { Match, StatementsMatch } from '../find'
+import { Match } from '../find'
 
 /* eslint-disable no-console */
 
@@ -224,14 +224,10 @@ function deriveLineAndColumn(
   return { line, column: index - lastIndex }
 }
 
-function formatMatch(
-  source: string,
-  lineCount: number,
-  match: Match | StatementsMatch
-): string {
+function formatMatch(source: string, lineCount: number, match: Match): string {
   const lineNumberLength = String(lineCount).length
 
-  if (match.type === 'statements' && !match.nodes.length)
+  if (match.type === 'nodes' && !match.nodes.length)
     return `${' '.repeat(lineNumberLength)} | (zero statements)`
   const { start: nodeStart, end: nodeEnd, loc } =
     match.type === 'node'

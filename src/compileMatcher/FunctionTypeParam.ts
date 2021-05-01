@@ -1,11 +1,12 @@
-import { FunctionTypeParam } from 'jscodeshift'
+import { FunctionTypeParam, ASTPath } from 'jscodeshift'
 import { CompiledMatcher, CompileOptions } from '.'
 import compileArrayCaptureMatcher, { unescapeIdentifier } from './Capture'
 
 export default function compileFunctionTypeParamMatcher(
-  pattern: FunctionTypeParam,
+  path: ASTPath,
   compileOptions: CompileOptions
 ): CompiledMatcher | void {
+  const pattern: FunctionTypeParam = path.node
   if (pattern.name?.type === 'Identifier') {
     if (pattern.typeAnnotation == null) {
       const captureMatcher = compileArrayCaptureMatcher(

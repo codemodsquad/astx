@@ -1,11 +1,12 @@
-import { ExpressionStatement } from 'jscodeshift'
+import { ExpressionStatement, ASTPath } from 'jscodeshift'
 import { CompiledMatcher, CompileOptions } from '.'
 import compileCaptureMatcher, { unescapeIdentifier } from './Capture'
 
 export default function compileExpressionStatementMatcher(
-  pattern: ExpressionStatement,
+  path: ASTPath,
   compileOptions: CompileOptions
 ): CompiledMatcher | void {
+  const pattern: ExpressionStatement = path.node
   if (pattern.expression.type === 'Identifier') {
     const captureMatcher = compileCaptureMatcher(
       pattern.expression.name,
