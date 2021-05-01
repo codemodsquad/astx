@@ -1,7 +1,7 @@
 import { GenericTypeAnnotation, ASTPath } from 'jscodeshift'
 import { CompiledMatcher, CompileOptions } from '.'
 import compileCaptureMatcher, { unescapeIdentifier } from './Capture'
-import compileSpecialType from './SpecialType'
+import compileSpecialMatcher from './SpecialMatcher'
 
 export default function compileGenericTypeAnnotationMatcher(
   path: ASTPath,
@@ -13,8 +13,15 @@ export default function compileGenericTypeAnnotationMatcher(
       const captureMatcher = compileCaptureMatcher(id.name, compileOptions)
       if (captureMatcher) return captureMatcher
     } else {
-      const specialType = compileSpecialType(id.name, path, compileOptions)
-      if (specialType) return specialType
+      const special = compileSpecialMatcher(
+        id.name,
+        path
+          .get('typeParameters')
+          .get('params')
+          .filter(() => true),
+        compileOptions
+      )
+      if (special) return special
     }
     id.name = unescapeIdentifier(id.name)
   }
