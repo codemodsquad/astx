@@ -1,13 +1,13 @@
 import { describe, it } from 'mocha'
 import { expect } from 'chai'
 import path from 'path'
-import jscodeshift, { ASTNode, ASTPath, JSCodeshift } from 'jscodeshift'
+import jscodeshift, { ASTPath, JSCodeshift } from 'jscodeshift'
 import find, { FindOptions, Match } from '../../src/find'
 import requireGlob from 'require-glob'
 import mapValues from 'lodash/mapValues'
 import prettier from 'prettier'
-import replace, { ReplaceOptions } from '../../src/replace'
 import parseFindOrReplace from '../../src/util/parseFindOrReplace'
+import Astx, { GetReplacement } from '../../src/Astx'
 
 type ExpectedMatch = {
   node?: string
@@ -22,8 +22,7 @@ type Fixture = {
   find: string
   findOptions?: FindOptions
   where?: FindOptions['where']
-  replace: string | ((match: Match) => ASTNode)
-  replaceOptions?: ReplaceOptions
+  replace: string | GetReplacement
   expectedFind?: ExpectedMatch[]
   expectedReplace?: string
   parsers?: string[]
@@ -91,7 +90,6 @@ describe(`find`, function () {
           find: _find,
           findOptions,
           replace: _replace,
-          replaceOptions,
           where,
           expectedFind,
           expectedReplace,
@@ -114,14 +112,8 @@ describe(`find`, function () {
               expect(formatMatches(j, matches)).to.deep.equal(expectedFind)
             }
             if (expectedReplace) {
-              replace(
-                root,
-                j(parseFindOrReplace(j, [_find] as any) as any).paths(),
-                typeof _replace === 'function'
-                  ? _replace
-                  : (parseFindOrReplace(j, [_replace] as any) as any),
-                where ? { ...replaceOptions, where } : replaceOptions
-              )
+              const astx = new Astx(j, root)
+              astx.find(_find, { ...findOptions, where }).replace(_replace)
               const actual = root.toSource()
               expect(format(actual)).to.deep.equal(format(expectedReplace))
             }

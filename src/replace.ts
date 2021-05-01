@@ -1,7 +1,11 @@
-import j, { ASTNode, ASTPath, Collection } from 'jscodeshift'
+import j, { ASTNode } from 'jscodeshift'
 import t from 'ast-types'
-import find, { Match } from './find'
+import { Match } from './find'
 import compileReplacement from './compileReplacement'
+
+export type ReplaceOptions = {
+  withCaptures?: Match | Match[]
+}
 
 export function generateReplacements(
   match: Match,
@@ -86,19 +90,15 @@ export function replaceStatementsMatches(
   }
 }
 
-export type ReplaceOptions = {
-  where?: { [captureName: string]: (path: ASTPath) => boolean }
-}
-
 export default function replace(
-  root: Collection,
-  pattern: ASTPath | ASTPath[],
-  replace: ASTNode | ASTNode[] | ((match: Match) => ASTNode | ASTNode[]),
-  options?: ReplaceOptions
+  matches: Match[],
+  replace: ASTNode | ASTNode[] | ((match: Match) => ASTNode | ASTNode[])
 ): void {
-  if (Array.isArray(pattern) && pattern.length === 1) pattern = pattern[0]
-  const matches = find(root, pattern, options)
-  if (Array.isArray(pattern) && t.namedTypes.Statement.check(pattern[0].node)) {
+  if (!matches.length) return
+  if (
+    matches[0].type === 'nodes' &&
+    t.namedTypes.Statement.check(matches[0].nodes[0])
+  ) {
     replaceStatementsMatches(matches, replace)
   } else {
     replaceMatches(matches, replace)
