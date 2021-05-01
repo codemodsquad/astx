@@ -22,7 +22,7 @@ export type Match = {
 
 export type FindOptions = {
   where?: { [captureName: string]: (path: ASTPath) => boolean }
-  withCaptures?: Match | Match[]
+  matchSoFar?: MatchResult
 }
 
 export function convertWithCaptures(matches: Match | Match[]): MatchResult {
@@ -94,13 +94,9 @@ export default function find(
     ? [matcher.nodeType]
     : ['Node']
 
-  const matchSoFar = options?.withCaptures
-    ? convertWithCaptures(options.withCaptures)
-    : null
-
   for (const nodeType of nodeTypes) {
     root.find(j[nodeType]).forEach((path: ASTPath) => {
-      const result = matcher.match(path, matchSoFar)
+      const result = matcher.match(path, options?.matchSoFar ?? null)
       if (result) matches.push(createMatch(path, result))
     })
   }
@@ -225,6 +221,8 @@ function findStatements(
 
   const matches: Match[] = []
 
+  const initialMatch = options?.matchSoFar ?? null
+
   for (const path of statementArrayPaths) {
     const end =
       path.value.length - remainingElements(firstNonArrayCaptureIndex + 1)
@@ -235,7 +233,7 @@ function findStatements(
         sliceStart,
         arrayIndex,
         firstNonArrayCaptureIndex,
-        null
+        initialMatch
       )
       if (match) {
         let result = match[0]
