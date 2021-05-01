@@ -2,7 +2,6 @@ import { ASTNode, Collection, JSCodeshift, ASTPath } from 'jscodeshift'
 import find, { Match, convertWithCaptures, createMatch } from './find'
 import replace from './replace'
 import parseFindOrReplace from './util/parseFindOrReplace'
-
 import compileMatcher, { MatchResult } from './compileMatcher'
 
 export type ParseTag = (
@@ -136,6 +135,22 @@ export default class Astx {
     return new Astx(this.jscodeshift, matches)
   }
 
+  captureNode(name: string): ASTNode | null {
+    for (const match of this._matches) {
+      const capture = match.captures?.[name]
+      if (capture) return capture
+    }
+    return null
+  }
+
+  capturePath(name: string): ASTPath | null {
+    for (const match of this._matches) {
+      const capture = match.pathCaptures?.[name]
+      if (capture) return capture
+    }
+    return null
+  }
+
   arrayCaptures(name: string): Astx {
     const matches: Match[] = []
     for (const match of this._matches) {
@@ -143,6 +158,30 @@ export default class Astx {
       if (capture) matches.push(createMatch(capture, {}))
     }
     return new Astx(this.jscodeshift, matches)
+  }
+
+  arrayCaptureNodes(name: string): ASTNode[] | null {
+    for (const match of this._matches) {
+      const capture = match.arrayCaptures?.[name]
+      if (capture) return capture
+    }
+    return null
+  }
+
+  arrayCapturePaths(name: string): ASTPath[] | null {
+    for (const match of this._matches) {
+      const capture = match.arrayPathCaptures?.[name]
+      if (capture) return capture
+    }
+    return null
+  }
+
+  stringCapture(name: string): string | null {
+    for (const match of this._matches) {
+      const capture = match.stringCaptures?.[name]
+      if (capture != null) return capture
+    }
+    return null
   }
 
   private _createInitialMatch(): MatchResult {
