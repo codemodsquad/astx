@@ -20,8 +20,9 @@ export function generateReplacements(
     match.path.parentPath.node.type === 'ExpressionStatement' ||
     t.namedTypes.Statement.check(match.node)
       ? ensureStatement
-      : ensureExpression
-  if (Array.isArray(replacement)) return replacement.map(ensureSameType)
+      : ensureNotStatement
+  if (Array.isArray(replacement))
+    return replacement.map(ensureSameType as (node: ASTNode) => ASTNode)
   return ensureSameType(replacement)
 }
 
@@ -39,17 +40,16 @@ export function replaceMatches(
   }
 }
 
-function ensureExpression(value: ASTNode): Expression {
+function ensureNotStatement(value: ASTNode): ASTNode {
   switch (value.type) {
     case 'ClassDeclaration':
-      return { ...value, type: 'ClassExpresion' }
+      return { ...value, type: 'ClassExpression' }
     case 'FunctionDeclaration':
-      return { ...value, type: 'FunctionExpresion' }
+      return { ...value, type: 'FunctionExpression' }
     case 'ExpressionStatement':
       return value.expression
   }
-  if (t.namedTypes.Expression.check(value)) return value
-  throw new Error(`can't convert ${value.type} to an expression`)
+  return value
 }
 
 function ensureStatement(value: ASTNode): Statement {
