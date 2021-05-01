@@ -1,7 +1,7 @@
 import { TSTypeReference, ASTPath } from 'jscodeshift'
 import { CompiledMatcher, CompileOptions } from '.'
 import compileArrayCaptureMatcher, { unescapeIdentifier } from './Capture'
-import compileOptionalMatcher from './Optional'
+import compileSpecialType from './SpecialType'
 
 export default function compileTSTypeReferenceMatcher(
   path: ASTPath,
@@ -16,16 +16,12 @@ export default function compileTSTypeReferenceMatcher(
       )
       if (captureMatcher) return captureMatcher
     } else {
-      switch (typeName.name) {
-        case '$Optional':
-          if (typeParameters?.params?.length !== 1) {
-            throw new Error(`$Optional must be used with 1 type parameter`)
-          }
-          return compileOptionalMatcher(
-            path.get('typeParameters').get('params').get(0),
-            compileOptions
-          )
-      }
+      const specialType = compileSpecialType(
+        typeName.name,
+        path,
+        compileOptions
+      )
+      if (specialType) return specialType
     }
     typeName.name = unescapeIdentifier(typeName.name)
   }

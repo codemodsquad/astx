@@ -1,7 +1,7 @@
 import { GenericTypeAnnotation, ASTPath } from 'jscodeshift'
 import { CompiledMatcher, CompileOptions } from '.'
 import compileCaptureMatcher, { unescapeIdentifier } from './Capture'
-import compileOptionalMatcher from './Optional'
+import compileSpecialType from './SpecialType'
 
 export default function compileGenericTypeAnnotationMatcher(
   path: ASTPath,
@@ -13,16 +13,8 @@ export default function compileGenericTypeAnnotationMatcher(
       const captureMatcher = compileCaptureMatcher(id.name, compileOptions)
       if (captureMatcher) return captureMatcher
     } else {
-      switch (id.name) {
-        case '$Optional':
-          if (typeParameters?.params?.length !== 1) {
-            throw new Error(`$Optional must be used with 1 type parameter`)
-          }
-          return compileOptionalMatcher(
-            path.get('typeParameters').get('params').get(0),
-            compileOptions
-          )
-      }
+      const specialType = compileSpecialType(id.name, path, compileOptions)
+      if (specialType) return specialType
     }
     id.name = unescapeIdentifier(id.name)
   }
