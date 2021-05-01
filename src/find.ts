@@ -22,6 +22,19 @@ export type Match = {
 
 export type FindOptions = {
   where?: { [captureName: string]: (path: ASTPath) => boolean }
+  withCaptures?: Match | Match[]
+}
+
+function convertWithCaptures(matches: Match | Match[]): MatchResult {
+  return mergeCaptures(
+    ...(Array.isArray(matches) ? matches : [matches]).map(
+      ({ pathCaptures, arrayPathCaptures, stringCaptures }): MatchResult => ({
+        captures: pathCaptures,
+        arrayCaptures: arrayPathCaptures,
+        stringCaptures,
+      })
+    )
+  )
 }
 
 export default function find(
@@ -44,9 +57,13 @@ export default function find(
     ? [matcher.nodeType]
     : ['Node']
 
+  const matchSoFar = options?.withCaptures
+    ? convertWithCaptures(options.withCaptures)
+    : null
+
   for (const nodeType of nodeTypes) {
     root.find(j[nodeType]).forEach((path: ASTPath) => {
-      const result = matcher.match(path, null)
+      const result = matcher.match(path, matchSoFar)
       if (result) {
         const match: Match = {
           type: 'node',

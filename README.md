@@ -6,7 +6,7 @@
 [![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
 [![npm version](https://badge.fury.io/js/astx.svg)](https://badge.fury.io/js/astx)
 
-structural search and replace for JavaScript and TypeScript, using jscodeshift
+Super powerful structural search and replace for JavaScript and TypeScript to automate your refactoring
 
 # Table of Contents
 
@@ -240,6 +240,10 @@ An object with the following optional properties:
 Where conditions for node captures. For example if your find pattern is `$a()`, you could have
 `{ where: { $a: path => /foo|bar/.test(path.node.name) } }`, which would only match zero-argument calls
 to `foo` or `bar`.
+
+#### `FindOptions.withCaptures` (`Match | Match[]`)
+
+Allows you to backreference captures in matches from previous find operations.
 
 ### `.find().replace()`
 
