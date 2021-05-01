@@ -1,7 +1,10 @@
 import { Identifier, ASTPath } from 'jscodeshift'
-import { CompiledMatcher, CompileOptions, MatchResult } from './'
+import compileMatcher, {
+  CompiledMatcher,
+  CompileOptions,
+  MatchResult,
+} from './'
 import compileCaptureMatcher, { unescapeIdentifier } from './Capture'
-import compileGenericNodeMatcher from './GenericNodeMatcher'
 
 export default function compileIdentifierMatcher(
   path: ASTPath,
@@ -13,7 +16,7 @@ export default function compileIdentifierMatcher(
   if (captureMatcher) {
     const { captureAs } = captureMatcher
     if (typeAnnotation) {
-      const typeAnnotationMatcher = compileGenericNodeMatcher(
+      const typeAnnotationMatcher = compileMatcher(
         path.get('typeAnnotation'),
         compileOptions
       )
@@ -29,7 +32,6 @@ export default function compileIdentifierMatcher(
               excludeTypeAnnotationFromCapture: true,
             }
           const typeAnnotation = path.get('typeAnnotation')
-          if (!typeAnnotation) return null
           return typeAnnotationMatcher.match(typeAnnotation, matchSoFar)
         },
       }
