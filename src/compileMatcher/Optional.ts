@@ -9,6 +9,7 @@ export default function compileOptionalMatcher(
   const matcher = compileMatcher(path, compileOptions)
   return {
     ...matcher,
+    optional: true,
     match: (path: ASTPath, matchSoFar: MatchResult): MatchResult => {
       if (path.value == null) return matchSoFar || {}
       return matcher.match(path, matchSoFar)
