@@ -1,11 +1,12 @@
-import { GenericTypeAnnotation } from 'jscodeshift'
+import { GenericTypeAnnotation, ASTPath } from 'jscodeshift'
 import { CompiledMatcher, CompileOptions } from '.'
 import compileCaptureMatcher, { unescapeIdentifier } from './Capture'
 
 export default function compileGenericTypeAnnotationMatcher(
-  pattern: GenericTypeAnnotation,
+  path: ASTPath,
   compileOptions: CompileOptions
 ): CompiledMatcher | void {
+  const pattern: GenericTypeAnnotation = path.node
   if (pattern.id.type === 'Identifier') {
     if (pattern.typeParameters == null) {
       const captureMatcher = compileCaptureMatcher(

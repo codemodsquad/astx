@@ -1,20 +1,14 @@
-import j, {
-  ASTNode,
-  ASTPath,
-  Collection,
-  Expression,
-  Statement,
-} from 'jscodeshift'
+import j, { ASTNode, ASTPath, Collection } from 'jscodeshift'
 import t from 'ast-types'
-import find, { Match, StatementsMatch } from './find'
+import find, { Match } from './find'
 import compileReplacement from './compileReplacement'
 
 export function generateReplacements(
   match: Match,
-  replace: ASTNode | ((match: Match) => ASTNode)
-): ASTNode | ASTNode[] | Statement | Statement[] {
+  replace: ASTNode | ASTNode[] | ((match: Match) => ASTNode | ASTNode[])
+): ASTNode | ASTNode[] {
   const replacement = compileReplacement(
-    j([typeof replace === 'function' ? replace(match) : replace]).paths()[0]
+    j(typeof replace === 'function' ? replace(match) : replace).paths()[0]
   ).generate(match)
   const ensureSameType =
     match.path.parentPath.node.type === 'ExpressionStatement' ||
@@ -28,7 +22,7 @@ export function generateReplacements(
 
 export function replaceMatches(
   matches: Match[],
-  replace: ASTNode | ((match: Match) => ASTNode)
+  replace: ASTNode | ASTNode[] | ((match: Match) => ASTNode | ASTNode[])
 ): void {
   for (const match of matches) {
     const replacements = generateReplacements(match, replace)
@@ -52,30 +46,30 @@ function ensureNotStatement(value: ASTNode): ASTNode {
   return value
 }
 
-function ensureStatement(value: ASTNode): Statement {
+function ensureStatement(value: ASTNode): ASTNode {
   switch (value.type) {
     case 'ClassExpression':
       return { ...value, type: 'ClassDeclaration' }
     case 'FunctionExpression':
-      return { ...value, type: 'FunctionDeclaration' }
+      return {
+        ...value,
+        id: value.id || j.identifier('anonymous'),
+        type: 'FunctionDeclaration',
+      }
   }
   if (t.namedTypes.Expression.check(value)) return j.expressionStatement(value)
   if (t.namedTypes.Statement.check(value)) return value
   throw new Error(`expected an expression or statement, but got: ${value.type}`)
 }
 
-function ensureStatements(value: ASTNode | ASTNode[]): Statement[] {
+function ensureStatements(value: ASTNode | ASTNode[]): ASTNode[] {
   if (Array.isArray(value)) return value.map(ensureStatement)
   return [ensureStatement(value)]
 }
 
 export function replaceStatementsMatches(
-  matches: StatementsMatch[],
-  replace:
-    | Expression
-    | Statement
-    | Statement[]
-    | ((match: StatementsMatch) => Expression | Statement | Statement[])
+  matches: Match[],
+  replace: ASTNode | ASTNode[] | ((match: Match) => ASTNode | ASTNode[])
 ): void {
   for (const match of matches) {
     const replacements = ensureStatements(
@@ -95,44 +89,18 @@ export function replaceStatementsMatches(
 export type ReplaceOptions = {
   where?: { [captureName: string]: (path: ASTPath) => boolean }
 }
+
 export default function replace(
   root: Collection,
-  pattern: ASTNode,
-  replace: ASTNode | ((match: Match) => ASTNode),
-  options?: ReplaceOptions
-): void
-export default function replace(
-  root: Collection,
-  pattern: Statement[],
-  replace:
-    | Statement
-    | Statement[]
-    | ((match: StatementsMatch) => Statement | Statement[]),
-  options?: ReplaceOptions
-): void
-export default function replace(
-  root: Collection,
-  pattern: ASTNode | Statement[],
-  replace:
-    | ASTNode
-    | Statement
-    | Statement[]
-    | ((match: Match) => ASTNode)
-    | ((match: StatementsMatch) => Statement | Statement[]),
+  pattern: ASTPath | ASTPath[],
+  replace: ASTNode | ASTNode[] | ((match: Match) => ASTNode | ASTNode[]),
   options?: ReplaceOptions
 ): void {
-  if (Array.isArray(pattern)) {
-    const matches = find(root, pattern, options)
-    replaceStatementsMatches(
-      matches,
-      replace as
-        | Expression
-        | Statement
-        | Statement[]
-        | ((match: StatementsMatch) => Statement | Statement[])
-    )
+  if (Array.isArray(pattern) && pattern.length === 1) pattern = pattern[0]
+  const matches = find(root, pattern, options)
+  if (Array.isArray(pattern) && t.namedTypes.Statement.check(pattern[0].node)) {
+    replaceStatementsMatches(matches, replace)
   } else {
-    const matches = find(root, pattern, options)
-    replaceMatches(matches, replace as ASTNode | ((match: Match) => ASTNode))
+    replaceMatches(matches, replace)
   }
 }

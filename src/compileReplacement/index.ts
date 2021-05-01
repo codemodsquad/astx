@@ -1,5 +1,5 @@
 import { ASTNode, ASTPath } from 'jscodeshift'
-import { StatementsMatch, Match } from '../find'
+import { Match } from '../find'
 import __debug, { Debugger } from 'debug'
 import compileGenericNodeReplacement from './GenericNodeReplacement'
 import compileGenericArrayReplacement from './GenericArrayReplacement'
@@ -32,7 +32,7 @@ import VariableDeclarator from './VariableDeclarator'
 const _debug = __debug('astx:compileReplacement')
 
 export interface CompiledReplacement {
-  generate: (match: Match | StatementsMatch) => ASTNode | ASTNode[]
+  generate: (match: Match) => ASTNode | ASTNode[]
 }
 
 export type RootCompileReplacementOptions = {

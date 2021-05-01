@@ -3,7 +3,7 @@ import compileReplacement, {
   CompiledReplacement,
   CompileReplacementOptions,
 } from './index'
-import { Match, StatementsMatch } from '../find'
+import { Match } from '../find'
 import indentDebug from '../compileMatcher/indentDebug'
 
 export default function compileGenericArrayReplacement(
@@ -24,7 +24,7 @@ export default function compileGenericArrayReplacement(
   )
 
   return {
-    generate: (match: Match | StatementsMatch): ASTNode | ASTNode[] => {
+    generate: (match: Match): ASTNode | ASTNode[] => {
       const result: ASTNode[] = []
       for (const elem of elemReplacements) {
         const replacement = elem.generate(match)

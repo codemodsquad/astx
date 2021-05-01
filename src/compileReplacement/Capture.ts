@@ -1,6 +1,6 @@
 import { CompileReplacementOptions, CompiledReplacement } from './'
 import { ASTNode } from 'jscodeshift'
-import { StatementsMatch, Match } from '../find'
+import { Match } from '../find'
 import cloneDeep from 'lodash/cloneDeep'
 import {
   getArrayCaptureAs,
@@ -21,7 +21,7 @@ export function compileArrayCaptureReplacement(
   const arrayCaptureAs = getArrayCaptureAs(identifier)
   if (arrayCaptureAs) {
     return {
-      generate: (match: Match | StatementsMatch): ASTNode | ASTNode[] => {
+      generate: (match: Match): ASTNode | ASTNode[] => {
         const captures = match.arrayCaptures?.[arrayCaptureAs]
         if (captures) {
           const result: ASTNode[] = []
@@ -50,7 +50,7 @@ export default function compileCaptureReplacement(
   const captureAs = getCaptureAs(identifier)
   if (captureAs) {
     return {
-      generate: (match: Match | StatementsMatch): ASTNode | ASTNode[] => {
+      generate: (match: Match): ASTNode | ASTNode[] => {
         const capture = match.captures?.[captureAs]
         if (capture) {
           const clone = cloneDeep(capture)

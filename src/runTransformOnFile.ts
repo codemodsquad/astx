@@ -8,7 +8,7 @@ import jscodeshift, {
 } from 'jscodeshift'
 import { getParserAsync } from 'babel-parse-wild-code'
 import { ReplaceOptions } from './replace'
-import Astx, { GetReplacement, StatementsMatchArray, MatchArray } from './Astx'
+import Astx, { GetReplacement, MatchArray } from './Astx'
 import fs from 'fs-extra'
 import Path from 'path'
 import memoize from 'lodash/memoize'
@@ -48,7 +48,7 @@ export type TransformResult = {
   transformed?: string
   reports?: any[]
   error?: Error
-  matches?: MatchArray | StatementsMatchArray
+  matches?: MatchArray
 }
 
 const getPrettier = memoize(
@@ -83,13 +83,13 @@ export const runTransformOnFile = (transform: Transform) => async (
     let transformed
     const reports: any[] = []
 
-    let matches: MatchArray | StatementsMatchArray | undefined
+    let matches: MatchArray | undefined
 
     let transformFn = transform.astx
 
     if (typeof transformFn !== 'function' && transform.find) {
       transformFn = ({ astx }) => {
-        matches = astx.findAuto(transform.find as any, {
+        matches = astx.find(transform.find as any, {
           where: transform.where,
         })
         if (transform.replace) matches.replace(transform.replace as any)

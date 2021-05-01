@@ -4,7 +4,7 @@ import compileReplacement, {
   CompiledReplacement,
   CompileReplacementOptions,
 } from './index'
-import { Match, StatementsMatch } from '../find'
+import { Match } from '../find'
 import indentDebug from '../compileMatcher/indentDebug'
 
 export default function compileGenericNodeReplacement(
@@ -34,7 +34,7 @@ export default function compileGenericNodeReplacement(
   }
 
   return {
-    generate: (match: Match | StatementsMatch): ASTNode | ASTNode[] => {
+    generate: (match: Match): ASTNode | ASTNode[] => {
       const result: any = { type: pattern.type }
       for (const [key, replacement] of childReplacements) {
         const value = replacement.generate(match)

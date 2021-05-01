@@ -2,7 +2,7 @@ import { describe, it } from 'mocha'
 import { expect } from 'chai'
 import path from 'path'
 import jscodeshift, { ASTNode, ASTPath, JSCodeshift } from 'jscodeshift'
-import find, { FindOptions, Match, StatementsMatch } from '../../src/find'
+import find, { FindOptions, Match } from '../../src/find'
 import requireGlob from 'require-glob'
 import mapValues from 'lodash/mapValues'
 import prettier from 'prettier'
@@ -33,18 +33,18 @@ type Fixture = {
 
 export function formatMatches(
   j: JSCodeshift,
-  matches: Match[] | StatementsMatch[]
+  matches: Match[]
 ): ExpectedMatch[] {
   function toSource(path: ASTPath<any>): string {
     return j([path]).toSource().replace(/,$/, '')
   }
   const result = []
-  matches.forEach((_match: Match | StatementsMatch) => {
-    const { pathCaptures, arrayPathCaptures, stringCaptures } = _match
+  matches.forEach((_match: Match) => {
+    const { type, pathCaptures, arrayPathCaptures, stringCaptures } = _match
     const { path, paths }: { path?: ASTPath; paths?: ASTPath[] } = _match as any
     const match: ExpectedMatch = {}
-    if (path) match.node = toSource(path)
-    if (paths) match.nodes = paths.map(toSource)
+    if (type === 'node') match.node = toSource(path)
+    if (type === 'nodes') match.nodes = paths.map(toSource)
     if (pathCaptures) match.captures = mapValues(pathCaptures, toSource)
     if (arrayPathCaptures)
       match.arrayCaptures = mapValues(arrayPathCaptures, (paths) =>
@@ -108,7 +108,7 @@ describe(`find`, function () {
             if (expectedFind) {
               const matches = find(
                 root,
-                parseFindOrReplace(j, [_find] as any) as any,
+                j(parseFindOrReplace(j, [_find] as any)).paths(),
                 where ? { ...findOptions, where } : findOptions
               )
               expect(formatMatches(j, matches)).to.deep.equal(expectedFind)
@@ -116,7 +116,7 @@ describe(`find`, function () {
             if (expectedReplace) {
               replace(
                 root,
-                parseFindOrReplace(j, [_find] as any) as any,
+                j(parseFindOrReplace(j, [_find] as any) as any).paths(),
                 typeof _replace === 'function'
                   ? _replace
                   : (parseFindOrReplace(j, [_replace] as any) as any),

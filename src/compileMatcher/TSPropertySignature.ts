@@ -1,11 +1,12 @@
-import { TSPropertySignature } from 'jscodeshift'
+import { TSPropertySignature, ASTPath } from 'jscodeshift'
 import { CompiledMatcher, CompileOptions } from '.'
 import compileCaptureMatcher, { unescapeIdentifier } from './Capture'
 
 export default function compileTSPropertySignatureMatcher(
-  pattern: TSPropertySignature,
+  path: ASTPath,
   compileOptions: CompileOptions
 ): CompiledMatcher | void {
+  const pattern: TSPropertySignature = path.node
   if (pattern.key.type === 'Identifier') {
     if (
       !pattern.optional &&

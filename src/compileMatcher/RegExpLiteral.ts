@@ -3,9 +3,10 @@ import sortFlags from './sortFlags'
 import { CompileOptions, convertPredicateMatcher, CompiledMatcher } from './'
 
 export default function matchRegExpLiteral(
-  pattern: RegExpLiteral,
+  path: ASTPath,
   compileOptions: CompileOptions
 ): CompiledMatcher {
+  const pattern: RegExpLiteral = path.node
   const queryFlags = sortFlags(pattern.flags)
   return convertPredicateMatcher(
     pattern,

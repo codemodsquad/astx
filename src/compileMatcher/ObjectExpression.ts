@@ -60,9 +60,10 @@ function getCaptureRestVariable(
 }
 
 export default function compileObjectExpressionMatcher(
-  pattern: ObjectExpression,
+  path: ASTPath,
   compileOptions: CompileOptions
 ): CompiledMatcher {
+  const pattern: ObjectExpression = path.node
   const { debug } = compileOptions
   const propertyCompileOptions = {
     ...compileOptions,
@@ -71,12 +72,14 @@ export default function compileObjectExpressionMatcher(
   const simpleProperties: Map<string, CompiledMatcher> = new Map()
   let captureRestVariable: string | undefined
   const otherProperties: CompiledMatcher[] = []
-  for (const property of pattern.properties) {
+  const propertiesPath = path.get('properties')
+  for (let i = 0; i < pattern.properties.length; i++) {
+    const property = pattern.properties[i]
     const simpleKey = getSimpleKey(property)
     if (simpleKey) {
       simpleProperties.set(
         simpleKey,
-        compileMatcher(property, propertyCompileOptions)
+        compileMatcher(propertiesPath.get(i), propertyCompileOptions)
       )
       continue
     }
@@ -89,11 +92,16 @@ export default function compileObjectExpressionMatcher(
       captureRestVariable = _captureRestVariable
       continue
     }
-    otherProperties.push(compileMatcher(property, propertyCompileOptions))
+    otherProperties.push(
+      compileMatcher(propertiesPath.get(i), propertyCompileOptions)
+    )
   }
   for (const m of simpleProperties.values()) {
     if (m.captureAs || m.arrayCaptureAs) {
-      return compileGenericNodeMatcher(pattern, { ...compileOptions, debug })
+      return compileGenericNodeMatcher(path, {
+        ...compileOptions,
+        debug,
+      })
     }
   }
   return {
@@ -156,11 +164,14 @@ export default function compileObjectExpressionMatcher(
 
       if (captureRestVariable && capturedRestProperties) {
         matchSoFar = mergeCaptures(matchSoFar, {
-          arrayCaptures: { [captureRestVariable]: capturedRestProperties },
+          arrayCaptures: {
+            [captureRestVariable]: capturedRestProperties,
+          },
         })
       }
       return matchSoFar || {}
     },
+
     nodeType: 'ObjectExpression',
   }
 }

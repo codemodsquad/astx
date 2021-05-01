@@ -31,7 +31,7 @@ import TSTypeReference from './TSTypeReference'
 import TypeParameter from './TypeParameter'
 import VariableDeclarator from './VariableDeclarator'
 
-const _debug = __debug('astx:compileMatcher')
+const _debug = __debug('astx:match')
 
 export type RootCompileOptions = {
   where?: { [captureName: string]: (path: ASTPath) => boolean }
@@ -92,7 +92,7 @@ export interface CompiledMatcher {
 
 const nodeMatchers: Record<
   string,
-  (pattern: any, options: CompileOptions) => CompiledMatcher | undefined | void
+  (path: ASTPath, options: CompileOptions) => CompiledMatcher | undefined | void
 > = {
   BooleanLiteral,
   ClassImplements,
@@ -146,16 +146,16 @@ export function convertPredicateMatcher(
 }
 
 export default function compileMatcher(
-  pattern: ASTNode | ASTNode[],
+  path: ASTPath,
   rootCompileOptions: RootCompileOptions = {}
 ): CompiledMatcher {
   const { debug = _debug } = rootCompileOptions
   const compileOptions = { ...rootCompileOptions, debug }
-  if (Array.isArray(pattern)) {
-    return compileGenericArrayMatcher(pattern, compileOptions)
-  } else if (nodeMatchers[pattern.type]) {
-    const matcher = nodeMatchers[pattern.type](pattern, compileOptions)
+  if (Array.isArray(path.value)) {
+    return compileGenericArrayMatcher(path, compileOptions)
+  } else if (nodeMatchers[path.node.type]) {
+    const matcher = nodeMatchers[path.node.type](path, compileOptions)
     if (matcher) return matcher
   }
-  return compileGenericNodeMatcher(pattern, compileOptions)
+  return compileGenericNodeMatcher(path, compileOptions)
 }

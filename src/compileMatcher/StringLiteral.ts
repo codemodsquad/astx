@@ -3,9 +3,10 @@ import { CompileOptions, convertPredicateMatcher, CompiledMatcher } from './'
 import { compileStringCaptureMatcher } from './Capture'
 
 export default function matchStringLiteral(
-  pattern: StringLiteral,
+  path: ASTPath,
   compileOptions: CompileOptions
 ): CompiledMatcher {
+  const pattern: StringLiteral = path.node
   const captureMatcher = compileStringCaptureMatcher(
     pattern,
     (pattern) => pattern.value,

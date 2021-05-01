@@ -1,11 +1,12 @@
-import { ClassProperty } from 'jscodeshift'
+import { ClassProperty, ASTPath } from 'jscodeshift'
 import { CompiledMatcher, CompileOptions } from '.'
 import compileCaptureMatcher, { unescapeIdentifier } from './Capture'
 
 export default function compileClassPropertyMatcher(
-  pattern: ClassProperty,
+  path: ASTPath,
   compileOptions: CompileOptions
 ): CompiledMatcher | void {
+  const pattern: ClassProperty = path.node
   if (pattern.key.type === 'Identifier') {
     if (
       !pattern.computed &&

@@ -1,7 +1,7 @@
 import j, { TemplateLiteral, ASTPath } from 'jscodeshift'
 import { getCaptureAs } from '../compileMatcher/Capture'
 import { CompiledReplacement } from './'
-import { Match, StatementsMatch } from '../find'
+import { Match } from '../find'
 import cloneDeep from 'lodash/cloneDeep'
 import { unescapeIdentifier } from './Capture'
 
@@ -18,7 +18,7 @@ export default function compileTemplateLiteralReplacement(
     const captureAs = getCaptureAs(quasi.value.cooked)
     if (captureAs) {
       return {
-        generate: (match: Match | StatementsMatch): TemplateLiteral => {
+        generate: (match: Match): TemplateLiteral => {
           const captured = match.stringCaptures?.[captureAs]
           return captured
             ? j.templateLiteral(

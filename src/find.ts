@@ -1,26 +1,18 @@
-import j, { ASTPath, ASTNode, Collection, Statement } from 'jscodeshift'
+import j, { ASTPath, ASTNode, Collection } from 'jscodeshift'
 import mapValues from 'lodash/mapValues'
 import compileMatcher, {
   CompiledMatcher,
   MatchResult,
   mergeCaptures,
 } from './compileMatcher'
+import t from 'ast-types'
 
 export type Match = {
-  type: 'node'
+  type: 'node' | 'nodes'
   path: ASTPath
   node: ASTNode
-  pathCaptures?: Record<string, ASTPath>
-  captures?: Record<string, ASTNode>
-  arrayPathCaptures?: Record<string, ASTPath[]>
-  arrayCaptures?: Record<string, ASTNode[]>
-  stringCaptures?: Record<string, string>
-}
-
-export type StatementsMatch = {
-  type: 'statements'
-  paths: ASTPath<Statement>[]
-  nodes: Statement[]
+  paths: ASTPath[]
+  nodes: ASTNode[]
   pathCaptures?: Record<string, ASTPath>
   captures?: Record<string, ASTNode>
   arrayPathCaptures?: Record<string, ASTPath[]>
@@ -32,26 +24,17 @@ export type FindOptions = {
   where?: { [captureName: string]: (path: ASTPath) => boolean }
 }
 
-export default function find<Node extends ASTNode>(
-  root: Collection,
-  pattern: Node,
-  options?: FindOptions
-): Array<Match>
 export default function find(
   root: Collection,
-  pattern: Statement[],
+  path: ASTPath | ASTPath[],
   options?: FindOptions
-): Array<StatementsMatch>
-export default function find<Node extends ASTNode>(
-  root: Collection,
-  pattern: Node | Statement[],
-  options?: FindOptions
-): Array<Match> | Array<StatementsMatch> {
-  if (Array.isArray(pattern)) {
-    return findStatements(root, pattern, options)
+): Match[] {
+  if (Array.isArray(path) && path.length === 1) path = path[0]
+  if (Array.isArray(path) && t.namedTypes.Statement.check(path[0]?.node)) {
+    return findStatements(root, path, options)
   }
 
-  const matcher = compileMatcher(pattern, options)
+  const matcher = compileMatcher(path, options)
 
   const matches: Array<Match> = []
 
@@ -65,7 +48,13 @@ export default function find<Node extends ASTNode>(
     root.find(j[nodeType]).forEach((path: ASTPath) => {
       const result = matcher.match(path, null)
       if (result) {
-        const match: Match = { type: 'node', path, node: path.node }
+        const match: Match = {
+          type: 'node',
+          path,
+          node: path.node,
+          paths: [path],
+          nodes: [path.node],
+        }
         const {
           captures: pathCaptures,
           arrayCaptures: arrayPathCaptures,
@@ -103,11 +92,11 @@ function findStatementArrayPaths(root: Collection): ASTPath[] {
 
 function findStatements(
   root: Collection,
-  pattern: Statement[],
+  paths: ASTPath[],
   options?: FindOptions
-): Array<StatementsMatch> {
-  const matchers: CompiledMatcher[] = pattern.map((queryElem) =>
-    compileMatcher(queryElem as any, options)
+): Match[] {
+  const matchers: CompiledMatcher[] = paths.map((queryElem) =>
+    compileMatcher(queryElem, options)
   )
 
   const firstNonArrayCaptureIndex = matchers.findIndex((m) => !m.arrayCaptureAs)
@@ -204,11 +193,11 @@ function findStatements(
   // reverse order.  Otherwise, statements in an outer array could get replaced
   // before those in an inner array (for example, a function in root scope might
   // get replaced before a match within the function body gets replaced)
-  const paths: ASTPath = findStatementArrayPaths(root).reverse()
+  const statementArrayPaths: ASTPath = findStatementArrayPaths(root).reverse()
 
-  const matches: StatementsMatch[] = []
+  const matches: Match[] = []
 
-  for (const path of paths) {
+  for (const path of statementArrayPaths) {
     const end =
       path.value.length - remainingElements(firstNonArrayCaptureIndex + 1)
     let sliceStart = 0
@@ -238,8 +227,10 @@ function findStatements(
 
         const paths = slicePath(path, start, end)
 
-        const finalMatch: StatementsMatch = {
-          type: 'statements',
+        const finalMatch: Match = {
+          type: 'nodes',
+          path: paths[0],
+          node: paths[0].node,
           paths,
           nodes: paths.map((p) => p.node),
         }
