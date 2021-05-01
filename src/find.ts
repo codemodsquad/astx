@@ -25,7 +25,7 @@ export type FindOptions = {
   withCaptures?: Match | Match[]
 }
 
-function convertWithCaptures(matches: Match | Match[]): MatchResult {
+export function convertWithCaptures(matches: Match | Match[]): MatchResult {
   return mergeCaptures(
     ...(Array.isArray(matches) ? matches : [matches]).map(
       ({ pathCaptures, arrayPathCaptures, stringCaptures }): MatchResult => ({
@@ -35,6 +35,43 @@ function convertWithCaptures(matches: Match | Match[]): MatchResult {
       })
     )
   )
+}
+
+export function createMatch(
+  paths: ASTPath | ASTPath[],
+  result: MatchResult
+): Match {
+  if (!result) {
+    throw new Error('result must be defined')
+  }
+  const { captures, arrayCaptures, stringCaptures } = result
+  const match: Match = Array.isArray(paths)
+    ? {
+        type: 'nodes',
+        node: paths[0].node,
+        path: paths[0],
+        nodes: paths.map((p) => p.node),
+        paths,
+      }
+    : {
+        type: 'node',
+        node: paths.node,
+        path: paths,
+        nodes: [paths.node],
+        paths,
+      }
+  if (captures) {
+    match.pathCaptures = captures
+    match.captures = mapValues(captures, (path: ASTPath) => path.node)
+  }
+  if (arrayCaptures) {
+    match.arrayPathCaptures = arrayCaptures
+    match.arrayCaptures = mapValues(arrayCaptures, (paths: ASTPath[]) =>
+      paths.map((path) => path.node)
+    )
+  }
+  if (stringCaptures) match.stringCaptures = stringCaptures
+  return match
 }
 
 export default function find(
@@ -64,33 +101,7 @@ export default function find(
   for (const nodeType of nodeTypes) {
     root.find(j[nodeType]).forEach((path: ASTPath) => {
       const result = matcher.match(path, matchSoFar)
-      if (result) {
-        const match: Match = {
-          type: 'node',
-          path,
-          node: path.node,
-          paths: [path],
-          nodes: [path.node],
-        }
-        const {
-          captures: pathCaptures,
-          arrayCaptures: arrayPathCaptures,
-          stringCaptures,
-        } = result
-        if (pathCaptures) {
-          match.pathCaptures = pathCaptures
-          match.captures = mapValues(pathCaptures, (path: ASTPath) => path.node)
-        }
-        if (arrayPathCaptures) {
-          match.arrayPathCaptures = arrayPathCaptures
-          match.arrayCaptures = mapValues(
-            arrayPathCaptures,
-            (paths: ASTPath[]) => paths.map((path) => path.node)
-          )
-        }
-        if (stringCaptures) match.stringCaptures = stringCaptures
-        matches.push(match)
-      }
+      if (result) matches.push(createMatch(path, result))
     })
   }
 

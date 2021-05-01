@@ -27,10 +27,14 @@ Super powerful structural search and replace for JavaScript and TypeScript to au
     - [`.find()`](#find)
     - [`FindOptions`](#findoptions)
       - [`FindOptions.where` (`{ [captureName: string]: (path: ASTPath<any>) => boolean }`)](#findoptionswhere--capturename-string-path-astpathany--boolean-)
+      - [`FindOptions.withCaptures` (`Match | Match[]`)](#findoptionswithcaptures-match--match)
     - [`.find().replace()`](#findreplace)
   - [Match](#match)
+    - [`type`](#type)
     - [`.path`](#path)
     - [`.node`](#node)
+    - [`.path`](#path-1)
+    - [`.nodes`](#nodes)
     - [`.captures`](#captures)
     - [`.pathCaptures`](#pathcaptures)
     - [`.arrayCaptures`](#arraycaptures)
@@ -207,11 +211,10 @@ Returns a different `Astx` instance for the given `root`. Use this if you want t
 
 Finds matches for the given pattern within `root`, and returns a `MatchArray` containing the matches.
 
-There are several different ways you can call `.find`:
+You can call `.find` as an method or tagged template literal:
 
 - `` .find`pattern`(options?: FindOptions) ``
-- `.find(pattern: string, options?: FindOptions)`
-- `.find(pattern: ASTNode, options?: FindOptions)`
+- `.find(pattern: string | ASTNode | ASTNode[] | ASTPath | ASTPath[], options?: FindOptions)`
 
 If you give the pattern as a string, it must be a valid expression or statement(s) as parsed by the `jscodeshift` instance. Otherwise it should be valid
 AST node(s) you already parsed or constructed.
@@ -249,14 +252,12 @@ Allows you to backreference captures in matches from previous find operations.
 
 Finds and replaces matches for the given pattern within `root`.
 
-There are several different ways you can call `.replace`. Note that you can omit the `()` after `` .find`pattern` `` if you're calling `.replace`.
-And you can call `.find` in any way described above in place of `` .find`pattern` ``.
+There are several different ways you can call `.replace`. You can call `.find` in any way described above.
 
-- `` .find`pattern`.replace`replacement` ``
-- `` .find`pattern`.replace(replacement: string) ``
-- `` .find`pattern`.replace(replacement: ASTNode | ASTNode[]) ``
-- `` .find`pattern`.replace(replacement: (match: Match<any>, parse: ParseTag) => string) ``
-- `` .find`pattern`.replace(replacement: (match: Match<any>, parse: ParseTag) => ASTNode | ASTNode[]) ``
+- `` .find(...).replace`replacement`() ``
+- `.find(...).replace(replacement: string | ASTNode | ASTNode[])`
+- `.find(...).replace(replacement: (match: Match<any>, parse: ParseTag) => string)`
+- `.find(...).replace(replacement: (match: Match<any>, parse: ParseTag) => ASTNode | ASTNode[])`
 
 If you give the replacement as a string, it must be a valid expression or statement as parsed by the `jscodeshift` instance.
 You can give the replacement as AST node(s) you already parsed or constructed.
