@@ -35,10 +35,11 @@ export class MatchArray extends Array<Match> {
   }
 
   replace(code: string): void
+  replace(node: ASTNode): void
   replace(getReplacement: GetReplacement): void
   replace(strings: TemplateStringsArray, ...quasis: any[]): void
   replace(
-    arg0: string | GetReplacement | TemplateStringsArray,
+    arg0: string | ASTNode | GetReplacement | TemplateStringsArray,
     ...quasis: any[]
   ): void {
     if (typeof arg0 === 'function') {
@@ -56,10 +57,17 @@ export class MatchArray extends Array<Match> {
         this,
         parseFindOrReplace(this.jscodeshift, [arg0] as any) as any
       )
+    } else if (
+      arg0 &&
+      arg0 instanceof Object &&
+      !Array.isArray(arg0) &&
+      !quasis.length
+    ) {
+      replaceMatches(this, arg0 as any)
     } else {
       replaceMatches(
         this,
-        parseFindOrReplace(this.jscodeshift, arg0, ...quasis) as any
+        parseFindOrReplace(this.jscodeshift, arg0 as any, ...quasis) as any
       )
     }
   }
@@ -239,6 +247,7 @@ export default class Astx {
 interface BoundFind {
   (options?: FindOptions): MatchArray
   replace(code: string): void
+  replace(node: ASTNode): void
   replace(getReplacement: GetReplacement): void
   replace(strings: TemplateStringsArray, ...quasis: any[]): void
 }
