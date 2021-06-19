@@ -10,7 +10,7 @@ export default function compileGenericTypeAnnotationReplacement(
   if (pattern.id.type === 'Identifier') {
     if (pattern.typeParameters == null) {
       const captureReplacement = compileCaptureReplacement(
-        pattern,
+        path,
         pattern.id.name,
         compileReplacementOptions
       )

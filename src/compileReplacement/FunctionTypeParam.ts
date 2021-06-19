@@ -10,7 +10,7 @@ export default function compileFunctionTypeParamReplacement(
   if (pattern.name?.type === 'Identifier') {
     if (pattern.typeAnnotation == null) {
       const captureReplacement = compileCaptureReplacement(
-        pattern,
+        path,
         pattern.name.name,
         compileOptions
       )
@@ -24,7 +24,7 @@ export default function compileFunctionTypeParamReplacement(
   ) {
     if (pattern.typeAnnotation.typeParameters == null) {
       const captureReplacement = compileCaptureReplacement(
-        pattern,
+        path,
         pattern.typeAnnotation.id.name,
         compileOptions
       )

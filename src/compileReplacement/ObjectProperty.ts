@@ -14,7 +14,7 @@ export default function compileObjectPropertyReplacement(
       pattern.accessibility == null
     ) {
       const captureReplacement = compileCaptureReplacement(
-        pattern,
+        path,
         pattern.key.name,
         compileOptions
       )

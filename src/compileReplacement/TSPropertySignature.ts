@@ -15,7 +15,7 @@ export default function compileTSPropertySignatureReplacement(
         pattern.typeAnnotation?.typeAnnotation?.type === 'TSAnyKeyword')
     ) {
       const captureReplacement = compileCaptureReplacement(
-        pattern,
+        path,
         pattern.key.name,
         compileOptions
       )

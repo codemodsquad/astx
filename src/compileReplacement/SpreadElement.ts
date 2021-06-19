@@ -10,7 +10,7 @@ export default function compileSpreadElementReplacement(
   const { argument } = pattern
   if (argument.type === 'Identifier') {
     const captureReplacement = compileArrayCaptureReplacement(
-      pattern,
+      path,
       argument.name,
       compileOptions
     )

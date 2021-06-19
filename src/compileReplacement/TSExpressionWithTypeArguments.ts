@@ -10,7 +10,7 @@ export default function compileTSExpressionWithTypeArgumentsReplacement(
   if (pattern.expression.type === 'Identifier') {
     if (pattern.typeParameters == null) {
       const captureReplacement = compileCaptureReplacement(
-        pattern,
+        path,
         pattern.expression.name,
         compileOptions
       )

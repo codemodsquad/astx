@@ -1,5 +1,5 @@
 import find, { Match } from './find'
-import replace, { replaceMatches, ReplaceOptions } from './replace'
+import replace from './replace'
 import Astx, { FindOptions, ParseTag, GetReplacement } from './Astx'
 import {
   runTransformOnFile,
@@ -14,10 +14,8 @@ export {
   GetReplacement,
   find,
   replace,
-  replaceMatches,
   Match,
   FindOptions,
-  ReplaceOptions,
   runTransform,
   runTransformOnFile,
   Transform,

@@ -117,16 +117,28 @@ export default function withParser(
   ) => Expression
 } {
   function statements(
-    template: TemplateStringsArray | string[],
+    _template: TemplateStringsArray | string[],
     ...nodes: any[]
   ): Statement[] {
-    const varNames = nodes.map(() => getUniqueVarName())
-    const src = [...template].reduce(
-      (result: string, elem: string, i: number) =>
-        result + varNames[i - 1] + elem
-    )
+    function attempt(template: TemplateStringsArray | string[]): Statement[] {
+      const varNames = nodes.map(() => getUniqueVarName())
+      const src = [...template].reduce(
+        (result: string, elem: string, i: number) =>
+          result + varNames[i - 1] + elem
+      )
 
-    return replaceNodes(src, varNames, nodes, jscodeshift).program.body
+      return replaceNodes(src, varNames, nodes, jscodeshift).program.body
+    }
+    try {
+      const template = [..._template]
+      if (template.length > 0) {
+        template[0] = 'async () => {' + template[0]
+        template[template.length - 1] += '}'
+      }
+      return (attempt(template)[0] as any).expression.body.body
+    } catch (error) {
+      return attempt(_template)
+    }
   }
 
   function statement(
@@ -143,12 +155,11 @@ export default function withParser(
     // wrap code in `(...)` to force evaluation as expression
     const template = [..._template]
     if (template.length > 0) {
-      template[0] = 'async () => (' + template[0]
+      template[0] = '(' + template[0]
       template[template.length - 1] += ')'
     }
 
     const expression: any = (statement(template, ...nodes) as any).expression
-      .body
 
     // Remove added parens
     if (expression.extra) {

@@ -10,7 +10,7 @@ export default function compileVariableDeclaratorReplacement(
   if (pattern.id.type === 'Identifier') {
     if (pattern.init == null) {
       const captureReplacement = compileCaptureReplacement(
-        pattern,
+        path,
         pattern.id.name,
         compileOptions
       )
