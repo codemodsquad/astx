@@ -93,8 +93,7 @@ export const runTransformOnFile = (transform: Transform) => async (
           where: transform.where,
         })
         if (transform.replace) result.replace(transform.replace as any)
-        const { matches } = result
-        if (!matches.length) return false
+        if (!result.size()) return false
       }
     }
     if (typeof transformFn === 'function') {

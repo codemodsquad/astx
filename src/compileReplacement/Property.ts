@@ -10,7 +10,7 @@ export default function compilePropertyReplacement(
   if (pattern.key.type === 'Identifier') {
     if (pattern.shorthand && !pattern.computed) {
       const captureReplacement = compileCaptureReplacement(
-        pattern,
+        path,
         pattern.key.name,
         compileOptions
       )

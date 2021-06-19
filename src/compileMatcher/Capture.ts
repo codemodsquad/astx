@@ -1,8 +1,7 @@
 import { CompileOptions, MatchResult, mergeCaptures, CompiledMatcher } from './'
 import { ASTNode, ASTPath } from 'jscodeshift'
 import areASTsEqual from '../util/areASTsEqual'
-
-import getIdentifierish from '../compileReplacement/getIdentifierish'
+import convertToJSXIdentifierName from '../convertReplacement/convertToJSXIdentifierName'
 
 export function unescapeIdentifier(identifier: string): string {
   return identifier.replace(/^\$_/, '$')
@@ -36,8 +35,8 @@ export function compileArrayCaptureMatcher(
 
 export function capturesAreEquivalent(a: ASTNode, b: ASTNode): boolean {
   if (areASTsEqual(a, b)) return true
-  const aIdent = getIdentifierish(a)
-  const bIdent = getIdentifierish(b)
+  const aIdent = convertToJSXIdentifierName(a)
+  const bIdent = convertToJSXIdentifierName(b)
   return aIdent ? aIdent === bIdent : false
 }
 

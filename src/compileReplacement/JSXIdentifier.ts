@@ -8,7 +8,7 @@ export default function compileJSXIdentifierReplacement(
 ): CompiledReplacement | void {
   const pattern = path.node
   const captureReplacement = compileCaptureReplacement(
-    pattern,
+    path,
     pattern.name,
     compileOptions
   )

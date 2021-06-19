@@ -1,21 +1,6 @@
-import j, { TypeParameter, ASTPath, ASTNode } from 'jscodeshift'
+import { TypeParameter, ASTPath } from 'jscodeshift'
 import { CompiledReplacement, CompileReplacementOptions } from '.'
 import compileCaptureReplacement, { unescapeIdentifier } from './Capture'
-import getIdentifierish from './getIdentifierish'
-
-export function convertCaptureToTypeParameter(capture: ASTNode): ASTNode {
-  switch (capture.type) {
-    case 'TypeParameter':
-      return capture
-  }
-  const name = getIdentifierish(capture)
-  if (name) return j.typeParameter(name)
-  throw new Error(`converting ${capture.type} to TypeParameter isn't supported`)
-}
-
-const captureOptions = {
-  convertCapture: convertCaptureToTypeParameter,
-}
 
 export default function compileTypeParameterReplacement(
   path: ASTPath<TypeParameter>,
@@ -24,10 +9,9 @@ export default function compileTypeParameterReplacement(
   const pattern = path.node
   if (pattern.variance == null && pattern.bound == null) {
     const captureReplacement = compileCaptureReplacement(
-      pattern,
+      path,
       pattern.name,
-      compileOptions,
-      captureOptions
+      compileOptions
     )
     if (captureReplacement) return captureReplacement
   }

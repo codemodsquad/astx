@@ -10,7 +10,7 @@ export default function compileTSTypeReferenceReplacement(
   if (pattern.typeName.type === 'Identifier') {
     if (pattern.typeParameters == null) {
       const captureReplacement = compileCaptureReplacement(
-        pattern,
+        path,
         pattern.typeName.name,
         compileOptions
       )

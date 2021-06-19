@@ -1,37 +1,50 @@
 import { ASTNode } from 'jscodeshift'
 
-function isValidIdentifier(s: string) {
-  return /^[_$a-z][_$a-z0-9]*$/i.test(s)
+function isValidJSXIdentifier(s: string) {
+  return /^[_$a-z][-_$a-z0-9]*$/i.test(s)
 }
 
-export default function getIdentifierish(node: ASTNode): string | void {
+export default function convertToJSXIdentifierName(
+  node: ASTNode
+): string | void {
   switch (node.type) {
     case 'ObjectProperty':
     case 'Property':
-      if (node.shorthand) return getIdentifierish(node.key)
+      if (node.shorthand) return convertToJSXIdentifierName(node.key)
       break
+    case 'TSPropertySignature':
+      if (!node.typeAnnotation) return convertToJSXIdentifierName(node.key)
+      break
+    case 'ObjectTypeSpreadProperty':
+    case 'SpreadElement':
+    case 'SpreadProperty':
+      return convertToJSXIdentifierName(node.argument)
     case 'ExpressionStatement':
-      return getIdentifierish(node.expression)
+      return convertToJSXIdentifierName(node.expression)
     case 'Identifier':
     case 'JSXIdentifier':
       return node.name
     case 'JSXExpressionContainer':
-      return getIdentifierish(node.expression)
+      return convertToJSXIdentifierName(node.expression)
+    case 'JSXAttribute':
+      if (!node.value) return convertToJSXIdentifierName(node.name)
+      break
+    case 'JSXText':
     case 'StringLiteral':
     case 'Literal':
-      if (isValidIdentifier(String(node.value))) return String(node.value)
+      if (isValidJSXIdentifier(String(node.value))) return String(node.value)
       break
     case 'TemplateLiteral':
       if (
         node.quasis.length === 1 &&
-        isValidIdentifier(node.quasis[0].value.cooked)
+        isValidJSXIdentifier(node.quasis[0].value.cooked)
       ) {
         return node.quasis[0].value.cooked
       }
       break
     case 'TypeAnnotation':
     case 'TSTypeAnnotation':
-      return getIdentifierish(node.typeAnnotation)
+      return convertToJSXIdentifierName(node.typeAnnotation)
     case 'GenericTypeAnnotation':
       if (node.id.type !== 'Identifier' || node.typeParameters) return
       return node.id.name
@@ -48,7 +61,7 @@ export default function getIdentifierish(node: ASTNode): string | void {
       return node.name
     case 'ClassImplements':
     case 'InterfaceExtends':
-      return getIdentifierish(node.id)
+      return convertToJSXIdentifierName(node.id)
     case 'MixedTypeAnnotation':
       return 'mixed'
     case 'TSUnknownKeyword':
