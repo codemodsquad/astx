@@ -1,13 +1,13 @@
 import { CompileReplacementOptions, CompiledReplacement } from './'
 import { ASTNode, ASTPath } from 'jscodeshift'
 import { Match } from '../find'
-import cloneDeep from 'lodash/cloneDeep'
 import {
   getArrayCaptureAs,
   getCaptureAs,
   unescapeIdentifier,
 } from '../compileMatcher/Capture'
 import createReplacementConverter, { bulkConvert } from '../convertReplacement'
+import cloneNode from '../util/cloneNode'
 export { unescapeIdentifier }
 
 export function compileArrayCaptureReplacement(
@@ -25,12 +25,12 @@ export function compileArrayCaptureReplacement(
         if (captures) {
           return [
             ...bulkConvert(
-              captures.map((c) => cloneDeep(c)),
+              captures.map((c) => cloneNode(c)),
               convertReplacement
             ),
           ]
         }
-        return [...bulkConvert(cloneDeep(pattern.node), convertReplacement)]
+        return [...bulkConvert(cloneNode(pattern.node), convertReplacement)]
       },
     }
   }
@@ -48,12 +48,12 @@ export default function compileCaptureReplacement(
       generate: (match: Match): ASTNode | ASTNode[] => {
         const capture = match.captures?.[captureAs]
         if (capture) {
-          const clone = cloneDeep(capture)
+          const clone = cloneNode(capture)
           if ((capture as any).astx?.excludeTypeAnnotationFromCapture)
             delete (clone as any).typeAnnotation
           return convertReplacement(clone)
         }
-        return convertReplacement(cloneDeep(pattern.node))
+        return convertReplacement(cloneNode(pattern.node))
       },
     }
   }
