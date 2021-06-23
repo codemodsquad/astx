@@ -76,15 +76,18 @@ export function createMatch(
 
 export default function find(
   root: Collection,
-  path: ASTPath | ASTPath[],
+  pattern: ASTPath | ASTPath[],
   options?: FindOptions
 ): Match[] {
-  if (Array.isArray(path) && path.length === 1) path = path[0]
-  if (Array.isArray(path) && t.namedTypes.Statement.check(path[0]?.node)) {
-    return findStatements(root, path, options)
+  if (Array.isArray(pattern) && pattern.length === 1) pattern = pattern[0]
+  if (
+    Array.isArray(pattern) &&
+    t.namedTypes.Statement.check(pattern[0]?.node)
+  ) {
+    return findStatements(root, pattern, options)
   }
 
-  const matcher = compileMatcher(path, options)
+  const matcher = compileMatcher(pattern, options)
 
   const matches: Array<Match> = []
 
@@ -116,10 +119,10 @@ function findStatementArrayPaths(root: Collection): ASTPath[] {
 
 function findStatements(
   root: Collection,
-  paths: ASTPath[],
+  pattern: ASTPath[],
   options?: FindOptions
 ): Match[] {
-  const matchers: CompiledMatcher[] = paths.map((queryElem) =>
+  const matchers: CompiledMatcher[] = pattern.map((queryElem) =>
     compileMatcher(queryElem, options)
   )
 
