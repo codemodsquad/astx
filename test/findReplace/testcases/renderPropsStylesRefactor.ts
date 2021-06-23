@@ -171,4 +171,4 @@ const CodeInputField = (inputProps: CodeInputFieldProps): React.Node => {
 export default CodeInputField
 `
 
-// export const only = true
+export const skip = true

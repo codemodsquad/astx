@@ -2,8 +2,9 @@ import j, { TemplateLiteral, ASTPath } from 'jscodeshift'
 import { getCaptureAs } from '../compileMatcher/Capture'
 import { CompiledReplacement } from './'
 import { Match } from '../find'
-import cloneDeep from 'lodash/cloneDeep'
 import { unescapeIdentifier } from './Capture'
+
+import cloneNode from '../util/cloneNode'
 
 function generateValue(cooked: string): { raw: string; cooked: string } {
   return { raw: cooked.replace(/\\|`|\${/g, '\\$&'), cooked }
@@ -25,7 +26,7 @@ export default function compileTemplateLiteralReplacement(
                 [j.templateElement(generateValue(captured), true)],
                 []
               )
-            : cloneDeep(pattern)
+            : cloneNode(pattern)
         },
       }
     }

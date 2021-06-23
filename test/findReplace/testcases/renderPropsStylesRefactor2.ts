@@ -225,4 +225,5 @@ const Table = (inputProps: Props): React.Node => {
 
 export default Table;
 `
-// export const only = true
+
+export const skip = true
