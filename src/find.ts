@@ -1,11 +1,14 @@
-import j, { ASTPath, ASTNode, Collection } from 'jscodeshift'
+import { ASTPath, ASTNode } from 'jscodeshift'
 import mapValues from 'lodash/mapValues'
 import compileMatcher, {
   CompiledMatcher,
   MatchResult,
   mergeCaptures,
+  NodeType,
 } from './compileMatcher'
-import t from 'ast-types'
+import * as t from 'ast-types'
+
+import { forEachNode } from './variant'
 
 export type Match = {
   type: 'node' | 'nodes'
@@ -75,7 +78,7 @@ export function createMatch(
 }
 
 export default function find(
-  root: Collection,
+  paths: ASTPath[],
   pattern: ASTPath | ASTPath[],
   options?: FindOptions
 ): Match[] {
@@ -84,32 +87,30 @@ export default function find(
     Array.isArray(pattern) &&
     t.namedTypes.Statement.check(pattern[0]?.node)
   ) {
-    return findStatements(root, pattern, options)
+    return findStatements(paths, pattern, options)
   }
 
   const matcher = compileMatcher(pattern, options)
 
   const matches: Array<Match> = []
 
-  const nodeTypes = Array.isArray(matcher.nodeType)
+  const nodeTypes: NodeType[] = Array.isArray(matcher.nodeType)
     ? matcher.nodeType
     : matcher.nodeType
     ? [matcher.nodeType]
     : ['Node']
 
-  for (const nodeType of nodeTypes) {
-    root.find(j[nodeType]).forEach((path: ASTPath) => {
-      const result = matcher.match(path, options?.matchSoFar ?? null)
-      if (result) matches.push(createMatch(path, result))
-    })
-  }
+  forEachNode(paths, nodeTypes, (path: ASTPath) => {
+    const result = matcher.match(path, options?.matchSoFar ?? null)
+    if (result) matches.push(createMatch(path, result))
+  })
 
   return matches
 }
 
-function findStatementArrayPaths(root: Collection): ASTPath[] {
+function findStatementArrayPaths(paths: ASTPath[]): ASTPath[] {
   const result: ASTPath[] = []
-  root.find(j.Statement).forEach((path: ASTPath) => {
+  forEachNode(paths, ['Statement'], (path: ASTPath) => {
     const { parentPath } = path
     if (Array.isArray(parentPath.value) && parentPath.value[0] === path.node)
       result.push(parentPath)
@@ -118,7 +119,7 @@ function findStatementArrayPaths(root: Collection): ASTPath[] {
 }
 
 function findStatements(
-  root: Collection,
+  paths: ASTPath[],
   pattern: ASTPath[],
   options?: FindOptions
 ): Match[] {
@@ -220,7 +221,7 @@ function findStatements(
   // reverse order.  Otherwise, statements in an outer array could get replaced
   // before those in an inner array (for example, a function in root scope might
   // get replaced before a match within the function body gets replaced)
-  const statementArrayPaths: ASTPath = findStatementArrayPaths(root).reverse()
+  const statementArrayPaths: ASTPath = findStatementArrayPaths(paths).reverse()
 
   const matches: Match[] = []
 

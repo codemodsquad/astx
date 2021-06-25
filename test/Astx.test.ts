@@ -11,7 +11,7 @@ describe(`Astx`, function () {
     expect(
       formatMatches(
         j,
-        new Astx(j, j(`foo + bar`)).find`${j.identifier(
+        new Astx(j, j(`foo + bar`).paths()).find`${j.identifier(
           'foo'
         )} + $a`().matches()
       )
@@ -21,7 +21,7 @@ describe(`Astx`, function () {
     expect(
       formatMatches(
         j,
-        new Astx(j, j(`function foo() { foo(); bar() }`))
+        new Astx(j, j(`function foo() { foo(); bar() }`).paths())
           .find`function $fn() { $$body }`().find`$fn()`().matches()
       )
     ).to.deep.equal([
@@ -33,7 +33,7 @@ describe(`Astx`, function () {
     ])
   })
   it(`.find and .withCaptures`, function () {
-    const astx = new Astx(j, j(`function foo() { foo(); bar() }`))
+    const astx = new Astx(j, j(`function foo() { foo(); bar() }`).paths())
 
     const fnMatches = astx.find`function $fn() { $$body }`()
     expect(
@@ -47,33 +47,38 @@ describe(`Astx`, function () {
     ])
   })
   it(`.match()`, function () {
-    const astx = new Astx(j, j(`foo + bar; baz + qux, qlomb`)).find`$a + $b`()
+    const astx = new Astx(j, j(`foo + bar; baz + qux, qlomb`).paths())
+      .find`$a + $b`()
     expect(astx.match()).to.equal(astx.matches()[0])
   })
   it(`.at()`, function () {
-    const astx = new Astx(j, j(`foo + bar; baz + qux, qlomb`)).find`$a + $b`()
+    const astx = new Astx(j, j(`foo + bar; baz + qux, qlomb`).paths())
+      .find`$a + $b`()
     expect(astx.at(1).matches()).to.deep.equal([astx.matches()[1]])
   })
   it(`.filter()`, function () {
-    const astx = new Astx(j, j(`foo + bar; baz + qux, qlomb`)).find`$a + $b`()
+    const astx = new Astx(j, j(`foo + bar; baz + qux, qlomb`).paths())
+      .find`$a + $b`()
     expect(
       astx.filter((m) => (m.captures?.$a as any)?.name === 'baz').matches()
     ).to.deep.equal(astx.at(1).matches())
   })
   it(`.nodes()`, function () {
-    const astx = new Astx(j, j(`foo + bar; baz + qux, qlomb`)).find`$a + $b`()
+    const astx = new Astx(j, j(`foo + bar; baz + qux, qlomb`).paths())
+      .find`$a + $b`()
     expect(astx.length).to.be.above(0)
     expect(astx.nodes()).to.deep.equal(astx.matches().map((m) => m.node))
   })
   it(`.paths()`, function () {
-    const astx = new Astx(j, j(`foo + bar; baz + qux, qlomb`)).find`$a + $b`()
+    const astx = new Astx(j, j(`foo + bar; baz + qux, qlomb`).paths())
+      .find`$a + $b`()
     expect(astx.length).to.be.above(0)
     expect(astx.paths()).to.deep.equal(astx.matches().map((m) => m.path))
   })
   it(`.nodes() -- array capture`, function () {
     const astx = new Astx(
       j,
-      j(`const a = [1, 2, 3, 4]; const b = [1, 4, 5, 6]`)
+      j(`const a = [1, 2, 3, 4]; const b = [1, 4, 5, 6]`).paths()
     ).find`[1, $$a]`()
     expect(astx.length).to.be.above(0)
     expect(astx.nodes()).to.deep.equal(
@@ -86,7 +91,7 @@ describe(`Astx`, function () {
   it(`.paths() -- array capture`, function () {
     const astx = new Astx(
       j,
-      j(`const a = [1, 2, 3, 4]; const b = [1, 4, 5, 6]`)
+      j(`const a = [1, 2, 3, 4]; const b = [1, 4, 5, 6]`).paths()
     ).find`[1, $$a]`()
     expect(astx.length).to.be.above(0)
     expect(astx.paths()).to.deep.equal(
@@ -100,7 +105,7 @@ describe(`Astx`, function () {
     expect(
       formatMatches(
         j,
-        new Astx(j, j(`foo + bar; baz + qux`)).find`$a + $b`()
+        new Astx(j, j(`foo + bar; baz + qux`).paths()).find`$a + $b`()
           .captures('$a')
           .matches()
       )
@@ -110,7 +115,7 @@ describe(`Astx`, function () {
     expect(
       formatMatches(
         j,
-        new Astx(j, j(`const a = [1, 2, 3, 4]; const b = [1, 4, 5, 6]`))
+        new Astx(j, j(`const a = [1, 2, 3, 4]; const b = [1, 4, 5, 6]`).paths())
           .find`[1, $$a]`()
           .arrayCaptures('$$a')
           .matches()
@@ -121,7 +126,7 @@ describe(`Astx`, function () {
     expect(
       formatMatches(
         j,
-        new Astx(j, j(`foo + bar; baz + qux`).find(j.Identifier))
+        new Astx(j, j(`foo + bar; baz + qux`).find(j.Identifier).paths())
           .closest`$a + $b`().matches()
       )
     ).to.deep.equal([
@@ -133,7 +138,7 @@ describe(`Astx`, function () {
     expect(
       formatMatches(
         j,
-        new Astx(j, j(`foo + bar`)).find(j.identifier('foo')).matches()
+        new Astx(j, j(`foo + bar`).paths()).find(j.identifier('foo')).matches()
       )
     ).to.deep.equal([{ node: 'foo' }])
   })
@@ -141,7 +146,7 @@ describe(`Astx`, function () {
     expect(
       formatMatches(
         j,
-        new Astx(j, j(`1 + 2; 3 + 4`)).find`$a + $b`({
+        new Astx(j, j(`1 + 2; 3 + 4`).paths()).find`$a + $b`({
           where: { $b: (path) => path.node.value < 4 },
         }).matches()
       )
@@ -151,7 +156,7 @@ describe(`Astx`, function () {
     expect(
       formatMatches(
         j,
-        new Astx(j, j(`1 + 2; 3 + 4`)).find`$a + $b`({
+        new Astx(j, j(`1 + 2; 3 + 4`).paths()).find`$a + $b`({
           where: { $b: (path) => path.node.value < 4 },
         }).matches()
       )
@@ -159,24 +164,26 @@ describe(`Astx`, function () {
   })
   it(`.replace tagged template works`, function () {
     const root = j(`1 + 2; 3 + 4`)
-    new Astx(j, root).find`$a + $b`().replace`$b + $a`()
+    new Astx(j, root.paths()).find`$a + $b`().replace`$b + $a`()
     expect(root.toSource()).to.equal(`2 + 1; 4 + 3`)
   })
   it(`.replace tagged template after find options works`, function () {
     const root = j(`1 + 2; 3 + 4`)
-    new Astx(j, root).find`$a + $b`({
+    new Astx(j, root.paths()).find`$a + $b`({
       where: { $b: (path) => path.node.value < 4 },
     }).replace`$b + $a`()
     expect(root.toSource()).to.equal(`2 + 1; 3 + 4`)
   })
   it(`.replace tagged template interpolation works`, function () {
     const root = j(`1 + 2; 3 + 4`)
-    new Astx(j, root).find`$a + $b`().replace`$b + ${j.identifier('foo')}`()
+    new Astx(j, root.paths()).find`$a + $b`().replace`$b + ${j.identifier(
+      'foo'
+    )}`()
     expect(root.toSource()).to.equal(`2 + foo; 4 + foo`)
   })
   it(`.replace function returning parse tagged template literal works`, function () {
     const root = j(`1 + FOO; 3 + BAR`)
-    new Astx(j, root).find`$a + $b`().replace(
+    new Astx(j, root.paths()).find`$a + $b`().replace(
       (match, parse) =>
         parse`${j.identifier(
           (match.captures.$b as any).name.toLowerCase()
@@ -186,14 +193,14 @@ describe(`Astx`, function () {
   })
   it(`.replace function returning string works`, function () {
     const root = j(`1 + FOO; 3 + BAR`)
-    new Astx(j, root).find`$a + $b`().replace(
+    new Astx(j, root.paths()).find`$a + $b`().replace(
       (match) => `${(match.captures.$b as any).name.toLowerCase()} + $a`
     )
     expect(root.toSource()).to.equal(`foo + 1; bar + 3`)
   })
   it(`.replace called with string works`, function () {
     const root = j(`1 + 2; 3 + 4`)
-    new Astx(j, root).find('$a + $b').replace('$b + $a')
+    new Astx(j, root.paths()).find('$a + $b').replace('$b + $a')
     expect(root.toSource()).to.equal(`2 + 1; 4 + 3`)
   })
 })

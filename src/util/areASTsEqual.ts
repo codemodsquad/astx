@@ -1,4 +1,4 @@
-import t from 'ast-types'
+import * as t from 'ast-types'
 import { ASTNode } from 'jscodeshift'
 import shallowEqual from 'shallowequal'
 import getFieldNames from './getFieldNames'

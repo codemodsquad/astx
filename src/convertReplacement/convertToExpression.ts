@@ -1,5 +1,5 @@
 import j, { ASTNode, Expression } from 'jscodeshift'
-import t from 'ast-types'
+import * as t from 'ast-types'
 import convertToIdentifierName from './convertToIdentifierName'
 
 export default function convertToExpression(value: ASTNode): Expression | void {

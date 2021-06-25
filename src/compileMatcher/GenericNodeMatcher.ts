@@ -4,9 +4,8 @@ import compileMatcher, {
   CompileOptions,
   MatchResult,
 } from './index'
-import t, { Type } from 'ast-types'
+import * as t from 'ast-types'
 import indentDebug from './indentDebug'
-
 import getFieldNames from '../util/getFieldNames'
 
 const equivalenceClassesArray: {
@@ -50,7 +49,7 @@ export default function compileGenericNodeMatcher(
   const nodeType =
     baseType || (nodeTypes ? [...nodeTypes] : null) || pattern.type
 
-  const namedType: Type<any> = baseType ? (t.namedTypes[baseType] as any) : null
+  const namedType: any = baseType ? (t.namedTypes[baseType] as any) : null
 
   const isCorrectType = namedType
     ? (node: ASTNode) => namedType.check(node)
@@ -65,17 +64,18 @@ export default function compileGenericNodeMatcher(
       .map((key: string): [string, CompiledMatcher] => {
         const custom = options?.keyMatchers?.[key]
         if (custom) return [key, custom]
-        const value = (pattern as any)[key]
+        const value = t.getFieldValue(pattern, key)
         if (typeof value !== 'object' || value == null) {
           return [
             key,
             {
               match: (path: ASTPath, matchSoFar: MatchResult): MatchResult => {
-                if (value !== path.node[key]) {
-                  debug('    %s !== %s', value, path.node[key])
+                const nodeValue = t.getFieldValue(path.node, key)
+                if (value !== nodeValue) {
+                  debug('    %s !== %s', value, nodeValue)
                   return null
                 } else {
-                  debug('    %s === %s', value, path.node[key])
+                  debug('    %s === %s', value, nodeValue)
                   return matchSoFar || {}
                 }
               },

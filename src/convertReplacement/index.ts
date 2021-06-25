@@ -1,5 +1,5 @@
 import { ASTNode, ASTPath } from 'jscodeshift'
-import t from 'ast-types'
+import * as t from 'ast-types'
 import convertJSXChildReplacement from './convertJSXChildReplacement'
 import convertJSXAttributeValueReplacement from './convertJSXAttributeValueReplacement'
 import TypeParameter from './convertTypeParameterReplacement'

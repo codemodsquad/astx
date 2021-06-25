@@ -30,19 +30,6 @@
       "env": {
         "BABEL_ENV": "development"
       }
-    },
-    {
-      "type": "node",
-      "request": "launch",
-      "name": "Debug mqtt-broker",
-      "program": "${workspaceFolder}/src/cli/index.ts",
-      "cwd": "/Users/andy/github/mqtt-broker",
-      "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/babel-node",
-      "runtimeArgs": ["--nolazy", "--extensions", ".ts"],
-      "args": ["test/integration/SessionStoreTests.js"],
-      "env": {
-        "BABEL_ENV": "development"
-      }
     }
   ]
 }
