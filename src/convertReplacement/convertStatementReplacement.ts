@@ -1,5 +1,5 @@
 import j, { ASTNode } from 'jscodeshift'
-import t from 'ast-types'
+import * as t from 'ast-types'
 
 import convertToExpression from './convertToExpression'
 

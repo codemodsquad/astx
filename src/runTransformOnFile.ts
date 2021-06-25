@@ -1,6 +1,5 @@
 import jscodeshift, {
   ASTNode,
-  Collection,
   Expression,
   Parser,
   Statement,
@@ -22,7 +21,6 @@ type TransformOptions = {
   path: string
   /** The source code of the current file. */
   source: string
-  root: Collection
   astx: Astx
   expression(strings: TemplateStringsArray, ...quasis: any[]): Expression
   statement(strings: TemplateStringsArray, ...quasis: any[]): Statement
@@ -33,9 +31,7 @@ type TransformOptions = {
 }
 
 export type Transform = {
-  astx?: (
-    options: TransformOptions
-  ) => Collection | string | null | undefined | void
+  astx?: (options: TransformOptions) => string | null | undefined | void
   parser?: string | Parser
   find?: string | ASTNode
   replace?: string | GetReplacement
@@ -93,6 +89,7 @@ export const runTransformOnFile = (transform: Transform) => async (
           where: transform.where,
         })
         if (transform.replace) result.replace(transform.replace as any)
+        matches = result.matches()
         if (!result.size()) return false
       }
     }
@@ -107,17 +104,15 @@ export const runTransformOnFile = (transform: Transform) => async (
           reports.push(msg)
         },
         ...template,
-        root,
-        astx: new Astx(j, root),
+        astx: new Astx(j, root.paths()),
       }
       const [_result, prettier] = await Promise.all([
         transformFn(options),
         getPrettier(Path.dirname(file)),
       ])
       transformed = _result
-      if (transformed === undefined) transformed = root
+      if (transformed === undefined) transformed = root.toSource()
       if (transformed === false) transformed = undefined
-      if (transformed instanceof Object) transformed = transformed.toSource()
       if (
         prettier &&
         typeof transformed === 'string' &&

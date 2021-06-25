@@ -6,6 +6,7 @@ import compileReplacement, {
 } from './index'
 import { Match } from '../find'
 import indentDebug from '../compileMatcher/indentDebug'
+import * as t from 'ast-types'
 
 export default function compileGenericNodeReplacement(
   path: ASTPath,
@@ -19,7 +20,7 @@ export default function compileGenericNodeReplacement(
 
   for (const key of getFieldNames(pattern)) {
     if (key === 'type' || key === 'extra') continue
-    const value = (pattern as any)[key]
+    const value = t.getFieldValue(pattern, key)
     if (typeof value !== 'object' || value == null) {
       propertyValues.push([key, value])
     } else {

@@ -105,14 +105,14 @@ describe(`find`, function () {
 
             if (expectedFind) {
               const matches = find(
-                root,
+                root.paths(),
                 j(parseFindOrReplace(j, [_find] as any)).paths(),
                 where ? { ...findOptions, where } : findOptions
               )
               expect(formatMatches(j, matches)).to.deep.equal(expectedFind)
             }
             if (expectedReplace) {
-              const astx = new Astx(j, root)
+              const astx = new Astx(j, root.paths())
               astx.find(_find, { ...findOptions, where }).replace(_replace)
               const actual = root.toSource()
               expect(format(actual)).to.deep.equal(format(expectedReplace))

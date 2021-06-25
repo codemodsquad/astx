@@ -1,5 +1,5 @@
 import { ASTPath, ASTNode } from 'jscodeshift'
-import t from 'ast-types'
+import * as t from 'ast-types'
 import __debug, { Debugger } from 'debug'
 import BooleanLiteral from './BooleanLiteral'
 import CallExpression from './CallExpression'
