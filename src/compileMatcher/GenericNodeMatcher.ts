@@ -4,7 +4,8 @@ import compileMatcher, {
   CompileOptions,
   MatchResult,
 } from './index'
-import t, { Type } from 'ast-types'
+import * as t from 'ast-types'
+import { Type } from 'ast-types'
 import indentDebug from './indentDebug'
 
 import getFieldNames from '../util/getFieldNames'
@@ -47,7 +48,7 @@ export default function compileGenericNodeMatcher(
   const { baseType, nodeTypes } = equivalenceClasses[query.type] || {}
   const nodeType = baseType || (nodeTypes ? [...nodeTypes] : null) || query.type
 
-  const namedType: Type<any> = baseType ? (t.namedTypes[baseType] as any) : null
+  const namedType: any = baseType ? (t.namedTypes[baseType] as any) : null
 
   const isCorrectType = namedType
     ? (node: ASTNode) => namedType.check(node)

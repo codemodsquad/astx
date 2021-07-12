@@ -5,8 +5,9 @@ import j, {
   Expression,
   Identifier,
   Statement,
+  JSXAttribute,
 } from 'jscodeshift'
-import t from 'ast-types'
+import * as t from 'ast-types'
 import find, { Match, StatementsMatch } from './find'
 import cloneDeep from 'lodash/cloneDeep'
 
@@ -89,6 +90,7 @@ function getCaptureHolder(path: ASTPath<any>): ASTPath<any> | null {
     if (path.parentPath.node?.type === 'Statement') return null
     path = path.parentPath
   }
+  return null
 }
 
 export function replaceArrayCaptures(
@@ -140,7 +142,7 @@ export function replaceArrayCaptures(
     .forEach(doReplace)
   j([path])
     .find(j.JSXAttribute)
-    .filter((path: ASTPath<Identifier>): boolean => {
+    .filter((path: ASTPath<JSXAttribute>): boolean => {
       const { parentPath: parent } = path
       return parent.node.type !== 'JSXAttribute' || parent.node.value == null
     })
@@ -194,7 +196,7 @@ function ensureStatements(
 ): Statement[] {
   if (Array.isArray(value)) return value
   if (t.namedTypes.Statement.check(value)) return [value]
-  return [j.expressionStatement(value as Expression)]
+  return [j.expressionStatement(value as any)]
 }
 
 export function replaceStatementsMatches(

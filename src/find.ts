@@ -94,9 +94,9 @@ export default function find<Node extends ASTNode>(
   return matches
 }
 
-function findStatementArrayPaths(root: Collection): ASTPath[] {
-  const result: ASTPath[] = []
-  root.find(j.Statement).forEach((path: ASTPath) => {
+function findStatementArrayPaths(root: Collection): ASTPath<Statement[]>[] {
+  const result: ASTPath<Statement[]>[] = []
+  root.find(j.Statement).forEach((path: ASTPath<Statement>) => {
     const { parentPath } = path
     if (Array.isArray(parentPath.value) && parentPath.value[0] === path.node)
       result.push(parentPath)
@@ -130,7 +130,7 @@ function findStatements(
   }
 
   function slicePath(
-    path: ASTPath,
+    path: ASTPath<Statement[]>,
     start: number,
     end: number = path.value.length
   ): ASTPath[] {
@@ -142,7 +142,7 @@ function findStatements(
   }
 
   function matchElem(
-    path: ASTPath,
+    path: ASTPath<Statement[]>,
     sliceStart: number,
     arrayIndex: number,
     matcherIndex: number,
@@ -207,7 +207,7 @@ function findStatements(
   // reverse order.  Otherwise, statements in an outer array could get replaced
   // before those in an inner array (for example, a function in root scope might
   // get replaced before a match within the function body gets replaced)
-  const paths: ASTPath = findStatementArrayPaths(root).reverse()
+  const paths = findStatementArrayPaths(root).reverse()
 
   const matches: StatementsMatch[] = []
 

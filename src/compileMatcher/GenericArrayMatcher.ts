@@ -30,7 +30,7 @@ export default function compileGenericArrayMatcher(
   function slicePath(
     path: ASTPath,
     start: number,
-    end: number = path.value.length
+    end: number = (path.value as any).length
   ): ASTPath[] {
     const result = []
     for (let i = start; i < end; i++) {
@@ -46,7 +46,7 @@ export default function compileGenericArrayMatcher(
     matcherIndex: number,
     matchSoFar: MatchResult
   ): MatchResult {
-    if (arrayIndex === path.value.length) {
+    if (arrayIndex === (path.value as any).length) {
       return remainingElements(matcherIndex) === 0 ? matchSoFar || {} : null
     }
     if (matcherIndex === matchers.length) return null
@@ -72,7 +72,7 @@ export default function compileGenericArrayMatcher(
       const origMatchSoFar = matchSoFar
       const prevArrayCaptureAs = matchers[matcherIndex - 1]?.arrayCaptureAs
       const end = prevArrayCaptureAs
-        ? path.value.length - remainingElements(matcherIndex + 1)
+        ? (path.value as any).length - remainingElements(matcherIndex + 1)
         : arrayIndex + 1
       for (let i = arrayIndex; i < end; i++) {
         matchSoFar = matcher.match(path.get(i), origMatchSoFar)

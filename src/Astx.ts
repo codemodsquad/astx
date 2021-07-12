@@ -8,7 +8,7 @@ import {
 import find, { FindOptions, Match, StatementsMatch } from './find'
 import { replaceMatches, replaceStatementsMatches } from './replace'
 import parseFindOrReplace from './util/parseFindOrReplace'
-import t from 'ast-types'
+import * as t from 'ast-types'
 import template from './util/template'
 
 export type ParseTag = (
