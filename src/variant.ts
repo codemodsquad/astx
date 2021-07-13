@@ -1,13 +1,13 @@
-import { ASTPath, ASTNode } from 'jscodeshift'
+import { ASTPath } from 'jscodeshift'
 import { NodeType } from './compileMatcher'
 import { visit, Visitor } from 'ast-types'
 
 export function forEachNode(
-  paths: ASTPath[],
+  paths: ASTPath<any>[],
   nodeTypes: NodeType[],
-  iteratee: (node: ASTNode) => void
+  iteratee: (path: ASTPath<any>) => void
 ): void {
-  function visitNode(this: any, path: ASTPath) {
+  function visitNode(this: any, path: ASTPath<any>) {
     iteratee(path)
     this.traverse(path)
   }
@@ -16,5 +16,5 @@ export function forEachNode(
     ;(visitor as any)[`visit${nodeType}`] = visitNode
   }
 
-  paths.forEach((path: ASTPath) => visit(path, visitor))
+  paths.forEach((path: ASTPath<any>) => visit(path as any, visitor))
 }

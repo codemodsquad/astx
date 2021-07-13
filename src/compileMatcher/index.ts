@@ -155,7 +155,7 @@ export function convertPredicateMatcher(
 }
 
 export default function compileMatcher(
-  path: ASTPath,
+  path: ASTPath<any>,
   rootCompileOptions: RootCompileOptions = {}
 ): CompiledMatcher {
   const { debug = _debug } = rootCompileOptions

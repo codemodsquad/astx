@@ -31,7 +31,7 @@ type TransformOptions = {
 }
 
 export type Transform = {
-  astx?: (options: TransformOptions) => string | null | undefined | void
+  astx?: (options: TransformOptions) => string | false | null | undefined | void
   parser?: string | Parser
   find?: string | ASTNode
   replace?: string | GetReplacement
@@ -85,9 +85,12 @@ export const runTransformOnFile = (transform: Transform) => async (
 
     if (typeof transformFn !== 'function' && transform.find) {
       transformFn = ({ astx }): any => {
-        const result = astx.find(transform.find as any, {
-          where: transform.where,
-        })
+        const result = astx.find(
+          transform.find as string | ASTNode | ASTNode[],
+          {
+            where: transform.where,
+          }
+        )
         if (transform.replace) result.replace(transform.replace as any)
         matches = result.matches()
         if (!result.size()) return false

@@ -33,14 +33,14 @@ export type FindOptions = {
 
 export default class Astx {
   jscodeshift: JSCodeshift
-  private _paths: ASTPath[]
+  private _paths: ASTPath<any>[]
   private _matches: Match[]
   private _parseTag: ParseTag
   private _withCaptures: Match[]
 
   constructor(
     jscodeshift: JSCodeshift,
-    paths: ASTPath[] | Match[],
+    paths: ASTPath<any>[] | Match[],
     { withCaptures = [] }: { withCaptures?: Match[] } = {}
   ) {
     this.jscodeshift = jscodeshift
@@ -98,8 +98,11 @@ export default class Astx {
     return new Astx(this.jscodeshift, [this._matches[index]])
   }
 
-  on(root: ASTPath | ASTPath[] | Match | Match[]): Astx {
-    return new Astx(this.jscodeshift, Array.isArray(root) ? root : [root])
+  on(root: ASTPath<any> | ASTPath<any>[] | Match | Match[]): Astx {
+    return new Astx(
+      this.jscodeshift,
+      Array.isArray(root) ? root : ([root] as ASTPath<any>[] | Match[])
+    )
   }
 
   withCaptures(
@@ -187,26 +190,42 @@ export default class Astx {
     strings: TemplateStringsArray,
     ...quasis: any[]
   ): (options?: FindOptions) => Astx
-  closest(pattern: string | ASTNode | ASTNode[], options?: FindOptions): Astx
   closest(
-    arg0: string | ASTNode | ASTNode[] | TemplateStringsArray,
+    pattern: string | ASTNode | ASTNode[] | ASTPath<any> | ASTPath<any>[],
+    options?: FindOptions
+  ): Astx
+  closest(
+    arg0:
+      | string
+      | ASTNode
+      | ASTNode[]
+      | ASTPath<any>
+      | ASTPath<any>[]
+      | TemplateStringsArray,
     ...rest: any[]
   ): Astx | ((options?: FindOptions) => Astx) {
-    let paths, options: FindOptions | undefined
+    let paths: ASTPath<any>[], options: FindOptions | undefined
     if (typeof arg0 === 'string') {
       paths = this.jscodeshift(
-        parseFindOrReplace(this.jscodeshift, [arg0] as any)
+        parseFindOrReplace(this.jscodeshift, [arg0] as any) as
+          | ASTNode
+          | ASTNode[]
       ).paths()
       options = rest[0]
     } else if (isNode(arg0) || isNodeArray(arg0)) {
       paths = this.jscodeshift(arg0).paths()
       options = rest[0]
-    } else if (isNodePath(arg0) || isNodePathArray(arg0)) {
+    } else if (isNodePath(arg0)) {
+      paths = [arg0]
+      options = rest[0]
+    } else if (isNodePathArray(arg0)) {
       paths = arg0
       options = rest[0]
     } else {
       const finalPaths = this.jscodeshift(
-        parseFindOrReplace(this.jscodeshift, arg0 as any, ...rest)
+        parseFindOrReplace(this.jscodeshift, arg0 as any, ...rest) as
+          | ASTNode
+          | ASTNode[]
       ).paths()
       return (options?: FindOptions) => this.closest(finalPaths, options) as any
     }
@@ -240,17 +259,25 @@ export default class Astx {
     ...quasis: any[]
   ): (options?: FindOptions) => Astx
   find(
-    pattern: string | ASTNode | ASTNode[] | ASTPath | ASTPath[],
+    pattern: string | ASTNode | ASTNode[] | ASTPath<any> | ASTPath<any>[],
     options?: FindOptions
   ): Astx
   find(
-    arg0: string | ASTNode | ASTNode[] | TemplateStringsArray,
+    arg0:
+      | string
+      | ASTNode
+      | ASTNode[]
+      | ASTPath<any>
+      | ASTPath<any>[]
+      | TemplateStringsArray,
     ...rest: any[]
   ): Astx | ((options?: FindOptions) => Astx) {
     let pattern, options: FindOptions | undefined
     if (typeof arg0 === 'string') {
       pattern = this.jscodeshift(
-        parseFindOrReplace(this.jscodeshift, [arg0] as any)
+        parseFindOrReplace(this.jscodeshift, [arg0] as any) as
+          | ASTNode
+          | ASTNode[]
       ).paths()
       options = rest[0]
     } else if (isNode(arg0) || isNodeArray(arg0)) {
@@ -261,7 +288,9 @@ export default class Astx {
       options = rest[0]
     } else {
       const finalPaths = this.jscodeshift(
-        parseFindOrReplace(this.jscodeshift, arg0 as any, ...rest)
+        parseFindOrReplace(this.jscodeshift, arg0 as any, ...rest) as
+          | ASTNode
+          | ASTNode[]
       ).paths()
       return (options?: FindOptions) => this.find(finalPaths, options) as any
     }
