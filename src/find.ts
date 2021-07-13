@@ -1,4 +1,4 @@
-import { ASTPath, ASTNode } from 'jscodeshift'
+import { ASTPath, ASTNode, Statement } from 'jscodeshift'
 import mapValues from 'lodash/mapValues'
 import compileMatcher, {
   CompiledMatcher,
@@ -12,13 +12,13 @@ import { forEachNode } from './variant'
 
 export type Match = {
   type: 'node' | 'nodes'
-  path: ASTPath
+  path: ASTPath<any>
   node: ASTNode
-  paths: ASTPath[]
+  paths: ASTPath<any>[]
   nodes: ASTNode[]
-  pathCaptures?: Record<string, ASTPath>
+  pathCaptures?: Record<string, ASTPath<any>>
   captures?: Record<string, ASTNode>
-  arrayPathCaptures?: Record<string, ASTPath[]>
+  arrayPathCaptures?: Record<string, ASTPath<any>[]>
   arrayCaptures?: Record<string, ASTNode[]>
   stringCaptures?: Record<string, string>
 }
@@ -41,7 +41,7 @@ export function convertWithCaptures(matches: Match | Match[]): MatchResult {
 }
 
 export function createMatch(
-  paths: ASTPath | ASTPath[],
+  paths: ASTPath<any> | ASTPath<any>[],
   result: MatchResult
 ): Match {
   if (!result) {
@@ -61,7 +61,7 @@ export function createMatch(
         node: paths.node,
         path: paths,
         nodes: [paths.node],
-        paths,
+        paths: [paths],
       }
   if (captures) {
     match.pathCaptures = captures
@@ -78,8 +78,8 @@ export function createMatch(
 }
 
 export default function find(
-  paths: ASTPath[],
-  pattern: ASTPath | ASTPath[],
+  paths: ASTPath<any>[],
+  pattern: ASTPath<any> | ASTPath<any>[],
   options?: FindOptions
 ): Match[] {
   if (Array.isArray(pattern) && pattern.length === 1) pattern = pattern[0]
@@ -90,7 +90,7 @@ export default function find(
     return findStatements(paths, pattern, options)
   }
 
-  const matcher = compileMatcher(pattern, options)
+  const matcher = compileMatcher(pattern as ASTPath<any>, options)
 
   const matches: Array<Match> = []
 
@@ -100,7 +100,7 @@ export default function find(
     ? [matcher.nodeType]
     : ['Node']
 
-  forEachNode(paths, nodeTypes, (path: ASTPath) => {
+  forEachNode(paths, nodeTypes, (path: ASTPath<any>) => {
     const result = matcher.match(path, options?.matchSoFar ?? null)
     if (result) matches.push(createMatch(path, result))
   })
@@ -108,8 +108,10 @@ export default function find(
   return matches
 }
 
-function findStatementArrayPaths(paths: ASTPath[]): ASTPath[] {
-  const result: ASTPath[] = []
+function findStatementArrayPaths(
+  paths: ASTPath<any>[]
+): ASTPath<Statement[]>[] {
+  const result: ASTPath<Statement[]>[] = []
   forEachNode(paths, ['Statement'], (path: ASTPath) => {
     const { parentPath } = path
     if (Array.isArray(parentPath.value) && parentPath.value[0] === path.node)
@@ -119,8 +121,8 @@ function findStatementArrayPaths(paths: ASTPath[]): ASTPath[] {
 }
 
 function findStatements(
-  paths: ASTPath[],
-  pattern: ASTPath[],
+  paths: ASTPath<any>[],
+  pattern: ASTPath<Statement>[],
   options?: FindOptions
 ): Match[] {
   const matchers: CompiledMatcher[] = pattern.map((queryElem) =>
@@ -144,7 +146,7 @@ function findStatements(
   }
 
   function slicePath(
-    path: ASTPath,
+    path: ASTPath<Statement[]>,
     start: number,
     end: number = path.value.length
   ): ASTPath[] {
@@ -156,7 +158,7 @@ function findStatements(
   }
 
   function matchElem(
-    path: ASTPath,
+    path: ASTPath<Statement[]>,
     sliceStart: number,
     arrayIndex: number,
     matcherIndex: number,
@@ -221,7 +223,9 @@ function findStatements(
   // reverse order.  Otherwise, statements in an outer array could get replaced
   // before those in an inner array (for example, a function in root scope might
   // get replaced before a match within the function body gets replaced)
-  const statementArrayPaths: ASTPath = findStatementArrayPaths(paths).reverse()
+  const statementArrayPaths: ASTPath<Statement[]>[] = findStatementArrayPaths(
+    paths
+  ).reverse()
 
   const matches: Match[] = []
 
