@@ -46,7 +46,7 @@ export type CompileReplacementOptions = {
 const nodeCompilers: Record<
   string,
   (
-    pattern: ASTPath,
+    pattern: ASTPath<any>,
     options: CompileReplacementOptions
   ) => CompiledReplacement | undefined | void
 > = {

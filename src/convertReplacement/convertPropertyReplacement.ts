@@ -11,10 +11,10 @@ export default function convertPropertyReplacement(node: ASTNode): ASTNode {
       return node
     case 'ObjectTypeSpreadProperty': {
       const expr = convertToExpression(node)
-      if (expr) return j.SpreadProperty(expr)
+      if (expr) return j.spreadProperty(expr as any)
     }
   }
   const keyValue = convertToIdentifierExpressionPair(node)
-  if (keyValue) return j.objectProperty(keyValue[0], keyValue[1])
+  if (keyValue) return j.objectProperty(keyValue[0], keyValue[1] as any)
   return node
 }

@@ -3,10 +3,14 @@ import {
   ExpressionStatement,
   JSCodeshift,
   Statement,
+  ASTPath,
+  ASTNode,
+  Node,
 } from 'jscodeshift'
 import template from './template'
+import { forEachNode, getPath } from '../variant'
 
-export default function parseFindOrReplace(
+function parseFindOrReplace0(
   j: JSCodeshift,
   strings: TemplateStringsArray,
   ...quasis: any[]
@@ -24,4 +28,27 @@ export default function parseFindOrReplace(
     // fallthrough
   }
   return expression(strings, ...quasis)
+}
+
+export default function parseFindOrReplace(
+  j: JSCodeshift,
+  strings: TemplateStringsArray,
+  ...quasis: any[]
+): Expression | Statement | Statement[] {
+  const ast = parseFindOrReplace0(j, strings, ...quasis)
+  let extractedNode: Node | undefined
+  forEachNode(
+    Array.isArray(ast)
+      ? ast.map((n) => getPath(n as ASTNode))
+      : [getPath(ast as ASTNode)],
+    ['Node'],
+    (path: ASTPath<Node>) => {
+      if (path.node.comments) {
+        for (const c of path.node.comments) {
+          if (!c.value) extractedNode = path.node
+        }
+      }
+    }
+  )
+  return extractedNode || ast
 }

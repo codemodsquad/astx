@@ -13,5 +13,6 @@ export default function convertJSXAttributeValueReplacement(
     case 'JSXText':
       return j.jsxText(node.value)
   }
-  return j.jsxExpressionContainer(convertToExpression(node))
+  const expr = convertToExpression(node)
+  return expr ? j.jsxExpressionContainer(expr as any) : node
 }

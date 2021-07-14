@@ -3,7 +3,7 @@ import { CompileOptions, convertPredicateMatcher, CompiledMatcher } from './'
 import { compileStringCaptureMatcher } from './Capture'
 
 export default function matchStringLiteral(
-  path: ASTPath,
+  path: ASTPath<any>,
   compileOptions: CompileOptions
 ): CompiledMatcher {
   const pattern: StringLiteral = path.node
@@ -12,6 +12,7 @@ export default function matchStringLiteral(
     (pattern) => pattern.value,
     compileOptions
   )
+
   if (captureMatcher) return captureMatcher
 
   return convertPredicateMatcher(
@@ -21,6 +22,7 @@ export default function matchStringLiteral(
 
       match: (path: ASTPath): boolean => {
         const { node } = path
+
         return node.type === 'StringLiteral' && pattern.value === node.value
       },
 

@@ -3,10 +3,11 @@ import { CompiledMatcher, CompileOptions } from '.'
 import compileCaptureMatcher, { unescapeIdentifier } from './Capture'
 
 export default function compileTSTypeParameterMatcher(
-  path: ASTPath,
+  path: ASTPath<any>,
   compileOptions: CompileOptions
 ): CompiledMatcher | void {
   const pattern: TSTypeParameter = path.node
+
   if (
     pattern.constraint == null &&
     pattern.typeAnnotation == null &&
@@ -14,7 +15,9 @@ export default function compileTSTypeParameterMatcher(
     !pattern.optional
   ) {
     const captureMatcher = compileCaptureMatcher(pattern.name, compileOptions)
+
     if (captureMatcher) return captureMatcher
   }
+
   pattern.name = unescapeIdentifier(pattern.name)
 }

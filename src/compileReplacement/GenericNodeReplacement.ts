@@ -9,10 +9,11 @@ import indentDebug from '../compileMatcher/indentDebug'
 import * as t from 'ast-types'
 
 export default function compileGenericNodeReplacement(
-  path: ASTPath,
+  path: ASTPath<any>,
   compileOptions: CompileReplacementOptions
 ): CompiledReplacement {
   const pattern = path.node
+
   const { debug } = compileOptions
 
   const propertyValues: [string, any][] = []
@@ -20,7 +21,9 @@ export default function compileGenericNodeReplacement(
 
   for (const key of getFieldNames(pattern)) {
     if (key === 'type' || key === 'extra') continue
+
     const value = t.getFieldValue(pattern, key)
+
     if (typeof value !== 'object' || value == null) {
       propertyValues.push([key, value])
     } else {
@@ -36,14 +39,20 @@ export default function compileGenericNodeReplacement(
 
   return {
     generate: (match: Match): ASTNode | ASTNode[] => {
-      const result: any = { type: pattern.type }
+      const result: any = {
+        type: pattern.type,
+      }
+
       for (const [key, replacement] of childReplacements) {
         const value = replacement.generate(match)
+
         if (value !== undefined) result[key] = value
       }
+
       for (const [key, value] of propertyValues) {
         if (value !== undefined) result[key] = value
       }
+
       return result
     },
   }

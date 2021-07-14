@@ -22,34 +22,52 @@ Super powerful structural search and replace for JavaScript and TypeScript to au
 - [Prior art and philosophy](#prior-art-and-philosophy)
 - [API](#api)
   - [class Astx](#class-astx)
-    - [`constructor(jscodeshift: JSCodeshift, root: Collection)`](#constructorjscodeshift-jscodeshift-root-collection)
-    - [`.on(root: Collection)`](#onroot-collection)
-    - [`.find()`](#find)
+    - [`constructor(jscodeshift: JSCodeshift, paths: ASTPath<any>[] | Match[], options?: { withCaptures?: Match[] })`](#constructorjscodeshift-jscodeshift-paths-astpathany--match-options--withcaptures-match-)
+    - [`.find(...)` (`Astx`)](#find-astx)
+    - [`.closest(...)` (`Astx`)](#closest-astx)
     - [`FindOptions`](#findoptions)
       - [`FindOptions.where` (`{ [captureName: string]: (path: ASTPath<any>) => boolean }`)](#findoptionswhere--capturename-string-path-astpathany--boolean-)
       - [`FindOptions.withCaptures` (`Match | Match[]`)](#findoptionswithcaptures-match--match)
-    - [`.find().replace()`](#findreplace)
+    - [`.find(...).replace(...)` (`void`)](#findreplace-void)
+    - [`size()` (`number`)](#size-number)
+    - [`length` (`number`)](#length-number)
+    - [`matches()` (`Match[]`)](#matches-match)
+    - [`match()` (`Match`)](#match-match)
+    - [`paths()` (`ASTPath[]`)](#paths-astpath)
+    - [`nodes()` (`ASTNode[]`)](#nodes-astnode)
+    - [`.filter(iteratee)` (`Astx`)](#filteriteratee-astx)
+    - [`.at(index)` (`Astx`)](#atindex-astx)
+    - [`.withCaptures(matches)` (`Astx`)](#withcapturesmatches-astx)
+    - [`.captures(name)` (`Astx`)](#capturesname-astx)
+    - [`.captureNode(name)` (`ASTNode | null`)](#capturenodename-astnode--null)
+    - [`.capturePath(name)` (`ASTPath<any> | null`)](#capturepathname-astpathany--null)
+    - [`.arrayCaptures(name)` (`Astx`)](#arraycapturesname-astx)
+    - [`arrayCaptureNodes(name)` (`ASTNode[] | null`)](#arraycapturenodesname-astnode--null)
+    - [`arrayCapturePaths(name)` (`ASTPath<any>[] | null`)](#arraycapturepathsname-astpathany--null)
+    - [`stringCapture(name)` (`string | null`)](#stringcapturename-string--null)
   - [Match](#match)
     - [`type`](#type)
     - [`.path`](#path)
     - [`.node`](#node)
-    - [`.path`](#path-1)
+    - [`.paths`](#paths)
     - [`.nodes`](#nodes)
     - [`.captures`](#captures)
     - [`.pathCaptures`](#pathcaptures)
     - [`.arrayCaptures`](#arraycaptures)
     - [`.arrayPathCaptures`](#arraypathcaptures)
-  - [class MatchArray](#class-matcharray)
+    - [`.stringCaptures`](#stringcaptures)
 - [Match Patterns](#match-patterns)
   - [Object Matching](#object-matching)
   - [List Matching](#list-matching)
-  - [String Matching](#string-matching)
     - [Support Table](#support-table)
+  - [String Matching](#string-matching)
+  - [Extracting nodes](#extracting-nodes)
   - [| Backreferences](#-backreferences)
 - [Transform files](#transform-files)
   - [`exports.find` (optional)](#exportsfind-optional)
   - [`exports.where` (optional)](#exportswhere-optional)
   - [`exports.replace` (optional)](#exportsreplace-optional)
+  - [`exports.parser` (optional)](#exportsparser-optional)
   - [`exports.astx` (optional)](#exportsastx-optional)
 - [CLI](#cli)
 
@@ -196,22 +214,25 @@ import j from 'jscodeshift'
 const astx = new Astx(j, j('your code here'))
 ```
 
-### `constructor(jscodeshift: JSCodeshift, root: Collection)`
+### `constructor(jscodeshift: JSCodeshift, paths: ASTPath<any>[] | Match[], options?: { withCaptures?: Match[] })`
 
 `jscodeshift` must be configured with your desired parser for methods to work correctly.
 For instance, if you're using TypeScript, it could be `require('jscodeshift').withParser('ts')`.
 
-`root` is the JSCodeshift Collection you want to operate on.
+`paths` specifies the `ASTPath`s or `Match`es you want `Astx` methods
+to search/operate on.
 
-### `.on(root: Collection)`
+### `.find(...)` (`Astx`)
 
-Returns a different `Astx` instance for the given `root`. Use this if you want to filter down which nodes to operate on.
+Finds matches for the given pattern within this instance's starting paths and returns an `Astx` instance containing the matches.
 
-### `.find()`
+If you call `astx.find('foo($$args)')` on the initial instance passed to your transform function, it will find all calls to `foo` within the file, and return those matches in a new `Astx` instance.
 
-Finds matches for the given pattern within `root`, and returns a `MatchArray` containing the matches.
+Methods on the returned instance will operate only on the matched paths.
 
-You can call `.find` as an method or tagged template literal:
+For example if you do `astx.find('foo($$args)').find('$a + $b')`, the second `find` call will only search for `$a + $b` within matches to `foo($$args)`, rather than anywhere in the file.
+
+You can call `.find` as a method or tagged template literal:
 
 - `` .find`pattern`(options?: FindOptions) ``
 - `.find(pattern: string | ASTNode | ASTNode[] | ASTPath | ASTPath[], options?: FindOptions)`
@@ -234,6 +255,10 @@ astx.findStatements`
 
 This would match (for example) the statements `const foo = 1; const bar = foo + 5;`, with any number of statements between them.
 
+### `.closest(...)` (`Astx`)
+
+Like `.find()`, but searches up the AST ancestors instead of down into descendants; finds the closest enclosing node of each input path that matches the given pattern.
+
 ### `FindOptions`
 
 An object with the following optional properties:
@@ -248,7 +273,7 @@ to `foo` or `bar`.
 
 Allows you to backreference captures in matches from previous find operations.
 
-### `.find().replace()`
+### `.find(...).replace(...)` (`void`)
 
 Finds and replaces matches for the given pattern within `root`.
 
@@ -271,6 +296,84 @@ astx
   .replace(({ captures: { $fn } }) => `${$fn.name.toUpperCase()}()`)
 ```
 
+### `size()` (`number`)
+
+Returns the number of matches from the `.find()` or `.closest()` call that returned this instance.
+
+### `length` (`number`)
+
+Synonym for `size()`.
+
+### `matches()` (`Match[]`)
+
+Gets the matches from the `.find()` or `.closest()` call that returned this instance.
+
+### `match()` (`Match`)
+
+Gets the first match from the `.find()` or `.closest()` call that returned this instance.
+
+Throws an error if there were no matches.
+
+### `paths()` (`ASTPath[]`)
+
+Returns the paths that `.find()` and `.closest()` will search within.
+If this instance was returned by `.find()` or `.closest()`, these are
+the paths of nodes that matched the search pattern.
+
+### `nodes()` (`ASTNode[]`)
+
+Returns the nodes that `.find()` and `.closest()` will search within.
+If this instance was returned by `.find()` or `.closest()`, these are
+the nodes that matched the search pattern.
+
+### `.filter(iteratee)` (`Astx`)
+
+Filters the matches.
+
+`iteratee` is function that will be called with `match: Match, index: number, matches: Match[]` and returns `true` or `false`. Only matches for which `iteratee` returns `true` will be included in the result.
+
+### `.at(index)` (`Astx`)
+
+Selects the match at the given `index`.
+
+### `.withCaptures(matches)` (`Astx`)
+
+Returns an `Astx` instance that contains captures from the given `matches` in addition to captures present in this instance.
+
+### `.captures(name)` (`Astx`)
+
+Filters down to nodes captured with the given `name`. For example,
+`astx.find('foo($arg)')` will have calls to `foo` as matches/paths,
+but `astx.find('foo($arg)').captures('$arg')` will have just the
+first arguments as matches/paths.
+
+### `.captureNode(name)` (`ASTNode | null`)
+
+Gets the first node that was captured with the given `name`.
+
+### `.capturePath(name)` (`ASTPath<any> | null`)
+
+Gets the path of the first node that was captured with the given `name`.
+
+### `.arrayCaptures(name)` (`Astx`)
+
+Filters down to arrays of nodes captured with the given `name`. For example,
+`astx.find('foo($$arg)')` will have calls to `foo` as matches/paths,
+but `astx.find('foo($$arg)').captures('$$arg')` will have just the
+arguments as matches/paths.
+
+### `arrayCaptureNodes(name)` (`ASTNode[] | null`)
+
+Gets the first array of nodes that was captured with the given `name`.
+
+### `arrayCapturePaths(name)` (`ASTPath<any>[] | null`)
+
+Gets the paths of the first array of nodes that was captured with the given `name`.
+
+### `stringCapture(name)` (`string | null`)
+
+Gets the first string value that was captured with the given `name`.
+
 ## Match
 
 ### `type`
@@ -285,7 +388,7 @@ The `ASTPath` of the matched node. If `type` is `'nodes'`, this will be `paths[0
 
 The matched `ASTNode`. If `type` is `'nodes'`, this will be `nodes[0]`.
 
-### `.path`
+### `.paths`
 
 The `ASTPaths` of the matched nodes.
 
@@ -309,9 +412,11 @@ The `ASTNode[]`s captured from array placeholders in the match pattern. For exam
 
 The `ASTPath[]`s captured from array placeholders in the match pattern. For example if the pattern was `foo({ ...$bar })`, `.pathArrayCaptures.$bar` will be the `ASTPath[]`s of the object properties.
 
-## class MatchArray
+### `.stringCaptures`
 
-Returned by [`.find()`](#find). Just an array of [`Match`](#match)es plus the [`.replace()`](#findreplace) method.
+The string values captured from string placeholders in the match
+pattern. For example if the pattern was `import foo from '$foo'`,
+`stringCaptures.$foo` will be the import path.
 
 # Match Patterns
 
@@ -338,13 +443,6 @@ first `3` will be captured in `$$before` and elements after the first `3` will b
 
 This works even with block statements. For example, `function foo() { $$before; throw new Error('test'); $$after; }` will match `function foo()` that contains a `throw new Error('test')`,
 and the statements before and after that throw statement will get captured in `$$before` and `$$after`, respectively.
-
-## String Matching
-
-A string that's just a placeholder like `'$foo'` will match any string and capture its contents into `match.stringCaptures.$foo`.
-The same escaping rules apply as for identifiers. This also works for template literals like `` `$foo` `` and tagged template literals like `` doSomething`$foo` ``.
-
-This can be helpful for working with import statements. For example, see [Converting require statements to imports](#converting-require-statements-to-imports).
 
 ### Support Table
 
@@ -408,6 +506,25 @@ Some items marked TODO probably actually work, but are untested.
 | `VariableDeclaration.declarations`                    | ✅                                         |                                                                   |
 | `WithStatement.body`                                  | ❌ who uses with statements...             |                                                                   |
 
+## String Matching
+
+A string that's just a placeholder like `'$foo'` will match any string and capture its contents into `match.stringCaptures.$foo`.
+The same escaping rules apply as for identifiers. This also works for template literals like `` `$foo` `` and tagged template literals like `` doSomething`$foo` ``.
+
+This can be helpful for working with import statements. For example, see [Converting require statements to imports](#converting-require-statements-to-imports).
+
+## Extracting nodes
+
+An empty comment (`/**/`) in a pattern will "extract" a node for matching.
+For example the pattern `const x = { /**/ $key: $value }` will just
+match `ObjectProperty` nodes against `$key: $value`.
+
+The parser wouldn't be able to parse `$key: $value` by itself or
+know that you mean an `ObjectProperty`, as opposed to something different like the `x: number` in `const x: number = 1`, so using `/**/` enables you to work around this. You can use this to match any node type that isn't a valid expression or statement by itself. For example `type T = /**/ Array<number>`
+would match `Array<number>` type annotations.
+
+`/**/` also works in replacement patterns.
+
 ## | Backreferences
 
 If you use the same capture variable more than once, subsequent positions will have to match what was captured for the first occurrence of the variable.
@@ -419,6 +536,8 @@ foo(1, 1, { foo: 1 }, { foo: 1 }) // match
 foo(1, 2, { foo: 1 }, { foo: 1 }) // no match
 foo(1, 1, { foo: 1 }, { bar: 1 }) // no match
 ```
+
+**Note**: array capture variables (like `$$a`) don't currently support backreferencing.
 
 # Transform files
 
@@ -443,6 +562,16 @@ The function arguments are the same as described in [`.find().replace()`](#findr
 [`.findStatements().replace()`](#findstatementsreplace), depending on whether `exports.find`
 is multiple statements or not.
 
+## `exports.parser` (optional)
+
+The parser name to use, or a `Parser` implementation:
+
+```ts
+interface Parser {
+  parse(source: string, options?: any): types.ASTNode
+}
+```
+
 ## `exports.astx` (optional)
 
 A function to perform an arbitrary transform using the `Astx` API. It gets called with an object with the following properties:
@@ -459,7 +588,7 @@ A function to perform an arbitrary transform using the `Astx` API. It gets calle
 - `report` (`(message: any) => void`)
 
 Unlike `jscodeshift`, your transform function can be async, and it doesn't have to return the transformed code,
-but you can return a `string` or JSCodeshift `Collection` instance if you want. You can also return `null` to
+but you can return a `string`. You can also return `null` to
 skip the file.
 
 # CLI
@@ -474,6 +603,11 @@ Also unlike `jscodeshift`, if `prettier` is installed in your project, it will f
 
 ```
 Usage:
+
+astx -f <code> [<files...>] [<directories...>]
+
+  Searches for the -f pattern in the given files and directories
+  and prints out the matches in context
 
 astx -f <code> -r <code> [<files...>] [<directories...>]
 

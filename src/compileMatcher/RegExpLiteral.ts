@@ -3,11 +3,12 @@ import sortFlags from './sortFlags'
 import { CompileOptions, convertPredicateMatcher, CompiledMatcher } from './'
 
 export default function matchRegExpLiteral(
-  path: ASTPath,
+  path: ASTPath<any>,
   compileOptions: CompileOptions
 ): CompiledMatcher {
   const pattern: RegExpLiteral = path.node
   const queryFlags = sortFlags(pattern.flags)
+
   return convertPredicateMatcher(
     pattern,
     {
@@ -15,6 +16,7 @@ export default function matchRegExpLiteral(
 
       match: (path: ASTPath): boolean => {
         const { node } = path
+
         return (
           node.type === 'RegExpLiteral' &&
           node.pattern === pattern.pattern &&
