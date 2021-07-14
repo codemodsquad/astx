@@ -62,6 +62,12 @@ Super powerful structural search and replace for JavaScript and TypeScript to au
     - [Support Table](#support-table)
   - [String Matching](#string-matching)
   - [Extracting nodes](#extracting-nodes)
+  - [`$Optional(pattern)`](#optionalpattern)
+  - [`$Or(...)`](#or)
+  - [`$And(...)`](#and)
+  - [`$Optional<pattern>`](#optionalpattern-1)
+  - [`$Or<...>`](#or-1)
+  - [`$And<...>`](#and-1)
   - [| Backreferences](#-backreferences)
 - [Transform files](#transform-files)
   - [`exports.find` (optional)](#exportsfind-optional)
@@ -187,18 +193,16 @@ There are several reasons I decided to make `astx` anyway:
 
 - Grasp uses the Acorn parser, which doesn't support TypeScript or Flow code AFAIK
 - Hasn't been updated in 4 years
-- Grasp's replace pattern syntax is clunkier, placeholders don't match the find pattern syntax:
+- Grasp's replace pattern syntax is clunkier, doesn't match the find pattern syntax:
   `grasp -e 'setValue($k, $v, true)' -R 'setValueSilently({{k}}, {{v}})' file.js`
 - It has its own DSL (SQuery) that's pretty limited and has a slight learning curve
-- I wanted to leverage the power of jscodeshift for advanced use cases that are probably awkward/impossible in Grasp
+- I wanted a `jscodeshift`-like API I could use in JS for advanced use cases that are probably awkward/impossible in Grasp
 
 So the philosophy of `astx` is:
 
-- **Use jscodeshift (and recast) as a solid foundation**
-- **Provide a simple find and replace API that's ideal for simple cases and has minimum learning curve**
-- **Use javascript + jscodeshift for anything more complex, so that you have unlimited flexibility**
+- **Provide a simple find and replace pattern syntax that's ideal for simple cases and has minimum learning curve**
+- **Use the same search and replace pattern syntax in the javascript API for anything more complex, so that you have unlimited flexibility**
 
-Jscodeshift has a learning curve, but it's worth learning if you want to do any nontrivial codemods.
 Paste your code into [AST Explorer](https://astexplorer.net/) if you need to learn about the structure of the AST.
 
 # API
@@ -524,6 +528,30 @@ know that you mean an `ObjectProperty`, as opposed to something different like t
 would match `Array<number>` type annotations.
 
 `/**/` also works in replacement patterns.
+
+## `$Optional(pattern)`
+
+Matches either the given expression or no node in its place. For example `let $a = $Optional(2)` will match `let foo = 2` and `let foo` (with no initializer), but not `let foo = 3`.
+
+## `$Or(...)`
+
+Matches nodes that match at least one of the given patterns. For example `$Or(foo($$args), {a: $value})` will match calls to `foo` and object literals with only an `a` property.
+
+## `$And(...)`
+
+Matches nodes that match all of the given patterns. This is mostly useful for narrowing down the types of nodes that can be captured into a given variable. For example, `let $a = $And($init, $a + $b)` will match `let` declarations where the initializer matches `$a + $b`, and capture the initializer as `$init`.
+
+## `$Optional<pattern>`
+
+Matches either the given type annotation or no node in its place. For example `let $a: $Optional<number>` will match `let foo: number` and `let foo` (with no type annotation), but not ` let foo: string``let foo: string `.
+
+## `$Or<...>`
+
+Matches nodes that match at least one of the given type annotations. For example `let $x: $Or<number[], string[]>` will match `let` declarations of type `number[]` or `string[]`.
+
+## `$And<...>`
+
+Matches nodes that match all of the given type annotations. This is mostly useful for narrowing down the types of nodes that can be captured into a given variable. For example, `let $a: $And<$type, $elem[]>` will match `let` declarations where the type annotation matches `$elem[]`, and capture the type annotation as `$type`.
 
 ## | Backreferences
 
