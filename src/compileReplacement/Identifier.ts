@@ -1,4 +1,4 @@
-import { ASTNode, Identifier, ASTPath } from 'jscodeshift'
+import { ASTNode, Identifier, ASTPath } from '../variant'
 import { CompiledReplacement, CompileReplacementOptions } from './'
 import compileCaptureReplacement from './Capture'
 import compileGenericNodeReplacement from './GenericNodeReplacement'

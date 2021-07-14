@@ -1,5 +1,4 @@
-import { ASTPath, ASTNode } from 'jscodeshift'
-import * as t from 'ast-types'
+import { ASTPath, ASTNode, NodeType } from '../variant'
 import __debug, { Debugger } from 'debug'
 import BooleanLiteral from './BooleanLiteral'
 import CallExpression from './CallExpression'
@@ -82,10 +81,8 @@ export function mergeCaptures(...results: MatchResult[]): MatchResult {
 export type PredicateMatcher = {
   predicate: true
   match: (path: ASTPath, matchSoFar: MatchResult) => boolean
-  nodeType?: keyof typeof t.namedTypes | (keyof typeof t.namedTypes)[]
+  nodeType?: NodeType | NodeType[]
 }
-
-export type NodeType = keyof typeof t.namedTypes
 
 export interface CompiledMatcher {
   optional?: true

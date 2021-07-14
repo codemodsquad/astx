@@ -1,4 +1,4 @@
-import { ASTPath, BooleanLiteral } from 'jscodeshift'
+import { ASTPath, BooleanLiteral } from '../variant'
 import { CompiledMatcher, convertPredicateMatcher, CompileOptions } from './'
 
 export default function matchBooleanLiteral(

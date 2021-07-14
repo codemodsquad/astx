@@ -1,4 +1,4 @@
-import { JSXElement, ASTPath } from 'jscodeshift'
+import { JSXElement, ASTPath } from '../variant'
 import { CompiledMatcher, CompileOptions } from '.'
 import compileGenericNodeMatcher from './GenericNodeMatcher'
 import compileGenericArrayMatcher from './GenericArrayMatcher'

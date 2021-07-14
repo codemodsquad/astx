@@ -1,4 +1,4 @@
-import { ASTPath, RegExpLiteral } from 'jscodeshift'
+import { ASTPath, RegExpLiteral } from '../variant'
 import sortFlags from './sortFlags'
 import { CompileOptions, convertPredicateMatcher, CompiledMatcher } from './'
 

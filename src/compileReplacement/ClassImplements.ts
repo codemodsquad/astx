@@ -1,4 +1,4 @@
-import { ClassImplements, ASTPath } from 'jscodeshift'
+import { ClassImplements, ASTPath } from '../variant'
 import { CompiledReplacement, CompileReplacementOptions } from '.'
 import compileCaptureReplacement, { unescapeIdentifier } from './Capture'
 

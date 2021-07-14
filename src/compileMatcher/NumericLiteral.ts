@@ -1,4 +1,4 @@
-import { ASTPath, NumericLiteral } from 'jscodeshift'
+import { ASTPath, NumericLiteral } from '../variant'
 import { CompileOptions, convertPredicateMatcher, CompiledMatcher } from './'
 
 export default function matchNumericLiteral(

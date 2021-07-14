@@ -1,7 +1,6 @@
-import j, { ASTNode, ClassDeclaration } from 'jscodeshift'
-import * as t from 'ast-types'
-
+import { ASTNode, ClassDeclaration } from '../variant'
 import convertToExpression from './convertToExpression'
+import { isStatement, t } from '../variant'
 
 export default function convertStatementReplacement(value: ASTNode): ASTNode {
   switch (value.type) {
@@ -10,13 +9,13 @@ export default function convertStatementReplacement(value: ASTNode): ASTNode {
     case 'FunctionExpression':
       return {
         ...value,
-        id: value.id || j.identifier('anonymous'),
+        id: value.id || t.identifier('anonymous'),
         type: 'FunctionDeclaration',
       }
   }
-  if (!t.namedTypes.Statement.check(value)) {
+  if (!isStatement(value)) {
     const expression = convertToExpression(value)
-    if (expression) return j.expressionStatement(expression as any)
+    if (expression) return t.expressionStatement(expression as any)
   }
   return value
 }

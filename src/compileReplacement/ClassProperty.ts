@@ -1,4 +1,4 @@
-import { ClassProperty, ASTPath } from 'jscodeshift'
+import { ClassProperty, ASTPath } from '../variant'
 import { CompiledReplacement, CompileReplacementOptions } from '.'
 import compileCaptureReplacement, { unescapeIdentifier } from './Capture'
 

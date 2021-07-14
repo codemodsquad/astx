@@ -4,16 +4,20 @@ import Astx from '../src/Astx'
 import j from 'jscodeshift'
 import { formatMatches } from './findReplace'
 
+import { ASTPath } from '../src/variant'
+
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
 describe(`Astx`, function () {
+  const parser = { parse: (src: string) => j(src).nodes()[0] }
+
   it(`.find tagged template works`, function () {
     expect(
       formatMatches(
         j,
-        new Astx(j, j(`foo + bar`).paths()).find`${j.identifier(
-          'foo'
-        )} + $a`().matches()
+        new Astx(j(`foo + bar`).paths(), {
+          parser,
+        }).find`${j.identifier('foo')} + $a`().matches()
       )
     ).to.deep.equal([{ node: 'foo + bar', captures: { $a: 'bar' } }])
   })
@@ -21,8 +25,9 @@ describe(`Astx`, function () {
     expect(
       formatMatches(
         j,
-        new Astx(j, j(`function foo() { foo(); bar() }`).paths())
-          .find`function $fn() { $$body }`().find`$fn()`().matches()
+        new Astx(j(`function foo() { foo(); bar() }`).paths(), {
+          parser,
+        }).find`function $fn() { $$body }`().find`$fn()`().matches()
       )
     ).to.deep.equal([
       {
@@ -33,7 +38,9 @@ describe(`Astx`, function () {
     ])
   })
   it(`.find and .withCaptures`, function () {
-    const astx = new Astx(j, j(`function foo() { foo(); bar() }`).paths())
+    const astx = new Astx(j(`function foo() { foo(); bar() }`).paths(), {
+      parser,
+    })
 
     const fnMatches = astx.find`function $fn() { $$body }`()
     expect(
@@ -47,38 +54,45 @@ describe(`Astx`, function () {
     ])
   })
   it(`.match()`, function () {
-    const astx = new Astx(j, j(`foo + bar; baz + qux, qlomb`).paths())
-      .find`$a + $b`()
+    const astx = new Astx(j(`foo + bar; baz + qux, qlomb`).paths(), {
+      parser,
+    }).find`$a + $b`()
     expect(astx.match()).to.equal(astx.matches()[0])
   })
   it(`.at()`, function () {
-    const astx = new Astx(j, j(`foo + bar; baz + qux, qlomb`).paths())
-      .find`$a + $b`()
+    const astx = new Astx(j(`foo + bar; baz + qux, qlomb`).paths(), {
+      parser,
+    }).find`$a + $b`()
     expect(astx.at(1).matches()).to.deep.equal([astx.matches()[1]])
   })
   it(`.filter()`, function () {
-    const astx = new Astx(j, j(`foo + bar; baz + qux, qlomb`).paths())
-      .find`$a + $b`()
+    const astx = new Astx(j(`foo + bar; baz + qux, qlomb`).paths(), {
+      parser,
+    }).find`$a + $b`()
     expect(
       astx.filter((m) => (m.captures?.$a as any)?.name === 'baz').matches()
     ).to.deep.equal(astx.at(1).matches())
   })
   it(`.nodes()`, function () {
-    const astx = new Astx(j, j(`foo + bar; baz + qux, qlomb`).paths())
-      .find`$a + $b`()
+    const astx = new Astx(j(`foo + bar; baz + qux, qlomb`).paths(), {
+      parser,
+    }).find`$a + $b`()
     expect(astx.length).to.be.above(0)
     expect(astx.nodes()).to.deep.equal(astx.matches().map((m) => m.node))
   })
   it(`.paths()`, function () {
-    const astx = new Astx(j, j(`foo + bar; baz + qux, qlomb`).paths())
-      .find`$a + $b`()
+    const astx = new Astx(j(`foo + bar; baz + qux, qlomb`).paths(), {
+      parser,
+    }).find`$a + $b`()
     expect(astx.length).to.be.above(0)
     expect(astx.paths()).to.deep.equal(astx.matches().map((m) => m.path))
   })
   it(`.nodes() -- array capture`, function () {
     const astx = new Astx(
-      j,
-      j(`const a = [1, 2, 3, 4]; const b = [1, 4, 5, 6]`).paths()
+      j(`const a = [1, 2, 3, 4]; const b = [1, 4, 5, 6]`).paths(),
+      {
+        parser,
+      }
     ).find`[1, $$a]`()
     expect(astx.length).to.be.above(0)
     expect(astx.nodes()).to.deep.equal(
@@ -90,8 +104,10 @@ describe(`Astx`, function () {
   })
   it(`.paths() -- array capture`, function () {
     const astx = new Astx(
-      j,
-      j(`const a = [1, 2, 3, 4]; const b = [1, 4, 5, 6]`).paths()
+      j(`const a = [1, 2, 3, 4]; const b = [1, 4, 5, 6]`).paths(),
+      {
+        parser,
+      }
     ).find`[1, $$a]`()
     expect(astx.length).to.be.above(0)
     expect(astx.paths()).to.deep.equal(
@@ -105,7 +121,9 @@ describe(`Astx`, function () {
     expect(
       formatMatches(
         j,
-        new Astx(j, j(`foo + bar; baz + qux`).paths()).find`$a + $b`()
+        new Astx(j(`foo + bar; baz + qux`).paths(), {
+          parser,
+        }).find`$a + $b`()
           .captures('$a')
           .matches()
       )
@@ -115,8 +133,9 @@ describe(`Astx`, function () {
     expect(
       formatMatches(
         j,
-        new Astx(j, j(`const a = [1, 2, 3, 4]; const b = [1, 4, 5, 6]`).paths())
-          .find`[1, $$a]`()
+        new Astx(j(`const a = [1, 2, 3, 4]; const b = [1, 4, 5, 6]`).paths(), {
+          parser,
+        }).find`[1, $$a]`()
           .arrayCaptures('$$a')
           .matches()
       )
@@ -126,8 +145,9 @@ describe(`Astx`, function () {
     expect(
       formatMatches(
         j,
-        new Astx(j, j(`foo + bar; baz + qux`).find(j.Identifier).paths())
-          .closest`$a + $b`().matches()
+        new Astx(j(`foo + bar; baz + qux`).find(j.Identifier).paths(), {
+          parser,
+        }).closest`$a + $b`().matches()
       )
     ).to.deep.equal([
       { node: 'foo + bar', captures: { $a: 'foo', $b: 'bar' } },
@@ -138,7 +158,11 @@ describe(`Astx`, function () {
     expect(
       formatMatches(
         j,
-        new Astx(j, j(`foo + bar`).paths()).find(j.identifier('foo')).matches()
+        new Astx(j(`foo + bar`).paths(), {
+          parser,
+        })
+          .find(j.identifier('foo'))
+          .matches()
       )
     ).to.deep.equal([{ node: 'foo' }])
   })
@@ -146,8 +170,10 @@ describe(`Astx`, function () {
     expect(
       formatMatches(
         j,
-        new Astx(j, j(`1 + 2; 3 + 4`).paths()).find`$a + $b`({
-          where: { $b: (path) => path.node.value < 4 },
+        new Astx(j(`1 + 2; 3 + 4`).paths(), {
+          parser,
+        }).find`$a + $b`({
+          where: { $b: (path: ASTPath<any>) => path.node.value < 4 },
         }).matches()
       )
     ).to.deep.equal([{ node: '1 + 2', captures: { $a: '1', $b: '2' } }])
@@ -156,34 +182,42 @@ describe(`Astx`, function () {
     expect(
       formatMatches(
         j,
-        new Astx(j, j(`1 + 2; 3 + 4`).paths()).find`$a + $b`({
-          where: { $b: (path) => path.node.value < 4 },
+        new Astx(j(`1 + 2; 3 + 4`).paths(), {
+          parser,
+        }).find`$a + $b`({
+          where: { $b: (path: ASTPath<any>) => path.node.value < 4 },
         }).matches()
       )
     ).to.deep.equal([{ node: '1 + 2', captures: { $a: '1', $b: '2' } }])
   })
   it(`.replace tagged template works`, function () {
     const root = j(`1 + 2; 3 + 4`)
-    new Astx(j, root.paths()).find`$a + $b`().replace`$b + $a`()
+    new Astx(root.paths(), {
+      parser,
+    }).find`$a + $b`().replace`$b + $a`()
     expect(root.toSource()).to.equal(`2 + 1; 4 + 3`)
   })
   it(`.replace tagged template after find options works`, function () {
     const root = j(`1 + 2; 3 + 4`)
-    new Astx(j, root.paths()).find`$a + $b`({
-      where: { $b: (path) => path.node.value < 4 },
+    new Astx(root.paths(), {
+      parser,
+    }).find`$a + $b`({
+      where: { $b: (path: ASTPath<any>) => path.node.value < 4 },
     }).replace`$b + $a`()
     expect(root.toSource()).to.equal(`2 + 1; 3 + 4`)
   })
   it(`.replace tagged template interpolation works`, function () {
     const root = j(`1 + 2; 3 + 4`)
-    new Astx(j, root.paths()).find`$a + $b`().replace`$b + ${j.identifier(
-      'foo'
-    )}`()
+    new Astx(root.paths(), {
+      parser,
+    }).find`$a + $b`().replace`$b + ${j.identifier('foo')}`()
     expect(root.toSource()).to.equal(`2 + foo; 4 + foo`)
   })
   it(`.replace function returning parse tagged template literal works`, function () {
     const root = j(`1 + FOO; 3 + BAR`)
-    new Astx(j, root.paths()).find`$a + $b`().replace(
+    new Astx(root.paths(), {
+      parser,
+    }).find`$a + $b`().replace(
       (match, parse) =>
         parse`${j.identifier(
           (match.captures.$b as any).name.toLowerCase()
@@ -193,14 +227,20 @@ describe(`Astx`, function () {
   })
   it(`.replace function returning string works`, function () {
     const root = j(`1 + FOO; 3 + BAR`)
-    new Astx(j, root.paths()).find`$a + $b`().replace(
+    new Astx(root.paths(), {
+      parser,
+    }).find`$a + $b`().replace(
       (match) => `${(match.captures.$b as any).name.toLowerCase()} + $a`
     )
     expect(root.toSource()).to.equal(`foo + 1; bar + 3`)
   })
   it(`.replace called with string works`, function () {
     const root = j(`1 + 2; 3 + 4`)
-    new Astx(j, root.paths()).find('$a + $b').replace('$b + $a')
+    new Astx(root.paths(), {
+      parser,
+    })
+      .find('$a + $b')
+      .replace('$b + $a')
     expect(root.toSource()).to.equal(`2 + 1; 4 + 3`)
   })
 })

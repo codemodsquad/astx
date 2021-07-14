@@ -1,4 +1,4 @@
-import { JSXExpressionContainer, ASTPath } from 'jscodeshift'
+import { JSXExpressionContainer, ASTPath } from '../variant'
 import { CompiledReplacement, CompileReplacementOptions } from '.'
 import compileCaptureReplacement, { unescapeIdentifier } from './Capture'
 

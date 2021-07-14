@@ -1,4 +1,4 @@
-import { ASTNode } from 'jscodeshift'
+import { ASTNode } from '../variant'
 
 function isValidJSXIdentifier(s: string) {
   return /^[_$a-z][-_$a-z0-9]*$/i.test(s)

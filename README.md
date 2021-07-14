@@ -22,7 +22,7 @@ Super powerful structural search and replace for JavaScript and TypeScript to au
 - [Prior art and philosophy](#prior-art-and-philosophy)
 - [API](#api)
   - [class Astx](#class-astx)
-    - [`constructor(jscodeshift: JSCodeshift, paths: ASTPath<any>[] | Match[], options?: { withCaptures?: Match[] })`](#constructorjscodeshift-jscodeshift-paths-astpathany--match-options--withcaptures-match-)
+    - [`constructor(paths: ASTPath<any>[] | Match[], options: { parser: Parser, withCaptures?: Match[] })`](#constructorpaths-astpathany--match-options--parser-parser-withcaptures-match-)
     - [`.find(...)` (`Astx`)](#find-astx)
     - [`.closest(...)` (`Astx`)](#closest-astx)
     - [`FindOptions`](#findoptions)
@@ -207,24 +207,24 @@ Paste your code into [AST Explorer](https://astexplorer.net/) if you need to lea
 
 # API
 
-Note: the identifier `j` in all code examples is an instance of `jscodeshift`, as per convention.
-
 ## class Astx
 
 ```ts
 import { Astx } from 'astx'
-import j from 'jscodeshift'
-
-const astx = new Astx(j, j('your code here'))
 ```
 
-### `constructor(jscodeshift: JSCodeshift, paths: ASTPath<any>[] | Match[], options?: { withCaptures?: Match[] })`
-
-`jscodeshift` must be configured with your desired parser for methods to work correctly.
-For instance, if you're using TypeScript, it could be `require('jscodeshift').withParser('ts')`.
+### `constructor(paths: ASTPath<any>[] | Match[], options: { parser: Parser, withCaptures?: Match[] })`
 
 `paths` specifies the `ASTPath`s or `Match`es you want `Astx` methods
 to search/operate on.
+
+`options.parser` must conform to the `Parser` interface:
+
+```ts
+export interface Parser {
+  parse(code: string): ASTNode
+}
+```
 
 ### `.find(...)` (`Astx`)
 
@@ -241,11 +241,10 @@ You can call `.find` as a method or tagged template literal:
 - `` .find`pattern`(options?: FindOptions) ``
 - `.find(pattern: string | ASTNode | ASTNode[] | ASTPath | ASTPath[], options?: FindOptions)`
 
-If you give the pattern as a string, it must be a valid expression or statement(s) as parsed by the `jscodeshift` instance. Otherwise it should be valid
-AST node(s) you already parsed or constructed.
-You can interpolate AST nodes in the tagged template literal; it uses `jscodeshift.template.expression` or `jscodeshift.template.statement` under the hood.
+If you give the pattern as a string, it must be a valid expression or statement(s). Otherwise it should be valid AST node(s) you already parsed or constructed.
+You can interpolate AST nodes in the tagged template literal.
 
-For example you could do `` astx.find`${j.identifier('foo')} + 3`() ``.
+For example you could do `` astx.find`${t.identifier('foo')} + 3`() ``.
 
 Or you could match multiple statements by doing
 
@@ -596,7 +595,7 @@ The parser name to use, or a `Parser` implementation:
 
 ```ts
 interface Parser {
-  parse(source: string, options?: any): types.ASTNode
+  parse(source: string, options?: any): ASTNode
 }
 ```
 
@@ -606,10 +605,8 @@ A function to perform an arbitrary transform using the `Astx` API. It gets calle
 
 - `source` (`string`) - The source code of the file being transformed
 - `path` (`string`) - The path to the file being transformed
-- `root` (`Collection`) - the JSCodeshift Collection wrapping the parsed AST
 - `astx` (`Astx`) - the `Astx` API instance
-- `jscodeshift` (`JSCodeshift`) - the JSCodeshift instance
-- `j` (`JSCodeshift`) - shorthand for the same JSCodeshift instance
+- `t` - the node builders (e.g. `t.identifier('foo')` creates an `Identifier` node)
 - `expression` - tagged template literal for parsing code as an expression, like `jscodeshift.template.expression`
 - `statement` - tagged template literal for parsing code as a statement, like `jscodeshift.template.statement`
 - `statements` - tagged template literal for parsing code as an array of statements, like `jscodeshift.template.statements`

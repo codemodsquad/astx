@@ -1,5 +1,5 @@
 import { CompileOptions, MatchResult, mergeCaptures, CompiledMatcher } from './'
-import { ASTNode, ASTPath } from 'jscodeshift'
+import { ASTNode, ASTPath } from '../variant'
 import areASTsEqual from '../util/areASTsEqual'
 import convertToJSXIdentifierName from '../convertReplacement/convertToJSXIdentifierName'
 

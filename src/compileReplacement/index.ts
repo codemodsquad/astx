@@ -1,4 +1,4 @@
-import { ASTNode, ASTPath } from 'jscodeshift'
+import { ASTNode, ASTPath } from '../variant'
 import { Match } from '../find'
 import __debug, { Debugger } from 'debug'
 import compileGenericNodeReplacement from './GenericNodeReplacement'

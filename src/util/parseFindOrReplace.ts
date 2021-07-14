@@ -1,21 +1,21 @@
+import template from './template'
 import {
+  forEachNode,
+  getPath,
   Expression,
   ExpressionStatement,
-  JSCodeshift,
   Statement,
   ASTPath,
   ASTNode,
-  Node,
-} from 'jscodeshift'
-import template from './template'
-import { forEachNode, getPath } from '../variant'
+  Parser,
+} from '../variant'
 
 function parseFindOrReplace0(
-  j: JSCodeshift,
+  parser: Parser,
   strings: TemplateStringsArray,
   ...quasis: any[]
 ): Expression | Statement | Statement[] {
-  const { expression, statements } = template(j)
+  const { expression, statements } = template(parser)
   try {
     const result = statements(strings, ...quasis)
     if (result.length === 1) {
@@ -31,18 +31,18 @@ function parseFindOrReplace0(
 }
 
 export default function parseFindOrReplace(
-  j: JSCodeshift,
+  parser: Parser,
   strings: TemplateStringsArray,
   ...quasis: any[]
 ): Expression | Statement | Statement[] {
-  const ast = parseFindOrReplace0(j, strings, ...quasis)
-  let extractedNode: Node | undefined
+  const ast = parseFindOrReplace0(parser, strings, ...quasis)
+  let extractedNode: ASTNode | undefined
   forEachNode(
     Array.isArray(ast)
       ? ast.map((n) => getPath(n as ASTNode))
       : [getPath(ast as ASTNode)],
     ['Node'],
-    (path: ASTPath<Node>) => {
+    (path: ASTPath<any>) => {
       if (path.node.comments) {
         for (const c of path.node.comments) {
           if (!c.value) extractedNode = path.node

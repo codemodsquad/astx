@@ -1,4 +1,4 @@
-import { GenericTypeAnnotation, ASTPath } from 'jscodeshift'
+import { GenericTypeAnnotation, ASTPath } from '../variant'
 import { CompiledMatcher, CompileOptions } from '.'
 import compileCaptureMatcher, { unescapeIdentifier } from './Capture'
 import compileSpecialMatcher from './SpecialMatcher'

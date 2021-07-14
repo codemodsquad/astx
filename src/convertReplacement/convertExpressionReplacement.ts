@@ -1,4 +1,4 @@
-import { ASTNode } from 'jscodeshift'
+import { ASTNode } from '../variant'
 import convertToExpression from './convertToExpression'
 
 export default function convertExpressionReplacement(node: ASTNode): ASTNode {

@@ -1,4 +1,4 @@
-import { SpreadElement, ASTPath } from 'jscodeshift'
+import { SpreadElement, ASTPath } from '../variant'
 import { CompiledReplacement, CompileReplacementOptions } from '.'
 import { unescapeIdentifier, compileArrayCaptureReplacement } from './Capture'
 

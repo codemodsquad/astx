@@ -1,7 +1,8 @@
-import j, { ASTNode } from 'jscodeshift'
+import { ASTNode } from '../variant'
 import { ReplacementConverter } from './'
 import convertToIdentifierPair from './convertToIdentifierPair'
 import convertToIdentifier from './Identifier'
+import { t } from '../variant'
 
 export default function convertImportSpecifierReplacement(): ReplacementConverter {
   const convert = (node: ASTNode): ASTNode | ASTNode[] => {
@@ -23,8 +24,8 @@ export default function convertImportSpecifierReplacement(): ReplacementConverte
             const [key, value] = keyValue
             result.push(
               key.name === 'default'
-                ? j.importDefaultSpecifier(value)
-                : j.importSpecifier(key, value)
+                ? t.importDefaultSpecifier(value)
+                : t.importSpecifier(key, value)
             )
           }
         }
@@ -33,14 +34,14 @@ export default function convertImportSpecifierReplacement(): ReplacementConverte
     }
     const identifier = convertToIdentifier(node)
     if (identifier) {
-      return j.importDefaultSpecifier(identifier)
+      return t.importDefaultSpecifier(identifier)
     }
     const keyValue = convertToIdentifierPair(node)
     if (keyValue) {
       const [key, value] = keyValue
       return key.name === 'default'
-        ? j.importDefaultSpecifier(value)
-        : j.importSpecifier(key, value)
+        ? t.importDefaultSpecifier(value)
+        : t.importSpecifier(key, value)
     }
     return node
   }

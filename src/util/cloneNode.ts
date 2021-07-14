@@ -1,4 +1,4 @@
-import { ASTNode } from 'jscodeshift'
+import { ASTNode } from '../variant'
 
 export default function cloneNode<T extends ASTNode>(node: T): T {
   const result: any = {}

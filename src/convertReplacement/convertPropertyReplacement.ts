@@ -1,6 +1,7 @@
-import j, { ASTNode } from 'jscodeshift'
+import { ASTNode } from '../variant'
 import convertToIdentifierExpressionPair from './convertToIdentifierExpressionPair'
 import convertToExpression from './convertToExpression'
+import { t } from '../variant'
 
 export default function convertPropertyReplacement(node: ASTNode): ASTNode {
   switch (node.type) {
@@ -11,10 +12,10 @@ export default function convertPropertyReplacement(node: ASTNode): ASTNode {
       return node
     case 'ObjectTypeSpreadProperty': {
       const expr = convertToExpression(node)
-      if (expr) return j.spreadProperty(expr as any)
+      if (expr) return t.spreadProperty(expr as any)
     }
   }
   const keyValue = convertToIdentifierExpressionPair(node)
-  if (keyValue) return j.objectProperty(keyValue[0], keyValue[1] as any)
+  if (keyValue) return t.objectProperty(keyValue[0], keyValue[1] as any)
   return node
 }

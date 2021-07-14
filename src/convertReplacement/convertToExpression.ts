@@ -1,6 +1,6 @@
-import j, { ASTNode, Expression } from 'jscodeshift'
-import * as t from 'ast-types'
+import { ASTNode, Expression } from '../variant'
 import convertToIdentifierName from './convertToIdentifierName'
+import { t, isExpression } from '../variant'
 
 export default function convertToExpression(value: ASTNode): Expression | void {
   switch (value.type) {
@@ -12,7 +12,7 @@ export default function convertToExpression(value: ASTNode): Expression | void {
     case 'JSXExpressionContainer':
       return value.expression
   }
-  if (t.namedTypes.Expression.check(value)) return value
+  if (isExpression(value)) return value
   const name = convertToIdentifierName(value)
-  if (name) return j.identifier(name)
+  if (name) return t.identifier(name)
 }

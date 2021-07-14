@@ -1,12 +1,10 @@
-import { ASTNode, ASTPath } from 'jscodeshift'
-import getFieldNames from '../util/getFieldNames'
+import { ASTNode, ASTPath, getFieldNames, getFieldValue } from '../variant'
 import compileReplacement, {
   CompiledReplacement,
   CompileReplacementOptions,
 } from './index'
 import { Match } from '../find'
 import indentDebug from '../compileMatcher/indentDebug'
-import * as t from 'ast-types'
 
 export default function compileGenericNodeReplacement(
   path: ASTPath<any>,
@@ -22,13 +20,13 @@ export default function compileGenericNodeReplacement(
   for (const key of getFieldNames(pattern)) {
     if (key === 'type' || key === 'extra') continue
 
-    const value = t.getFieldValue(pattern, key)
+    const value = getFieldValue(pattern, key as any)
 
     if (typeof value !== 'object' || value == null) {
-      propertyValues.push([key, value])
+      propertyValues.push([key as any, value])
     } else {
       childReplacements.push([
-        key,
+        key as any,
         compileReplacement(path.get(key), {
           ...compileOptions,
           debug: indentDebug(debug, 2),

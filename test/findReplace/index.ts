@@ -9,6 +9,8 @@ import prettier from 'prettier'
 import parseFindOrReplace from '../../src/util/parseFindOrReplace'
 import Astx, { GetReplacement } from '../../src/Astx'
 
+import { toPaths, ASTNode } from '../../src/variant'
+
 type ExpectedMatch = {
   node?: string
   nodes?: string[]
@@ -70,17 +72,17 @@ describe(`find`, function () {
     }
   }
 
-  for (const parser in groups) {
-    const group = groups[parser]
+  for (const parserName in groups) {
+    const group = groups[parserName]
 
-    describe(`with parser: ${parser}`, function () {
+    describe(`with parser: ${parserName}`, function () {
       const prettierOptions = {
         parser:
-          parser === 'babylon'
+          parserName === 'babylon'
             ? 'babel-flow'
-            : parser === 'tsx'
+            : parserName === 'tsx'
             ? 'babel-ts'
-            : parser,
+            : parserName,
       }
       const format = (code: string) => prettier.format(code, prettierOptions)
 
@@ -100,19 +102,24 @@ describe(`find`, function () {
           path.basename(key).replace(/\.[^.]+$/, ''),
           function () {
             let j = jscodeshift
-            if (parser) j = j.withParser(parser)
+            if (parserName) j = j.withParser(parserName)
             const root = j(input)
+            const parser = { parse: (src: string) => j(src).nodes()[0] }
 
             if (expectedFind) {
               const matches = find(
                 root.paths(),
-                j(parseFindOrReplace(j, [_find] as any)).paths(),
+                toPaths(
+                  parseFindOrReplace(parser, [_find] as any) as
+                    | ASTNode
+                    | ASTNode[]
+                ),
                 where ? { ...findOptions, where } : findOptions
               )
               expect(formatMatches(j, matches)).to.deep.equal(expectedFind)
             }
             if (expectedReplace) {
-              const astx = new Astx(j, root.paths())
+              const astx = new Astx(root.paths(), { parser })
               astx.find(_find, { ...findOptions, where }).replace(_replace)
               const actual = root.toSource()
               expect(format(actual)).to.deep.equal(format(expectedReplace))

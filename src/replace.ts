@@ -1,4 +1,4 @@
-import j, { ASTNode } from 'jscodeshift'
+import { ASTNode, toPaths } from './variant'
 import { Match } from './find'
 import compileReplacement, { CompiledReplacement } from './compileReplacement'
 import createReplacementConverter, { bulkConvert } from './convertReplacement'
@@ -23,11 +23,11 @@ export default function replace(
           ? (replace as CompiledReplacement)
           : compileReplacement(
               singleOrArray(
-                j(
+                toPaths(
                   (typeof replace === 'function' ? replace(match) : replace) as
                     | ASTNode
                     | ASTNode[]
-                ).paths()
+                )
               )
             )
         ).generate(match),

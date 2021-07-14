@@ -1,4 +1,4 @@
-import { ExpressionStatement, ASTPath } from 'jscodeshift'
+import { ExpressionStatement, ASTPath } from '../variant'
 import { CompiledReplacement, CompileReplacementOptions } from '.'
 import compileCaptureReplacement, { unescapeIdentifier } from './Capture'
 

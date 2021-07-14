@@ -1,4 +1,4 @@
-import { TypeParameter, ASTPath } from 'jscodeshift'
+import { TypeParameter, ASTPath } from '../variant'
 import { CompiledReplacement, CompileReplacementOptions } from '.'
 import compileCaptureReplacement, { unescapeIdentifier } from './Capture'
 

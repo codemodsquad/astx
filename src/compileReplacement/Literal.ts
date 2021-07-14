@@ -1,9 +1,10 @@
-import j, { Literal, ASTPath } from 'jscodeshift'
+import { Literal, ASTPath } from '../variant'
 import { getCaptureAs } from '../compileMatcher/Capture'
 import { CompiledReplacement } from './'
 import { Match } from '../find'
 import { unescapeIdentifier } from './Capture'
 import cloneNode from '../util/cloneNode'
+import { t } from '../variant'
 
 export default function compileLiteralReplacement(
   path: ASTPath<Literal>
@@ -15,7 +16,7 @@ export default function compileLiteralReplacement(
       return {
         generate: (match: Match): Literal => {
           const captured = match.stringCaptures?.[captureAs]
-          return captured ? j.literal(captured) : cloneNode(pattern)
+          return captured ? t.literal(captured) : cloneNode(pattern)
         },
       }
     }

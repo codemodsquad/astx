@@ -1,14 +1,17 @@
-import { ASTPath, ASTNode, Statement } from 'jscodeshift'
 import mapValues from 'lodash/mapValues'
 import compileMatcher, {
   CompiledMatcher,
   MatchResult,
   mergeCaptures,
-  NodeType,
 } from './compileMatcher'
-import * as t from 'ast-types'
-
-import { forEachNode } from './variant'
+import {
+  ASTPath,
+  ASTNode,
+  Statement,
+  forEachNode,
+  isStatement,
+  NodeType,
+} from './variant'
 
 export type Match = {
   type: 'node' | 'nodes'
@@ -83,10 +86,7 @@ export default function find(
   options?: FindOptions
 ): Match[] {
   if (Array.isArray(pattern) && pattern.length === 1) pattern = pattern[0]
-  if (
-    Array.isArray(pattern) &&
-    t.namedTypes.Statement.check(pattern[0]?.node)
-  ) {
+  if (Array.isArray(pattern) && isStatement(pattern[0]?.node)) {
     return findStatements(paths, pattern, options)
   }
 

@@ -1,4 +1,4 @@
-import { ASTPath, JSXText } from 'jscodeshift'
+import { ASTPath, JSXText } from '../variant'
 import { CompileOptions, convertPredicateMatcher, CompiledMatcher } from './'
 import normalizeJSXTextValue from '../util/normalizeJSXTextValue'
 

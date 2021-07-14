@@ -1,4 +1,4 @@
-import { TSPropertySignature, ASTPath } from 'jscodeshift'
+import { TSPropertySignature, ASTPath } from '../variant'
 import { CompiledReplacement, CompileReplacementOptions } from '.'
 import compileCaptureReplacement, { unescapeIdentifier } from './Capture'
 

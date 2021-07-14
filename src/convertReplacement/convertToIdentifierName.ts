@@ -1,4 +1,4 @@
-import { ASTNode } from 'jscodeshift'
+import { ASTNode } from '../variant'
 import convertToJSXIdentifierName from './convertToJSXIdentifierName'
 
 export default function convertToIdentifierName(node: ASTNode): string | void {

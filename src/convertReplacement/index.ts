@@ -1,5 +1,4 @@
-import { ASTNode, ASTPath } from 'jscodeshift'
-import * as t from 'ast-types'
+import { ASTNode, ASTPath } from '../variant'
 import convertJSXChildReplacement from './convertJSXChildReplacement'
 import convertJSXAttributeValueReplacement from './convertJSXAttributeValueReplacement'
 import TypeParameter from './convertTypeParameterReplacement'
@@ -10,6 +9,7 @@ import convertPropertyReplacement from './convertPropertyReplacement'
 import convertExpressionReplacement from './convertExpressionReplacement'
 import convertStatementReplacement from './convertStatementReplacement'
 import convertImportSpecifierReplacement from './convertImportSpecifierReplacement'
+import { isStatement, isExpression, isTSType, isFlow } from '../variant'
 
 export type ReplacementConverter = (replacement: ASTNode) => ASTNode | ASTNode[]
 
@@ -48,19 +48,19 @@ export default function createReplacementConverter(
       return convertPropertyReplacement
   }
 
-  if (t.namedTypes.Statement.check(path.node)) {
+  if (isStatement(path.node)) {
     return convertStatementReplacement
   }
 
-  if (t.namedTypes.Expression.check(path.node)) {
+  if (isExpression(path.node)) {
     return convertExpressionReplacement
   }
 
-  if (t.namedTypes.Flow.check(path.node)) {
+  if (isFlow(path.node)) {
     return convertFlowTypeReplacement
   }
 
-  if (t.namedTypes.TSType.check(path.node)) {
+  if (isTSType(path.node)) {
     return convertTSTypeReplacement
   }
 

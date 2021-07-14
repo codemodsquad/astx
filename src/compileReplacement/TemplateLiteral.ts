@@ -1,10 +1,10 @@
-import j, { TemplateLiteral, ASTPath } from 'jscodeshift'
+import { TemplateLiteral, ASTPath } from '../variant'
 import { getCaptureAs } from '../compileMatcher/Capture'
 import { CompiledReplacement } from './'
 import { Match } from '../find'
 import { unescapeIdentifier } from './Capture'
-
 import cloneNode from '../util/cloneNode'
+import { t } from '../variant'
 
 function generateValue(cooked: string): { raw: string; cooked: string } {
   return { raw: cooked.replace(/\\|`|\${/g, '\\$&'), cooked }
@@ -23,8 +23,8 @@ export default function compileTemplateLiteralReplacement(
           generate: (match: Match): TemplateLiteral => {
             const captured = match.stringCaptures?.[captureAs]
             return captured
-              ? j.templateLiteral(
-                  [j.templateElement(generateValue(captured), true)],
+              ? t.templateLiteral(
+                  [t.templateElement(generateValue(captured), true)],
                   []
                 )
               : cloneNode(pattern)

@@ -6,7 +6,7 @@ import {
   Property,
   SpreadElement,
   SpreadProperty,
-} from 'jscodeshift'
+} from '../variant'
 import compileGenericNodeMatcher from './GenericNodeMatcher'
 import indentDebug from './indentDebug'
 import compileMatcher, {

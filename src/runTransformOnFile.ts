@@ -1,11 +1,14 @@
-import jscodeshift, {
+import {
+  t,
+  Types,
   ASTNode,
   Expression,
-  Parser,
   Statement,
-  JSCodeshift,
-} from 'jscodeshift'
-import { getParserAsync } from 'babel-parse-wild-code'
+  toPaths,
+  Parser,
+  createParser,
+  generate,
+} from './variant'
 import Astx, { GetReplacement } from './Astx'
 import fs from 'fs-extra'
 import Path from 'path'
@@ -25,8 +28,7 @@ type TransformOptions = {
   expression(strings: TemplateStringsArray, ...quasis: any[]): Expression
   statement(strings: TemplateStringsArray, ...quasis: any[]): Statement
   statements(strings: TemplateStringsArray, ...quasis: any[]): Statement[]
-  j: JSCodeshift
-  jscodeshift: JSCodeshift
+  t: Types
   report: (msg: string) => void
 }
 
@@ -71,10 +73,8 @@ export const runTransformOnFile = (transform: Transform) => async (
 ): Promise<TransformResult> => {
   try {
     const source = await fs.readFile(file, 'utf8')
-    const parser =
-      transform.parser || (await getParserAsync(file, { tokens: true }))
-    const j = jscodeshift.withParser(parser)
-    const template = makeTemplate(j)
+    const parser = await createParser(file, transform.parser)
+    const template = makeTemplate(parser)
 
     let transformed
     const reports: any[] = []
@@ -97,24 +97,23 @@ export const runTransformOnFile = (transform: Transform) => async (
       }
     }
     if (typeof transformFn === 'function') {
-      const root = j(source)
+      const root = parser.parse(source)
       const options = {
         source,
         path: file,
-        j,
-        jscodeshift: j,
+        t,
         report: (msg: any) => {
           reports.push(msg)
         },
         ...template,
-        astx: new Astx(j, root.paths()),
+        astx: new Astx(toPaths(root), { parser }),
       }
       const [_result, prettier] = await Promise.all([
         transformFn(options),
         getPrettier(Path.dirname(file)),
       ])
       transformed = _result
-      if (transformed === undefined) transformed = root.toSource()
+      if (transformed === undefined) transformed = generate(root)
       if (transformed === null) transformed = undefined
       if (
         prettier &&

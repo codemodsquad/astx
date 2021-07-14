@@ -1,16 +1,21 @@
-import { ASTNode, ASTPath } from 'jscodeshift'
+import {
+  ASTNode,
+  ASTPath,
+  getFieldNames,
+  getFieldValue,
+  NodeType,
+  isType,
+} from '../variant'
 import compileMatcher, {
   CompiledMatcher,
   CompileOptions,
   MatchResult,
 } from './index'
-import * as t from 'ast-types'
 import indentDebug from './indentDebug'
-import getFieldNames from '../util/getFieldNames'
 
 const equivalenceClassesArray: {
   nodeTypes: Set<ASTNode['type']>
-  baseType?: keyof typeof t.namedTypes
+  baseType?: NodeType
 }[] = [
   { nodeTypes: new Set(['ClassDeclaration', 'ClassExpression']) },
   {
@@ -32,7 +37,7 @@ const equivalenceClassesArray: {
 const equivalenceClasses: Partial<
   Record<
     ASTNode['type'],
-    { nodeTypes: Set<ASTNode['type']>; baseType?: keyof typeof t.namedTypes }
+    { nodeTypes: Set<ASTNode['type']>; baseType?: NodeType }
   >
 > = {}
 for (const klass of equivalenceClassesArray) {
@@ -52,9 +57,8 @@ export default function compileGenericNodeMatcher(
 
   const nodeType =
     baseType || (nodeTypes ? [...nodeTypes] : null) || pattern.type
-  const namedType: any = baseType ? (t.namedTypes[baseType] as any) : null
-  const isCorrectType = namedType
-    ? (node: ASTNode) => namedType.check(node)
+  const isCorrectType = baseType
+    ? (node: ASTNode) => isType(node, baseType)
     : nodeTypes
     ? (node: ASTNode) => nodeTypes.has(node.type)
     : (node: ASTNode) => node.type === pattern.type
@@ -69,14 +73,14 @@ export default function compileGenericNodeMatcher(
 
         if (custom) return [key, custom]
 
-        const value = t.getFieldValue(pattern, key)
+        const value = getFieldValue(pattern, key as any)
 
         if (typeof value !== 'object' || value == null) {
           return [
             key,
             {
               match: (path: ASTPath, matchSoFar: MatchResult): MatchResult => {
-                const nodeValue = t.getFieldValue(path.node, key)
+                const nodeValue = getFieldValue(path.node, key as any)
 
                 if (value !== nodeValue) {
                   debug('    %s !== %s', value, nodeValue)

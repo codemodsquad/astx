@@ -1,5 +1,5 @@
 import { CompileReplacementOptions, CompiledReplacement } from './'
-import { ASTNode, ASTPath } from 'jscodeshift'
+import { ASTNode, ASTPath } from '../variant'
 import { Match } from '../find'
 import {
   getArrayCaptureAs,

@@ -1,4 +1,4 @@
-import { JSXIdentifier, ASTPath } from 'jscodeshift'
+import { JSXIdentifier, ASTPath } from '../variant'
 import { CompiledReplacement, CompileReplacementOptions } from '.'
 import compileCaptureReplacement, { unescapeIdentifier } from './Capture'
 

@@ -5,93 +5,98 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import { ASTNode, Expression, JSCodeshift, Statement } from 'jscodeshift'
-import * as recast from 'recast'
-
-const builders = recast.types.builders
-const types = recast.types.namedTypes
+import {
+  ASTNode,
+  Expression,
+  Statement,
+  ASTPath,
+  File,
+  forEachNode,
+  Identifier,
+  isStatement,
+  t,
+  isFunction,
+  isVariableDeclarator,
+  isArrayExpression,
+  isProperty,
+  isCallExpression,
+  isExpressionStatement,
+  toPaths,
+  Parser,
+} from '../variant'
 
 function splice<T>(arr: T[], element: T, replacement: T[]) {
   arr.splice(arr.indexOf(element), 1, ...replacement)
 }
 
 function ensureStatement(node: ASTNode): Statement {
-  return types.Statement.check(node)
+  return isStatement(node)
     ? // Removing the location information seems to ensure that the node is
       // correctly reprinted with a trailing semicolon
       (node as any)
-    : builders.expressionStatement(node as any)
-}
-
-function getVistor(
-  varNames: string[],
-  nodes: any[]
-): recast.types.Visitor<any> {
-  return {
-    visitIdentifier(path) {
-      this.traverse(path)
-      const node = path.node
-      const parent = path.parent.node
-
-      // If this identifier is not one of our generated ones, do nothing
-      const varIndex = varNames.indexOf(node.name)
-      if (varIndex === -1) {
-        return
-      }
-
-      const replacement = nodes[varIndex]
-      nodes[varIndex] = null
-
-      // If the replacement is an array, we need to explode the nodes in context
-      if (Array.isArray(replacement)) {
-        if (types.Function.check(parent) && parent.params.indexOf(node) > -1) {
-          // Function parameters: function foo(${bar}) {}
-          splice(parent.params, node, replacement)
-        } else if (types.VariableDeclarator.check(parent)) {
-          // Variable declarations: var foo = ${bar}, baz = 42;
-          splice(path.parent.parent.node.declarations, parent, replacement)
-        } else if (types.ArrayExpression.check(parent)) {
-          // Arrays: var foo = [${bar}, baz];
-          splice(parent.elements, node, replacement)
-        } else if (types.Property.check(parent) && parent.shorthand) {
-          // Objects: var foo = {${bar}, baz: 42};
-          splice(path.parent.parent.node.properties, parent, replacement)
-        } else if (
-          types.CallExpression.check(parent) &&
-          parent.arguments.indexOf(node) > -1
-        ) {
-          // Function call arguments: foo(${bar}, baz)
-          splice(parent.arguments, node, replacement)
-        } else if (types.ExpressionStatement.check(parent)) {
-          // Generic sequence of statements: { ${foo}; bar; }
-          path.parent.replace(path.parent, ...replacement.map(ensureStatement))
-        } else {
-          // Every else, let recast take care of it
-          path.replace(...replacement)
-        }
-      } else if (types.ExpressionStatement.check(parent)) {
-        path.parent.replace(ensureStatement(replacement))
-      } else {
-        path.replace(replacement)
-      }
-    },
-  }
+    : t.expressionStatement(node as any)
 }
 
 function replaceNodes(
   src: string,
   varNames: string[],
   nodes: any[],
-  jscodeshift: JSCodeshift
-) {
-  const ast = jscodeshift(src).nodes()[0]
-  const errors = ast.type === 'File' ? ast.program.errors : ast.errors
+  parser: Parser
+): ASTNode {
+  const ast = parser.parse(src)
+  const errors =
+    ast.type === 'File' ? (ast.program as any).errors : (ast as any).errors
   if (errors?.length) {
     // Flow parser returns a bogus AST instead of throwing when the grammar is invalid,
     // but it at least includes parse errors in this array
     throw new Error(errors[0].message)
   }
-  recast.visit(ast, getVistor(varNames, nodes))
+  forEachNode(toPaths(ast), ['Identifier'], (path: ASTPath<Identifier>) => {
+    const node = path.node
+    const parent = path.parent.node
+
+    // If this identifier is not one of our generated ones, do nothing
+    const varIndex = varNames.indexOf(node.name)
+    if (varIndex === -1) {
+      return
+    }
+
+    const replacement = nodes[varIndex]
+    nodes[varIndex] = null
+
+    // If the replacement is an array, we need to explode the nodes in context
+    if (Array.isArray(replacement)) {
+      if (isFunction(parent) && parent.params.indexOf(node) > -1) {
+        // Function parameters: function foo(${bar}) {}
+        splice(parent.params, node, replacement)
+      } else if (isVariableDeclarator(parent)) {
+        // Variable declarations: var foo = ${bar}, baz = 42;
+        splice(path.parent.parent.node.declarations, parent, replacement)
+      } else if (isArrayExpression(parent)) {
+        // Arrays: var foo = [${bar}, baz];
+        splice(parent.elements, node, replacement)
+      } else if (isProperty(parent) && parent.shorthand) {
+        // Objects: var foo = {${bar}, baz: 42};
+        splice(path.parent.parent.node.properties, parent, replacement)
+      } else if (
+        isCallExpression(parent) &&
+        parent.arguments.indexOf(node) > -1
+      ) {
+        // Function call arguments: foo(${bar}, baz)
+        splice(parent.arguments, node, replacement)
+      } else if (isExpressionStatement(parent)) {
+        // Generic sequence of statements: { ${foo}; bar; }
+        path.parent.replace(path.parent, ...replacement.map(ensureStatement))
+      } else {
+        // Every else, let recast take care of it
+        path.replace(...replacement)
+      }
+    } else if (isExpressionStatement(parent)) {
+      path.parent.replace(ensureStatement(replacement))
+    } else {
+      path.replace(replacement)
+    }
+  })
   return ast
 }
 
@@ -101,7 +106,7 @@ function getUniqueVarName() {
 }
 
 export default function withParser(
-  jscodeshift: JSCodeshift
+  parser: Parser
 ): {
   statements: (
     template: TemplateStringsArray | string[],
@@ -127,7 +132,7 @@ export default function withParser(
           result + varNames[i - 1] + elem
       )
 
-      return replaceNodes(src, varNames, nodes, jscodeshift).program.body
+      return (replaceNodes(src, varNames, nodes, parser) as File).program.body
     }
     try {
       const template = [..._template]

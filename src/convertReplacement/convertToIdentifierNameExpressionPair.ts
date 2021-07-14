@@ -1,4 +1,4 @@
-import { ASTNode, Expression } from 'jscodeshift'
+import { ASTNode, Expression } from '../variant'
 import convertToJSXIdentifierNameExpressionPair from './convertToJSXIdentifierNameExpressionPair'
 
 export default function convertToIdentifierNameExpressionPair(

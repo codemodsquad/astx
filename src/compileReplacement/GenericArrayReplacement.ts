@@ -1,4 +1,4 @@
-import { ASTPath, ASTNode } from 'jscodeshift'
+import { ASTPath, ASTNode } from '../variant'
 import compileReplacement, {
   CompiledReplacement,
   CompileReplacementOptions,

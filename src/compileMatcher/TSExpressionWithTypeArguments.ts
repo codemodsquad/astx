@@ -1,4 +1,4 @@
-import { TSExpressionWithTypeArguments, ASTPath } from 'jscodeshift'
+import { TSExpressionWithTypeArguments, ASTPath } from '../variant'
 import { CompiledMatcher, CompileOptions } from '.'
 import compileArrayCaptureMatcher, { unescapeIdentifier } from './Capture'
 

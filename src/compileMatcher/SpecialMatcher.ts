@@ -1,4 +1,4 @@
-import { ASTPath } from 'jscodeshift'
+import { ASTPath } from '../variant'
 import { CompiledMatcher, CompileOptions } from '.'
 import compileOptionalMatcher from './Optional'
 import compileOrMatcher from './Or'

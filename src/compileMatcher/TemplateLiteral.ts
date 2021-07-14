@@ -1,4 +1,4 @@
-import { TemplateLiteral, ASTPath } from 'jscodeshift'
+import { TemplateLiteral, ASTPath } from '../variant'
 import { CompileOptions, CompiledMatcher } from './'
 import { compileStringCaptureMatcher } from './Capture'
 

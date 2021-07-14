@@ -1,4 +1,4 @@
-import { CallExpression, ASTPath } from 'jscodeshift'
+import { CallExpression, ASTPath } from '../variant'
 import { CompiledMatcher, CompileOptions } from '.'
 import compileSpecialMatcher from './SpecialMatcher'
 

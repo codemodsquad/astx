@@ -1,6 +1,7 @@
-import j, { ASTNode, Expression } from 'jscodeshift'
+import { ASTNode, Expression } from '../variant'
 import convertToJSXIdentifierName from './convertToIdentifierName'
 import convertToExpression from './convertToExpression'
+import { t } from '../variant'
 
 export default function convertToJSXIdentifierNameExpressionPair(
   node: ASTNode
@@ -32,10 +33,10 @@ export default function convertToJSXIdentifierNameExpressionPair(
       return [key, value]
     }
     case 'ImportDefaultSpecifier': {
-      const value = node.local || j.identifier('default')
+      const value = node.local || t.identifier('default')
       return ['default', value]
     }
   }
   const key = convertToJSXIdentifierName(node)
-  if (key) return [key, j.identifier(key)]
+  if (key) return [key, t.identifier(key)]
 }
