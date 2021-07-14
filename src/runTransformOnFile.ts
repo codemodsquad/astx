@@ -31,7 +31,7 @@ type TransformOptions = {
 }
 
 export type Transform = {
-  astx?: (options: TransformOptions) => string | false | null | undefined | void
+  astx?: (options: TransformOptions) => string | null | undefined | void
   parser?: string | Parser
   find?: string | ASTNode
   replace?: string | GetReplacement
@@ -93,7 +93,7 @@ export const runTransformOnFile = (transform: Transform) => async (
         )
         if (transform.replace) result.replace(transform.replace as any)
         matches = result.matches()
-        if (!result.size()) return false
+        if (!result.size()) return null
       }
     }
     if (typeof transformFn === 'function') {
@@ -115,7 +115,7 @@ export const runTransformOnFile = (transform: Transform) => async (
       ])
       transformed = _result
       if (transformed === undefined) transformed = root.toSource()
-      if (transformed === false) transformed = undefined
+      if (transformed === null) transformed = undefined
       if (
         prettier &&
         typeof transformed === 'string' &&

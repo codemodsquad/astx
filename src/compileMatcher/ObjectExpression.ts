@@ -60,22 +60,27 @@ function getCaptureRestVariable(
 }
 
 export default function compileObjectExpressionMatcher(
-  path: ASTPath,
+  path: ASTPath<any>,
   compileOptions: CompileOptions
 ): CompiledMatcher {
   const pattern: ObjectExpression = path.node
+
   const { debug } = compileOptions
+
   const propertyCompileOptions = {
     ...compileOptions,
     debug: indentDebug(debug, 1),
   }
+
   const simpleProperties: Map<string, CompiledMatcher> = new Map()
   let captureRestVariable: string | undefined
   const otherProperties: CompiledMatcher[] = []
   const propertiesPath = path.get('properties')
+
   for (let i = 0; i < pattern.properties.length; i++) {
     const property = pattern.properties[i]
     const simpleKey = getSimpleKey(property)
+
     if (simpleKey) {
       simpleProperties.set(
         simpleKey,
@@ -83,19 +88,24 @@ export default function compileObjectExpressionMatcher(
       )
       continue
     }
+
     const _captureRestVariable = getCaptureRestVariable(property)
+
     if (_captureRestVariable) {
       if (captureRestVariable)
         throw new Error(
           `two capture rest variables aren't allowed, found ${_captureRestVariable} and ${captureRestVariable}`
         )
+
       captureRestVariable = _captureRestVariable
       continue
     }
+
     otherProperties.push(
       compileMatcher(propertiesPath.get(i), propertyCompileOptions)
     )
   }
+
   for (const m of simpleProperties.values()) {
     if (m.captureAs || m.arrayCaptureAs) {
       return compileGenericNodeMatcher(path, {
@@ -104,40 +114,52 @@ export default function compileObjectExpressionMatcher(
       })
     }
   }
+
   return {
     match: (path: ASTPath, matchSoFar: MatchResult): MatchResult => {
       const { node } = path
+
       if (node.type !== pattern.type) return null
+
       const remainingSimpleProperties = new Map(simpleProperties.entries())
       const remainingOtherProperties = new Set(otherProperties)
       const capturedRestProperties: ASTPath[] | undefined = captureRestVariable
         ? []
         : undefined
+
       for (let i = 0; i < node.properties.length; i++) {
         const property = node.properties[i]
         const propertyPath = path.get('properties', i)
         const simpleKey = getSimpleKey(property)
         let matched = false
+
         if (simpleKey) {
           debug(simpleKey)
           const matcher = remainingSimpleProperties.get(simpleKey)
+
           if (matcher) {
             const result = matcher.match(propertyPath, matchSoFar)
+
             if (!result) return null
+
             matchSoFar = result
             matched = true
             remainingSimpleProperties.delete(simpleKey)
           }
         } else {
           debug('(other)')
+
           for (const otherMatcher of remainingOtherProperties) {
             const result = otherMatcher.match(propertyPath, matchSoFar)
+
             if (!result) continue
+
             matchSoFar = result
             matched = true
             remainingOtherProperties.delete(otherMatcher)
           }
         }
+
         if (!matched) {
           if (capturedRestProperties) {
             debug(`  captured in ${captureRestVariable}`)
@@ -148,13 +170,16 @@ export default function compileObjectExpressionMatcher(
           }
         }
       }
+
       if (remainingSimpleProperties.size) {
         debug(
           `missing properties from pattern: %s`,
           [...remainingSimpleProperties.keys()].join(', ')
         )
+
         return null
       }
+
       if (remainingOtherProperties.size) {
         debug(
           `missing ${remainingOtherProperties.size} other properties from pattern`
@@ -169,6 +194,7 @@ export default function compileObjectExpressionMatcher(
           },
         })
       }
+
       return matchSoFar || {}
     },
 

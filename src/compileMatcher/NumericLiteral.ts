@@ -2,10 +2,11 @@ import { ASTPath, NumericLiteral } from 'jscodeshift'
 import { CompileOptions, convertPredicateMatcher, CompiledMatcher } from './'
 
 export default function matchNumericLiteral(
-  path: ASTPath,
+  path: ASTPath<any>,
   compileOptions: CompileOptions
 ): CompiledMatcher {
   const pattern: NumericLiteral = path.node
+
   return convertPredicateMatcher(
     pattern,
     {
@@ -13,6 +14,7 @@ export default function matchNumericLiteral(
 
       match: (path: ASTPath): boolean => {
         const { node } = path
+
         return node.type === 'NumericLiteral' && pattern.value === node.value
       },
 

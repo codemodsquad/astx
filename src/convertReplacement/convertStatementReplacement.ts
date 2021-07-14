@@ -1,4 +1,4 @@
-import j, { ASTNode } from 'jscodeshift'
+import j, { ASTNode, ClassDeclaration } from 'jscodeshift'
 import * as t from 'ast-types'
 
 import convertToExpression from './convertToExpression'
@@ -6,7 +6,7 @@ import convertToExpression from './convertToExpression'
 export default function convertStatementReplacement(value: ASTNode): ASTNode {
   switch (value.type) {
     case 'ClassExpression':
-      return { ...value, type: 'ClassDeclaration' }
+      return { ...value, type: 'ClassDeclaration' } as ClassDeclaration
     case 'FunctionExpression':
       return {
         ...value,
@@ -16,7 +16,7 @@ export default function convertStatementReplacement(value: ASTNode): ASTNode {
   }
   if (!t.namedTypes.Statement.check(value)) {
     const expression = convertToExpression(value)
-    if (expression) return j.expressionStatement(value)
+    if (expression) return j.expressionStatement(expression as any)
   }
   return value
 }

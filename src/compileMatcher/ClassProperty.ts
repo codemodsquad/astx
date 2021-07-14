@@ -3,10 +3,11 @@ import { CompiledMatcher, CompileOptions } from '.'
 import compileCaptureMatcher, { unescapeIdentifier } from './Capture'
 
 export default function compileClassPropertyMatcher(
-  path: ASTPath,
+  path: ASTPath<any>,
   compileOptions: CompileOptions
 ): CompiledMatcher | void {
   const pattern: ClassProperty = path.node
+
   if (pattern.key.type === 'Identifier') {
     if (
       !pattern.computed &&
@@ -18,8 +19,10 @@ export default function compileClassPropertyMatcher(
         pattern.key.name,
         compileOptions
       )
+
       if (captureMatcher) return captureMatcher
     }
+
     pattern.key.name = unescapeIdentifier(pattern.key.name)
   }
 }

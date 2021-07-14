@@ -37,6 +37,7 @@ export default function convertToJSXIdentifierName(
     case 'TemplateLiteral':
       if (
         node.quasis.length === 1 &&
+        node.quasis[0].value.cooked &&
         isValidJSXIdentifier(node.quasis[0].value.cooked)
       ) {
         return node.quasis[0].value.cooked

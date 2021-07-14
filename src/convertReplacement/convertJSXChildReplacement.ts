@@ -10,5 +10,5 @@ export default function convertJSXChildReplacement(node: ASTNode): ASTNode {
     case 'JSXExpressionContainer':
       return node
   }
-  return j.jsxExpressionContainer(convertExpressionReplacement(node))
+  return j.jsxExpressionContainer(convertExpressionReplacement(node) as any)
 }

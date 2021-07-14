@@ -28,15 +28,18 @@ const nodeConverters: Record<
 }
 
 export default function createReplacementConverter(
-  path: ASTPath
+  path: ASTPath<any>
 ): ReplacementConverter {
   const parentNode = path.parentPath?.node
   const nodeConverter = nodeConverters[path.node.type]
+
   if (nodeConverter) return nodeConverter(path)
+
   switch (parentNode?.type) {
     case 'JSXAttribute':
       if (path.node === parentNode.value)
         return convertJSXAttributeValueReplacement
+
       break
     case 'JSXElement':
       return convertJSXChildReplacement
@@ -48,15 +51,19 @@ export default function createReplacementConverter(
   if (t.namedTypes.Statement.check(path.node)) {
     return convertStatementReplacement
   }
+
   if (t.namedTypes.Expression.check(path.node)) {
     return convertExpressionReplacement
   }
+
   if (t.namedTypes.Flow.check(path.node)) {
     return convertFlowTypeReplacement
   }
+
   if (t.namedTypes.TSType.check(path.node)) {
     return convertTSTypeReplacement
   }
+
   return identity
 }
 

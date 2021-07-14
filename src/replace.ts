@@ -24,7 +24,9 @@ export default function replace(
           : compileReplacement(
               singleOrArray(
                 j(
-                  typeof replace === 'function' ? replace(match) : replace
+                  (typeof replace === 'function' ? replace(match) : replace) as
+                    | ASTNode
+                    | ASTNode[]
                 ).paths()
               )
             )

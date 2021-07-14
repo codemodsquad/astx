@@ -4,16 +4,18 @@ import compileArrayCaptureMatcher, { unescapeIdentifier } from './Capture'
 import compileSpecialMatcher from './SpecialMatcher'
 
 export default function compileTSTypeReferenceMatcher(
-  path: ASTPath,
+  path: ASTPath<any>,
   compileOptions: CompileOptions
 ): CompiledMatcher | void {
   const { typeName, typeParameters }: TSTypeReference = path.node
+
   if (typeName.type === 'Identifier') {
     if (typeParameters == null) {
       const captureMatcher = compileArrayCaptureMatcher(
         typeName.name,
         compileOptions
       )
+
       if (captureMatcher) return captureMatcher
     } else {
       const special = compileSpecialMatcher(
@@ -24,8 +26,10 @@ export default function compileTSTypeReferenceMatcher(
           .filter(() => true),
         compileOptions
       )
+
       if (special) return special
     }
+
     typeName.name = unescapeIdentifier(typeName.name)
   }
 }

@@ -83,7 +83,7 @@ export function compileStringCaptureMatcher<Node extends ASTNode>(
   if (captureAs) {
     return {
       captureAs,
-      match: (path: ASTPath, matchSoFar: MatchResult): MatchResult => {
+      match: (path: ASTPath<any>, matchSoFar: MatchResult): MatchResult => {
         if (path.node.type !== pattern.type) return null
         debug('String Capture', captureAs)
         const string = getString(path.node)

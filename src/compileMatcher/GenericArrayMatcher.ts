@@ -8,13 +8,13 @@ import compileMatcher, {
 import indentDebug from './indentDebug'
 
 export default function compileGenericArrayMatcher(
-  path: ASTPath | ASTPath[],
+  path: ASTPath<any[]> | ASTPath<any>[],
   compileOptions: CompileOptions,
   {
     skipElement = () => false,
   }: { skipElement?: (path: ASTPath) => boolean } = {}
 ): CompiledMatcher {
-  const paths: ASTPath[] = Array.isArray(path)
+  const paths: ASTPath<any>[] = Array.isArray(path)
     ? path
     : path.value.map((node: any, i: number) => path.get(i))
   const pattern: ASTNode[] = paths.map((p: ASTPath) => p.node)
@@ -36,19 +36,21 @@ export default function compileGenericArrayMatcher(
   }
 
   function slicePath(
-    path: ASTPath,
+    path: ASTPath<any>,
     start: number,
     end: number = path.value.length
   ): ASTPath[] {
     const result = []
+
     for (let i = start; i < end; i++) {
       result.push(path.get(i))
     }
+
     return result
   }
 
   function matchElem(
-    path: ASTPath,
+    path: ASTPath<any>,
     sliceStart: number,
     arrayIndex: number,
     matcherIndex: number,
@@ -56,13 +58,17 @@ export default function compileGenericArrayMatcher(
   ): MatchResult {
     while (arrayIndex < path.value.length && skipElement(path.get(arrayIndex)))
       arrayIndex++
+
     if (arrayIndex === path.value.length) {
       return remainingElements(matcherIndex) === 0 ? matchSoFar || {} : null
     }
+
     if (matcherIndex === matchers.length) return null
 
     const matcher = matchers[matcherIndex]
+
     const { arrayCaptureAs } = matcher
+
     if (arrayCaptureAs) {
       if (matcherIndex === matchers.length - 1) {
         return mergeCaptures(matchSoFar, {
@@ -71,6 +77,7 @@ export default function compileGenericArrayMatcher(
           },
         })
       }
+
       return matchElem(
         path,
         sliceStart,
@@ -84,11 +91,16 @@ export default function compileGenericArrayMatcher(
       const end = prevArrayCaptureAs
         ? path.value.length - remainingElements(matcherIndex + 1)
         : arrayIndex + 1
+
       for (let i = arrayIndex; i < end; i++) {
         const elemPath = path.get(i)
+
         if (skipElement(elemPath)) continue
+
         matchSoFar = matcher.match(elemPath, origMatchSoFar)
+
         if (!matchSoFar) continue
+
         if (prevArrayCaptureAs) {
           matchSoFar = mergeCaptures(matchSoFar, {
             arrayCaptures: {
@@ -96,6 +108,7 @@ export default function compileGenericArrayMatcher(
             },
           })
         }
+
         const restMatch = matchElem(
           path,
           i + 1,
@@ -103,9 +116,11 @@ export default function compileGenericArrayMatcher(
           matcherIndex + 1,
           matchSoFar
         )
+
         if (restMatch) return restMatch
       }
     }
+
     return null
   }
 

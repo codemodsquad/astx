@@ -1,6 +1,10 @@
-import { ASTPath } from 'jscodeshift'
+import jscodeshift, { ASTPath, ASTNode } from 'jscodeshift'
 import { NodeType } from './compileMatcher'
 import { visit, Visitor } from 'ast-types'
+
+export function getPath<Node extends ASTNode>(node: Node): ASTPath<Node> {
+  return jscodeshift([node]).paths()[0]
+}
 
 export function forEachNode(
   paths: ASTPath<any>[],

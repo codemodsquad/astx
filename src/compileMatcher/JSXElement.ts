@@ -4,7 +4,7 @@ import compileGenericNodeMatcher from './GenericNodeMatcher'
 import compileGenericArrayMatcher from './GenericArrayMatcher'
 import normalizeJSXTextValue from '../util/normalizeJSXTextValue'
 
-function shouldSkipChild(path: ASTPath): boolean {
+function shouldSkipChild(path: ASTPath<any>): boolean {
   return (
     path.node.type === 'JSXText' &&
     normalizeJSXTextValue(path.node.value) === ''
@@ -12,11 +12,13 @@ function shouldSkipChild(path: ASTPath): boolean {
 }
 
 export default function compileJSXElementMatcher(
-  path: ASTPath,
+  path: ASTPath<any>,
   compileOptions: CompileOptions
 ): CompiledMatcher | void {
   const pattern: JSXElement = path.node
+
   const { children } = pattern
+
   if (children) {
     return compileGenericNodeMatcher(path, compileOptions, {
       keyMatchers: {
