@@ -21,8 +21,6 @@ export const expectedFind = [
   },
 ]
 
-export const only = true
-
 export const replace = `const x = { /**/ $value: $key }`
 
 export const expectedReplace = `
