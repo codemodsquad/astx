@@ -13,6 +13,10 @@ import compileMatcher, {
 } from './index'
 import indentDebug from './indentDebug'
 
+import { CompiledArrayMatcher } from './'
+
+import getChildPathsArray from '../variant/getChildPathsArray'
+
 const equivalenceClassesArray: {
   nodeTypes: Set<ASTNode['type']>
   baseType?: NodeType
@@ -48,7 +52,7 @@ export default function compileGenericNodeMatcher(
   path: ASTPath<any>,
   compileOptions: CompileOptions,
   options?: {
-    keyMatchers?: Record<string, CompiledMatcher>
+    keyMatchers?: Record<string, CompiledMatcher | CompiledArrayMatcher>
   }
 ): CompiledMatcher {
   const pattern: ASTNode = path.node
@@ -65,10 +69,13 @@ export default function compileGenericNodeMatcher(
 
   const { debug } = compileOptions
 
-  const keyMatchers: Record<string, CompiledMatcher> = Object.fromEntries(
+  const keyMatchers: Record<
+    string,
+    CompiledMatcher | CompiledArrayMatcher
+  > = Object.fromEntries(
     getFieldNames(pattern)
       .filter((key) => key !== 'type')
-      .map((key: string): [string, CompiledMatcher] => {
+      .map((key: string): [string, CompiledMatcher | CompiledArrayMatcher] => {
         const custom = options?.keyMatchers?.[key]
 
         if (custom) return [key, custom]
@@ -95,7 +102,7 @@ export default function compileGenericNodeMatcher(
         } else {
           return [
             key,
-            compileMatcher(path.get(key), {
+            compileMatcher(getChildPathsArray(path, key) as any, {
               ...compileOptions,
               debug: indentDebug(debug, 2),
             }),
@@ -106,15 +113,16 @@ export default function compileGenericNodeMatcher(
 
   return {
     match: (path: ASTPath, matchSoFar: MatchResult): MatchResult => {
-      if (!path.value) return null
-
       debug('%s (generic)', pattern.type)
 
       if (isCorrectType(path.node)) {
         for (const key in keyMatchers) {
           debug('  .%s', key)
           const matcher = keyMatchers[key]
-          matchSoFar = matcher.match(path.get(key), matchSoFar)
+          matchSoFar = matcher.match(
+            getChildPathsArray(path, key as any) as any,
+            matchSoFar
+          )
 
           if (!matchSoFar) return null
         }

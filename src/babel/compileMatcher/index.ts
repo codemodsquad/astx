@@ -89,7 +89,16 @@ export interface CompiledMatcher {
   predicate?: false
   captureAs?: string
   arrayCaptureAs?: string
-  match: (path: ASTPath, matchSoFar: MatchResult) => MatchResult
+  match: (path: ASTPath<any>, matchSoFar: MatchResult) => MatchResult
+  nodeType?: NodeType | NodeType[]
+}
+
+export interface CompiledArrayMatcher {
+  optional?: true
+  predicate?: false
+  captureAs?: string
+  arrayCaptureAs?: string
+  match: (path: ASTPath<any>[], matchSoFar: MatchResult) => MatchResult
   nodeType?: NodeType | NodeType[]
 }
 
@@ -137,8 +146,15 @@ export function convertPredicateMatcher(
 ): CompiledMatcher {
   return {
     nodeType: matcher.nodeType,
-    match: (path: ASTPath, matchSoFar: MatchResult): MatchResult => {
+    match: (
+      path: ASTPath<any> | ASTPath<any>[],
+      matchSoFar: MatchResult
+    ): MatchResult => {
       debug('%s (specific)', pattern.type)
+      if (Array.isArray(path)) {
+        debug(`  didn't match`)
+        return null
+      }
       const result = matcher.match(path, matchSoFar)
       if (result) {
         if (result === true) debug('  matched')
@@ -153,13 +169,22 @@ export function convertPredicateMatcher(
 
 export default function compileMatcher(
   path: ASTPath<any>,
+  rootCompileOptions?: RootCompileOptions
+): CompiledMatcher
+export default function compileMatcher(
+  path: ASTPath<any>[],
+  rootCompileOptions?: RootCompileOptions
+): CompiledArrayMatcher
+export default function compileMatcher(
+  path: ASTPath<any> | ASTPath<any>[],
   rootCompileOptions: RootCompileOptions = {}
-): CompiledMatcher {
+): CompiledMatcher | CompiledArrayMatcher {
   const { debug = _debug } = rootCompileOptions
   const compileOptions = { ...rootCompileOptions, debug }
-  if (Array.isArray(path.value)) {
+  if (Array.isArray(path)) {
     return compileGenericArrayMatcher(path, compileOptions)
-  } else if (nodeMatchers[path.node.type]) {
+  }
+  if (nodeMatchers[path.node.type]) {
     const matcher = nodeMatchers[path.node.type](path, compileOptions)
     if (matcher) return matcher
   }

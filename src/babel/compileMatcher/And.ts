@@ -14,7 +14,7 @@ export default function compileAndMatcher(
   return {
     nodeType: nodeType.size ? [...nodeType] : undefined,
     optional: true,
-    match: (path: ASTPath, matchSoFar: MatchResult): MatchResult => {
+    match: (path: ASTPath<any>, matchSoFar: MatchResult): MatchResult => {
       for (const matcher of matchers) {
         matchSoFar = matcher.match(path, matchSoFar)
         if (!matchSoFar) return null

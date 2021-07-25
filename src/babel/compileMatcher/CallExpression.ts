@@ -2,6 +2,8 @@ import { CallExpression, ASTPath } from '../variant'
 import { CompiledMatcher, CompileOptions } from '.'
 import compileSpecialMatcher from './SpecialMatcher'
 
+import getChildPathsArray from '../variant/getChildPathsArray'
+
 export default function compileCallExpressionMatcher(
   path: ASTPath<any>,
   compileOptions: CompileOptions
@@ -11,7 +13,7 @@ export default function compileCallExpressionMatcher(
   if (callee.type === 'Identifier') {
     const special = compileSpecialMatcher(
       callee.name,
-      path.get('arguments').filter(() => true),
+      getChildPathsArray(path, 'arguments'),
       compileOptions
     )
 

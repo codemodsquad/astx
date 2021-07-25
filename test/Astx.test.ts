@@ -1,10 +1,10 @@
 import { describe, it } from 'mocha'
 import { expect } from 'chai'
-import Astx from '../src/Astx'
+import Astx from '../src/jscodeshift/Astx'
 import j from 'jscodeshift'
 import { formatMatches } from './findReplace'
 
-import { ASTPath } from '../src/variant'
+import { ASTPath } from '../src/jscodeshift/variant'
 
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 

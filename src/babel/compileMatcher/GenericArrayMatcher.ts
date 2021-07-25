@@ -1,6 +1,7 @@
 import { ASTPath, ASTNode } from '../variant'
 import compileMatcher, {
   CompiledMatcher,
+  CompiledArrayMatcher,
   CompileOptions,
   MatchResult,
   mergeCaptures,
@@ -8,15 +9,12 @@ import compileMatcher, {
 import indentDebug from './indentDebug'
 
 export default function compileGenericArrayMatcher(
-  path: ASTPath<any[]> | ASTPath<any>[],
+  paths: ASTPath<any>[],
   compileOptions: CompileOptions,
   {
     skipElement = () => false,
   }: { skipElement?: (path: ASTPath) => boolean } = {}
-): CompiledMatcher {
-  const paths: ASTPath<any>[] = Array.isArray(path)
-    ? path
-    : path.value.map((node: any, i: number) => path.get(i))
+): CompiledArrayMatcher {
   const pattern: ASTNode[] = paths.map((p: ASTPath) => p.node)
   const { debug } = compileOptions
   const elemOptions = {
@@ -35,31 +33,17 @@ export default function compileGenericArrayMatcher(
     return count
   }
 
-  function slicePath(
-    path: ASTPath<any>,
-    start: number,
-    end: number = path.value.length
-  ): ASTPath[] {
-    const result = []
-
-    for (let i = start; i < end; i++) {
-      result.push(path.get(i))
-    }
-
-    return result
-  }
-
   function matchElem(
-    path: ASTPath<any>,
+    paths: ASTPath<any>[],
     sliceStart: number,
     arrayIndex: number,
     matcherIndex: number,
     matchSoFar: MatchResult
   ): MatchResult {
-    while (arrayIndex < path.value.length && skipElement(path.get(arrayIndex)))
+    while (arrayIndex < paths.length && skipElement(paths[arrayIndex]))
       arrayIndex++
 
-    if (arrayIndex === path.value.length) {
+    if (arrayIndex === paths.length) {
       return remainingElements(matcherIndex) === 0 ? matchSoFar || {} : null
     }
 
@@ -73,13 +57,13 @@ export default function compileGenericArrayMatcher(
       if (matcherIndex === matchers.length - 1) {
         return mergeCaptures(matchSoFar, {
           arrayCaptures: {
-            [arrayCaptureAs]: slicePath(path, sliceStart),
+            [arrayCaptureAs]: paths.slice(sliceStart),
           },
         })
       }
 
       return matchElem(
-        path,
+        paths,
         sliceStart,
         arrayIndex,
         matcherIndex + 1,
@@ -89,11 +73,11 @@ export default function compileGenericArrayMatcher(
       const origMatchSoFar = matchSoFar
       const prevArrayCaptureAs = matchers[matcherIndex - 1]?.arrayCaptureAs
       const end = prevArrayCaptureAs
-        ? path.value.length - remainingElements(matcherIndex + 1)
+        ? paths.length - remainingElements(matcherIndex + 1)
         : arrayIndex + 1
 
       for (let i = arrayIndex; i < end; i++) {
-        const elemPath = path.get(i)
+        const elemPath = paths[i]
 
         if (skipElement(elemPath)) continue
 
@@ -104,13 +88,13 @@ export default function compileGenericArrayMatcher(
         if (prevArrayCaptureAs) {
           matchSoFar = mergeCaptures(matchSoFar, {
             arrayCaptures: {
-              [prevArrayCaptureAs]: slicePath(path, sliceStart, i),
+              [prevArrayCaptureAs]: paths.slice(sliceStart, i),
             },
           })
         }
 
         const restMatch = matchElem(
-          path,
+          paths,
           i + 1,
           i + 1,
           matcherIndex + 1,
@@ -126,14 +110,14 @@ export default function compileGenericArrayMatcher(
 
   if (matchers.some((m) => m.captureAs || m.arrayCaptureAs)) {
     return {
-      match: (path: ASTPath, matchSoFar: MatchResult): MatchResult => {
+      match: (paths: ASTPath<any>[], matchSoFar: MatchResult): MatchResult => {
         debug('Array')
-        if (!Array.isArray(path.value)) {
-          debug('  path.value is not an array')
+        if (!Array.isArray(paths)) {
+          debug('  paths is not an array')
           return null
         }
 
-        let result = matchElem(path, 0, 0, 0, matchSoFar)
+        let result = matchElem(paths, 0, 0, 0, matchSoFar)
         if (!result) return result
 
         // make sure all * captures are present in results
@@ -153,22 +137,22 @@ export default function compileGenericArrayMatcher(
   }
 
   return {
-    match: (path: ASTPath, matchSoFar: MatchResult): MatchResult => {
+    match: (paths: ASTPath<any>[], matchSoFar: MatchResult): MatchResult => {
       debug('Array')
-      if (!Array.isArray(path.value)) {
-        debug('  path.value is not an array')
+      if (!Array.isArray(paths)) {
+        debug('  paths is not an array')
         return null
       }
       let m = 0,
         i = 0
-      while (i < path.value.length || m < matchers.length) {
+      while (i < paths.length || m < matchers.length) {
         debug('  [%d]', i)
-        const elemPath = path.get(i)
+        const elemPath = paths[i]
         if (skipElement(elemPath)) {
           i++
           continue
         }
-        if (m >= matchers.length) return null
+        if (m >= matchers.length || i >= paths.length) return null
         matchSoFar = matchers[m].match(elemPath, matchSoFar)
         if (!matchSoFar) return null
         m++
