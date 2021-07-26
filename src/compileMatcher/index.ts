@@ -1,5 +1,6 @@
 import { ASTPath, ASTNode } from 'jscodeshift'
 import * as t from 'ast-types'
+import { NodeType } from '../util/NodeType'
 import __debug, { Debugger } from 'debug'
 import BooleanLiteral from './BooleanLiteral'
 import CallExpression from './CallExpression'
@@ -84,8 +85,6 @@ export type PredicateMatcher = {
   match: (path: ASTPath, matchSoFar: MatchResult) => boolean
   nodeType?: keyof typeof t.namedTypes | (keyof typeof t.namedTypes)[]
 }
-
-export type NodeType = keyof typeof t.namedTypes
 
 export interface CompiledMatcher {
   optional?: true
