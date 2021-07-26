@@ -1,4 +1,4 @@
-import {
+import jscodeshift, {
   Expression,
   ExpressionStatement,
   JSCodeshift,
@@ -8,7 +8,11 @@ import {
   Node,
 } from 'jscodeshift'
 import template from './template'
-import { forEachNode, getPath } from '../variant'
+import { forEachNode } from './forEachNode'
+
+function getPath<Node extends ASTNode>(node: Node): ASTPath<Node> {
+  return jscodeshift([node]).paths()[0]
+}
 
 function parseFindOrReplace0(
   j: JSCodeshift,

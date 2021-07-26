@@ -1,10 +1,6 @@
 import { ASTPath } from 'jscodeshift'
-import compileMatcher, {
-  CompiledMatcher,
-  CompileOptions,
-  MatchResult,
-  NodeType,
-} from '.'
+import compileMatcher, { CompiledMatcher, CompileOptions, MatchResult } from '.'
+import { NodeType } from '../util/NodeType'
 
 export default function compileAndMatcher(
   paths: ASTPath[],

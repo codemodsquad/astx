@@ -4,11 +4,10 @@ import compileMatcher, {
   CompiledMatcher,
   MatchResult,
   mergeCaptures,
-  NodeType,
 } from './compileMatcher'
 import * as t from 'ast-types'
-
-import { forEachNode } from './variant'
+import { NodeType } from './util/NodeType'
+import { forEachNode } from './util/forEachNode'
 
 export type Match = {
   type: 'node' | 'nodes'
