@@ -1,25 +1,43 @@
 import yargs, { Arguments, Argv, CommandModule } from 'yargs'
-import { Transform } from '../runTransformOnFile'
 import path from 'path'
-import runTransform from '../runTransform'
 import chalk from 'chalk'
 import formatDiff from '../util/formatDiff'
 import isEmpty from 'lodash/isEmpty'
 import inquirer from 'inquirer'
 import fs from 'fs-extra'
 import dedent from 'dedent-js'
-import formatMatches from '../util/formatMatches'
-
-import Astx from '../Astx'
 
 /* eslint-disable no-console */
 
 type Options = {
   transform?: string
   parser?: string
+  engine?: string
   find?: string
   replace?: string
   filesAndDirectories?: string[]
+}
+
+async function getEngine(
+  engine: string
+): Promise<{
+  Astx: any
+  runTransform: any
+  runTransformOnFile: any
+  formatMatches: any
+}> {
+  switch (engine) {
+    case 'jscodeshift':
+      return {
+        Astx: (await import('../jscodeshift/Astx')).default,
+        runTransform: (await import('../jscodeshift/runTransform')).default,
+        runTransformOnFile: (await import('../jscodeshift/runTransformOnFile'))
+          .runTransformOnFile,
+        formatMatches: (await import('../jscodeshift/util/formatMatches'))
+          .default,
+      }
+  }
+  throw new Error(`invalid engine: ${engine}`)
 }
 
 const transform: CommandModule<Options> = {
@@ -34,6 +52,11 @@ const transform: CommandModule<Options> = {
       .option('transform', {
         alias: 't',
         describe: `path to the transform file. Can be either a local path or url. Defaults to ./astx.js if --find isn't given`,
+      })
+      .options('engine', {
+        describe: 'engine to use',
+        type: 'string',
+        default: 'jscodeshift',
       })
       .options('parser', {
         describe: 'parser to use',
@@ -59,7 +82,9 @@ const transform: CommandModule<Options> = {
       process.exit(1)
     }
 
-    function getTransform(): Transform {
+    const engine = await getEngine(argv.engine || 'jscodeshift')
+
+    function getTransform(): any {
       const { transform, find, parser }: any = argv
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       if (transform) return require(path.resolve(transform))
@@ -77,7 +102,7 @@ const transform: CommandModule<Options> = {
       return require(path.resolve('./astx.js'))
     }
 
-    const transform: Transform = getTransform()
+    const transform = getTransform()
 
     const results: Record<string, string> = {}
     let errorCount = 0
@@ -90,7 +115,7 @@ const transform: CommandModule<Options> = {
       reports,
       error,
       matches,
-    } of runTransform(transform, {
+    } of engine.runTransform(transform, {
       paths,
     })) {
       const logHeader = (logFn: (value: string) => any) =>
@@ -119,7 +144,7 @@ const transform: CommandModule<Options> = {
         !transform.astx
       ) {
         logHeader(console.log)
-        console.log(formatMatches(source, matches))
+        console.log(engine.formatMatches(source, matches))
       } else {
         unchangedCount++
       }
@@ -131,9 +156,11 @@ const transform: CommandModule<Options> = {
             -------
           `)
         )
-        reports?.forEach((r) =>
+        reports?.forEach((r: any) =>
           console.error(
-            r instanceof Astx && source ? formatMatches(source, r.matches()) : r
+            r instanceof engine.Astx && source
+              ? engine.formatMatches(source, r.matches())
+              : r
           )
         )
       }

@@ -2,12 +2,12 @@ import { describe, it } from 'mocha'
 import { expect } from 'chai'
 import path from 'path'
 import jscodeshift, { ASTPath, JSCodeshift } from 'jscodeshift'
-import find, { FindOptions, Match } from '../../src/find'
+import find, { FindOptions, Match } from '../../src/jscodeshift/find'
 import requireGlob from 'require-glob'
 import mapValues from 'lodash/mapValues'
 import prettier from 'prettier'
-import parseFindOrReplace from '../../src/util/parseFindOrReplace'
-import Astx, { GetReplacement } from '../../src/Astx'
+import parseFindOrReplace from '../../src/jscodeshift/util/parseFindOrReplace'
+import Astx, { GetReplacement } from '../../src/jscodeshift/Astx'
 
 type ExpectedMatch = {
   node?: string
