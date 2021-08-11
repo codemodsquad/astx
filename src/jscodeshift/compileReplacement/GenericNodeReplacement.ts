@@ -24,9 +24,7 @@ export default function compileGenericNodeReplacement(
 
     const value = t.getFieldValue(pattern, key)
 
-    if (typeof value !== 'object' || value == null) {
-      propertyValues.push([key, value])
-    } else {
+    if (Array.isArray(value) || t.namedTypes.Node.check(value)) {
       childReplacements.push([
         key,
         compileReplacement(path.get(key), {
@@ -34,6 +32,8 @@ export default function compileGenericNodeReplacement(
           debug: indentDebug(debug, 2),
         }),
       ])
+    } else {
+      propertyValues.push([key, value])
     }
   }
 
