@@ -16,6 +16,10 @@ export default function replace(
     | ((match: Match) => ASTNode | ASTNode[])
 ): void {
   for (const match of matches) {
+    const path =
+      match.path.parentPath.node.type === 'ExpressionStatement'
+        ? match.path.parentPath
+        : match.path
     const replacements = [
       ...bulkConvert(
         (replace instanceof Object &&
@@ -31,19 +35,23 @@ export default function replace(
               )
             )
         ).generate(match),
-        createReplacementConverter(match.path)
+        createReplacementConverter(path)
       ),
     ]
 
-    if (replacements.length > 1 || match.paths.length > 1) {
-      const parent = match.path.parentPath
-      let index = match.path.name
+    const replacedPaths = match.paths.map((p) =>
+      p.parentPath.node.type === 'ExpressionStatement' ? p.parentPath : p
+    )
+
+    if (replacements.length > 1 || replacedPaths.length > 1) {
+      const parent = path.parentPath
+      let index = path.name
       for (const replacement of replacements) {
         parent.insertAt(index++, replacement)
       }
-      for (const path of match.paths) path.prune()
+      for (const path of replacedPaths) path.prune()
     } else {
-      match.path.replace(replacements[0])
+      path.replace(replacements[0])
     }
   }
 }
