@@ -1,6 +1,6 @@
 import { JSXExpressionContainer, ASTPath } from 'jscodeshift'
 import { CompiledReplacement, CompileReplacementOptions } from '.'
-import compileCaptureReplacement, { unescapeIdentifier } from './Capture'
+import compileCaptureReplacement from './Capture'
 
 export default function compileJSXExpressionContainerReplacement(
   path: ASTPath<JSXExpressionContainer>,
@@ -14,6 +14,5 @@ export default function compileJSXExpressionContainerReplacement(
       compileOptions
     )
     if (captureReplacement) return captureReplacement
-    pattern.expression.name = unescapeIdentifier(pattern.expression.name)
   }
 }

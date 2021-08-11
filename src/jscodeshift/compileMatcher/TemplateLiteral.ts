@@ -1,6 +1,10 @@
 import { TemplateLiteral, ASTPath } from 'jscodeshift'
 import { CompileOptions, CompiledMatcher } from './'
-import { compileStringCaptureMatcher } from './Capture'
+import { compileStringCaptureMatcher, unescapeIdentifier } from './Capture'
+
+function generateValue(cooked: string): { raw: string; cooked: string } {
+  return { raw: cooked.replace(/\\|`|\${/g, '\\$&'), cooked }
+}
 
 export default function matchTemplateLiteral(
   path: ASTPath<any>,
@@ -16,4 +20,14 @@ export default function matchTemplateLiteral(
   )
 
   if (captureMatcher) return captureMatcher
+
+  if (pattern.quasis.length === 1) {
+    const [quasi] = pattern.quasis
+    if (quasi.value.cooked) {
+      const unescaped = unescapeIdentifier(quasi.value.cooked)
+      if (unescaped !== quasi.value.cooked) {
+        quasi.value = generateValue(unescaped)
+      }
+    }
+  }
 }

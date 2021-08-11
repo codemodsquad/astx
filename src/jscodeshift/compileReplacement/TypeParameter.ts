@@ -1,6 +1,6 @@
 import { TypeParameter, ASTPath } from 'jscodeshift'
 import { CompiledReplacement, CompileReplacementOptions } from '.'
-import compileCaptureReplacement, { unescapeIdentifier } from './Capture'
+import compileCaptureReplacement from './Capture'
 
 export default function compileTypeParameterReplacement(
   path: ASTPath<TypeParameter>,
@@ -15,5 +15,4 @@ export default function compileTypeParameterReplacement(
     )
     if (captureReplacement) return captureReplacement
   }
-  pattern.name = unescapeIdentifier(pattern.name)
 }

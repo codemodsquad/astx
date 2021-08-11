@@ -1,6 +1,6 @@
 import { TSTypeParameter, ASTPath } from 'jscodeshift'
 import { CompiledMatcher, CompileOptions } from '.'
-import compileCaptureMatcher, { unescapeIdentifier } from './Capture'
+import compileCaptureMatcher from './Capture'
 
 export default function compileTSTypeParameterMatcher(
   path: ASTPath<any>,
@@ -18,6 +18,4 @@ export default function compileTSTypeParameterMatcher(
 
     if (captureMatcher) return captureMatcher
   }
-
-  pattern.name = unescapeIdentifier(pattern.name)
 }

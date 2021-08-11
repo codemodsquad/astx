@@ -1,6 +1,6 @@
 import { Property, ASTPath } from 'jscodeshift'
 import { CompiledReplacement, CompileReplacementOptions } from '.'
-import compileCaptureReplacement, { unescapeIdentifier } from './Capture'
+import compileCaptureReplacement from './Capture'
 
 export default function compilePropertyReplacement(
   path: ASTPath<Property>,
@@ -16,6 +16,5 @@ export default function compilePropertyReplacement(
       )
       if (captureReplacement) return captureReplacement
     }
-    pattern.key.name = unescapeIdentifier(pattern.key.name)
   }
 }

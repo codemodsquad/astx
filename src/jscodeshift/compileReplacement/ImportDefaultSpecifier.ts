@@ -1,6 +1,6 @@
 import { ImportDefaultSpecifier, ASTPath } from 'jscodeshift'
 import { CompiledReplacement, CompileReplacementOptions } from '.'
-import compileCaptureReplacement, { unescapeIdentifier } from './Capture'
+import compileCaptureReplacement from './Capture'
 
 export default function compileImportDefaultSpecifierReplacement(
   path: ASTPath<ImportDefaultSpecifier>,
@@ -17,6 +17,5 @@ export default function compileImportDefaultSpecifierReplacement(
       )
       if (captureReplacement) return captureReplacement
     }
-    local.name = unescapeIdentifier(local.name)
   }
 }

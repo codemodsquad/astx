@@ -1,6 +1,6 @@
 import { GenericTypeAnnotation, ASTPath } from 'jscodeshift'
 import { CompiledReplacement, CompileReplacementOptions } from '.'
-import compileCaptureReplacement, { unescapeIdentifier } from './Capture'
+import compileCaptureReplacement from './Capture'
 
 export default function compileGenericTypeAnnotationReplacement(
   path: ASTPath<GenericTypeAnnotation>,
@@ -16,6 +16,5 @@ export default function compileGenericTypeAnnotationReplacement(
       )
       if (captureReplacement) return captureReplacement
     }
-    pattern.id.name = unescapeIdentifier(pattern.id.name)
   }
 }

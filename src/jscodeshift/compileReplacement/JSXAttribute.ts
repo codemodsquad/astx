@@ -1,6 +1,6 @@
 import { JSXAttribute, ASTPath } from 'jscodeshift'
 import { CompiledReplacement, CompileReplacementOptions } from '.'
-import compileCaptureReplacement, { unescapeIdentifier } from './Capture'
+import compileCaptureReplacement from './Capture'
 
 export default function compileJSXAttributeReplacement(
   path: ASTPath<JSXAttribute>,
@@ -16,6 +16,5 @@ export default function compileJSXAttributeReplacement(
       )
       if (captureReplacement) return captureReplacement
     }
-    pattern.name.name = unescapeIdentifier(pattern.name.name)
   }
 }

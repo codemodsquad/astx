@@ -1,6 +1,6 @@
 import { TSTypeReference, ASTPath } from 'jscodeshift'
 import { CompiledMatcher, CompileOptions } from '.'
-import compileArrayCaptureMatcher, { unescapeIdentifier } from './Capture'
+import compileArrayCaptureMatcher from './Capture'
 import compileSpecialMatcher from './SpecialMatcher'
 
 export default function compileTSTypeReferenceMatcher(
@@ -29,7 +29,5 @@ export default function compileTSTypeReferenceMatcher(
 
       if (special) return special
     }
-
-    typeName.name = unescapeIdentifier(typeName.name)
   }
 }

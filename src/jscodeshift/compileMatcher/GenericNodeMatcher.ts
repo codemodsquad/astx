@@ -8,6 +8,8 @@ import * as t from 'ast-types'
 import indentDebug from './indentDebug'
 import getFieldNames from '../util/getFieldNames'
 
+import { areFieldValuesEqual } from '../util/areASTsEqual'
+
 const equivalenceClassesArray: {
   nodeTypes: Set<ASTNode['type']>
   baseType?: keyof typeof t.namedTypes
@@ -79,6 +81,23 @@ export default function compileGenericNodeMatcher(
               debug: indentDebug(debug, 2),
             }),
           ]
+        } else if (value instanceof Object) {
+          return [
+            key,
+            {
+              match: (path: ASTPath, matchSoFar: MatchResult): MatchResult => {
+                const nodeValue = t.getFieldValue(path.node, key)
+
+                if (areFieldValuesEqual(value, nodeValue)) {
+                  debug('    %s === %s', value, nodeValue)
+                  return matchSoFar || {}
+                } else {
+                  debug('    %s !== %s', value, nodeValue)
+                  return null
+                }
+              },
+            },
+          ]
         } else {
           return [
             key,
@@ -86,12 +105,12 @@ export default function compileGenericNodeMatcher(
               match: (path: ASTPath, matchSoFar: MatchResult): MatchResult => {
                 const nodeValue = t.getFieldValue(path.node, key)
 
-                if (value !== nodeValue) {
-                  debug('    %s !== %s', value, nodeValue)
-                  return null
-                } else {
+                if (value === nodeValue) {
                   debug('    %s === %s', value, nodeValue)
                   return matchSoFar || {}
+                } else {
+                  debug('    %s !== %s', value, nodeValue)
+                  return null
                 }
               },
             },

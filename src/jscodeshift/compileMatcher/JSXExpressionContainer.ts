@@ -1,6 +1,6 @@
 import { JSXExpressionContainer, ASTPath } from 'jscodeshift'
 import { CompiledMatcher, CompileOptions } from '.'
-import compileArrayCaptureMatcher, { unescapeIdentifier } from './Capture'
+import compileArrayCaptureMatcher from './Capture'
 
 export default function compileJSXExpressionContainerMatcher(
   path: ASTPath<any>,
@@ -15,7 +15,5 @@ export default function compileJSXExpressionContainerMatcher(
     )
 
     if (captureMatcher) return captureMatcher
-
-    pattern.expression.name = unescapeIdentifier(pattern.expression.name)
   }
 }

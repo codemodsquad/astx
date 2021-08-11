@@ -1,6 +1,6 @@
 import { VariableDeclarator, ASTPath } from 'jscodeshift'
 import { CompiledReplacement, CompileReplacementOptions } from '.'
-import compileCaptureReplacement, { unescapeIdentifier } from './Capture'
+import compileCaptureReplacement from './Capture'
 
 export default function compileVariableDeclaratorReplacement(
   path: ASTPath<VariableDeclarator>,
@@ -16,6 +16,5 @@ export default function compileVariableDeclaratorReplacement(
       )
       if (captureReplacement) return captureReplacement
     }
-    pattern.id.name = unescapeIdentifier(pattern.id.name)
   }
 }
