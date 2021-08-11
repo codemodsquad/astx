@@ -1,6 +1,6 @@
 import { SpreadProperty, ASTPath } from 'jscodeshift'
 import { CompiledReplacement, CompileReplacementOptions } from '.'
-import { unescapeIdentifier, compileArrayCaptureReplacement } from './Capture'
+import { compileArrayCaptureReplacement } from './Capture'
 
 export default function compileSpreadPropertyReplacement(
   path: ASTPath<SpreadProperty>,
@@ -15,6 +15,5 @@ export default function compileSpreadPropertyReplacement(
       compileOptions
     )
     if (captureReplacement) return captureReplacement as any
-    argument.name = unescapeIdentifier(argument.name)
   }
 }

@@ -1,6 +1,6 @@
 import { ClassImplements, ASTPath } from 'jscodeshift'
 import { CompiledReplacement, CompileReplacementOptions } from '.'
-import compileCaptureReplacement, { unescapeIdentifier } from './Capture'
+import compileCaptureReplacement from './Capture'
 
 export default function compileClassImplementsReplacement(
   path: ASTPath<ClassImplements>,
@@ -16,6 +16,5 @@ export default function compileClassImplementsReplacement(
       )
       if (captureReplacement) return captureReplacement
     }
-    pattern.id.name = unescapeIdentifier(pattern.id.name)
   }
 }

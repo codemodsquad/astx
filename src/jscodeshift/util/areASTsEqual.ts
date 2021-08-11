@@ -19,7 +19,8 @@ export default function areASTsEqual(a: ASTNode, b: ASTNode): boolean {
   return true
 }
 
-function areFieldValuesEqual(a: any, b: any): boolean {
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+export function areFieldValuesEqual(a: any, b: any): boolean {
   if (Array.isArray(a)) {
     if (!Array.isArray(b) || b.length !== a.length) return false
     return a.every((value, index) => areFieldValuesEqual(value, b[index]))

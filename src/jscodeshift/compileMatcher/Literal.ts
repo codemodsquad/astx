@@ -1,5 +1,5 @@
 import { ASTPath, Literal } from 'jscodeshift'
-import { compileStringCaptureMatcher } from './Capture'
+import { compileStringCaptureMatcher, unescapeIdentifier } from './Capture'
 import {
   CompiledMatcher,
   CompileOptions,
@@ -49,6 +49,8 @@ export default function matchLiteral(
     )
 
     if (captureMatcher) return captureMatcher
+
+    pattern.value = unescapeIdentifier(pattern.value)
   }
 
   return convertPredicateMatcher(

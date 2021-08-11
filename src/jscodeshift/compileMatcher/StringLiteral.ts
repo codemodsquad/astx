@@ -1,6 +1,6 @@
 import { ASTPath, StringLiteral } from 'jscodeshift'
 import { CompileOptions, convertPredicateMatcher, CompiledMatcher } from './'
-import { compileStringCaptureMatcher } from './Capture'
+import { compileStringCaptureMatcher, unescapeIdentifier } from './Capture'
 
 export default function matchStringLiteral(
   path: ASTPath<any>,
@@ -14,6 +14,8 @@ export default function matchStringLiteral(
   )
 
   if (captureMatcher) return captureMatcher
+
+  pattern.value = unescapeIdentifier(pattern.value)
 
   return convertPredicateMatcher(
     pattern,

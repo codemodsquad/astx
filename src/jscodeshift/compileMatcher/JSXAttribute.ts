@@ -1,6 +1,6 @@
 import { JSXAttribute, ASTPath } from 'jscodeshift'
 import { CompiledMatcher, CompileOptions } from '.'
-import compileArrayCaptureMatcher, { unescapeIdentifier } from './Capture'
+import compileArrayCaptureMatcher from './Capture'
 
 export default function compileJSXAttributeMatcher(
   path: ASTPath<any>,
@@ -17,7 +17,5 @@ export default function compileJSXAttributeMatcher(
 
       if (captureMatcher) return captureMatcher
     }
-
-    pattern.name.name = unescapeIdentifier(pattern.name.name)
   }
 }

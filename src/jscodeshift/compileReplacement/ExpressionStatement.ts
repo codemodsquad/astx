@@ -1,6 +1,6 @@
 import { ExpressionStatement, ASTPath } from 'jscodeshift'
 import { CompiledReplacement, CompileReplacementOptions } from '.'
-import compileCaptureReplacement, { unescapeIdentifier } from './Capture'
+import compileCaptureReplacement from './Capture'
 
 export default function compileExpressionStatementReplacement(
   path: ASTPath<ExpressionStatement>,
@@ -14,6 +14,5 @@ export default function compileExpressionStatementReplacement(
       compileOptions
     )
     if (captureReplacement) return captureReplacement
-    pattern.expression.name = unescapeIdentifier(pattern.expression.name)
   }
 }

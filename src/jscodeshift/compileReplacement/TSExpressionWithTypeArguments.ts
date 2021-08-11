@@ -1,6 +1,6 @@
 import { TSExpressionWithTypeArguments, ASTPath } from 'jscodeshift'
 import { CompiledReplacement, CompileReplacementOptions } from '.'
-import compileCaptureReplacement, { unescapeIdentifier } from './Capture'
+import compileCaptureReplacement from './Capture'
 
 export default function compileTSExpressionWithTypeArgumentsReplacement(
   path: ASTPath<TSExpressionWithTypeArguments>,
@@ -16,6 +16,5 @@ export default function compileTSExpressionWithTypeArgumentsReplacement(
       )
       if (captureReplacement) return captureReplacement
     }
-    pattern.expression.name = unescapeIdentifier(pattern.expression.name)
   }
 }

@@ -1,35 +1,36 @@
+export const parsers = [
+  // recast bug
+  // 'babel',
+  // 'flow',
+  'tsx',
+]
+
 export const input = `
-type Foo = (a: number, b: string, c: [number, string], d: any) => any
+type Foo = <A, B, C, D, E, F>() => any
 `
 
 export const find = `
-type $1 = ($$a, c: [number, $$b], $d) => any
+type $1 = <$$a, C, $d, $$e>() => any
 `
 
 export const expectedFind = [
   {
-    node: `type Foo = (a: number, b: string, c: [number, string], d: any) => any`,
+    node: `type Foo = <A, B, C, D, E, F>() => any`,
     captures: {
       $1: 'Foo',
-      $d: 'd: any',
+      $d: 'D',
     },
     arrayCaptures: {
-      $$a: ['a: number', 'b: string'],
-      $$b: ['string'],
+      $$a: ['A', 'B'],
+      $$e: ['E', 'F'],
     },
   },
 ]
 
 export const replace = `
-type $1 = (c: [$$b, number], $d, x: number, $$a) => any
+type $1 = <C, $$e, $d, $$a>() => any
 `
 
 export const expectedReplace = `
-type Foo = (
-  c: [string, number],
-  d: any,
-  x: number,
-  a: number,
-  b: string
-) => any;
+type Foo = <C, E, F, D, A, B>() => any;
 `

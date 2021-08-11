@@ -1,6 +1,6 @@
 import { SpreadElement, ASTPath } from 'jscodeshift'
 import { CompiledReplacement, CompileReplacementOptions } from '.'
-import { unescapeIdentifier, compileArrayCaptureReplacement } from './Capture'
+import { compileArrayCaptureReplacement } from './Capture'
 
 export default function compileSpreadElementReplacement(
   path: ASTPath<SpreadElement>,
@@ -15,6 +15,5 @@ export default function compileSpreadElementReplacement(
       compileOptions
     )
     if (captureReplacement) return captureReplacement as any
-    argument.name = unescapeIdentifier(argument.name)
   }
 }

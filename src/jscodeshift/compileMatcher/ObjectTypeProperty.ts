@@ -1,6 +1,6 @@
 import { ObjectTypeProperty, ASTPath } from 'jscodeshift'
 import { CompiledMatcher, CompileOptions } from '.'
-import compileCaptureMatcher, { unescapeIdentifier } from './Capture'
+import compileCaptureMatcher from './Capture'
 
 export default function compileObjectTypePropertyMatcher(
   path: ASTPath<any>,
@@ -24,7 +24,5 @@ export default function compileObjectTypePropertyMatcher(
 
       if (captureMatcher) return captureMatcher
     }
-
-    pattern.key.name = unescapeIdentifier(pattern.key.name)
   }
 }
