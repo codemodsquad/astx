@@ -135,10 +135,13 @@ export default function withParser(
         template[0] = 'async () => {' + template[0]
         template[template.length - 1] += '}'
       }
-      return (attempt(template)[0] as any).expression.body.body
+      const attempted = attempt(template)
+      if (attempted.length === 1)
+        return (attempted[0] as any).expression.body.body
     } catch (error) {
-      return attempt(_template)
+      // fallthrough
     }
+    return attempt(_template)
   }
 
   function statement(

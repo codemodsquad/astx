@@ -160,7 +160,7 @@ describe(`Astx`, function () {
       it(`.replace tagged template works`, function () {
         const astx = createAstx(`1 + 2; 3 + 4`)
         astx.find`$a + $b`().replace`$b + $a`()
-        expect(toSource(astx)).to.equal(`2 + 1; 4 + 3`)
+        expect(toSource(astx)).to.equal(`2 + 1; 4 + 3;`)
       })
       it(`.replace tagged template after find options works`, function () {
         const astx = createAstx(`1 + 2; 3 + 4`)
@@ -172,7 +172,7 @@ describe(`Astx`, function () {
       it(`.replace tagged template interpolation works`, function () {
         const astx = createAstx(`1 + 2; 3 + 4`)
         astx.find`$a + $b`().replace`$b + ${j.identifier('foo')}`()
-        expect(toSource(astx)).to.equal(`2 + foo; 4 + foo`)
+        expect(toSource(astx)).to.equal(`2 + foo; 4 + foo;`)
       })
       it(`.replace function returning parse tagged template literal works`, function () {
         const astx = createAstx(`1 + FOO; 3 + BAR`)
@@ -182,19 +182,19 @@ describe(`Astx`, function () {
               (match.captures.$b as any).name.toLowerCase()
             )} + $a`
         )
-        expect(toSource(astx)).to.equal(`foo + 1; bar + 3`)
+        expect(toSource(astx)).to.equal(`foo + 1; bar + 3;`)
       })
       it(`.replace function returning string works`, function () {
         const astx = createAstx(`1 + FOO; 3 + BAR`)
         astx.find`$a + $b`().replace(
           (match) => `${(match.captures.$b as any).name.toLowerCase()} + $a`
         )
-        expect(toSource(astx)).to.equal(`foo + 1; bar + 3`)
+        expect(toSource(astx)).to.equal(`foo + 1; bar + 3;`)
       })
       it(`.replace called with string works`, function () {
         const astx = createAstx(`1 + 2; 3 + 4`)
         astx.find('$a + $b').replace('$b + $a')
-        expect(toSource(astx)).to.equal(`2 + 1; 4 + 3`)
+        expect(toSource(astx)).to.equal(`2 + 1; 4 + 3;`)
       })
     })
   }
