@@ -71,7 +71,15 @@ export default function compileGenericNodeMatcher(
 
         const value = t.getFieldValue(pattern, key)
 
-        if (typeof value !== 'object' || value == null) {
+        if (Array.isArray(value) || t.namedTypes.Node.check(value)) {
+          return [
+            key,
+            compileMatcher(path.get(key), {
+              ...compileOptions,
+              debug: indentDebug(debug, 2),
+            }),
+          ]
+        } else {
           return [
             key,
             {
@@ -87,14 +95,6 @@ export default function compileGenericNodeMatcher(
                 }
               },
             },
-          ]
-        } else {
-          return [
-            key,
-            compileMatcher(path.get(key), {
-              ...compileOptions,
-              debug: indentDebug(debug, 2),
-            }),
           ]
         }
       })
