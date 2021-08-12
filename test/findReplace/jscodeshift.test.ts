@@ -23,11 +23,13 @@ type Fixture = {
   findOptions?: FindOptions
   where?: FindOptions['where']
   replace: string | GetReplacement
+  expectMatchesSelf?: boolean
   expectedFind?: ExpectedMatch[]
   expectedReplace?: string
   parsers?: string[]
   only?: boolean
   skip?: boolean
+  expectedError?: string
 }
 
 export function formatMatches(
@@ -82,7 +84,8 @@ describe(`find`, function () {
             ? 'babel-ts'
             : parser,
       }
-      const format = (code: string) => prettier.format(code, prettierOptions)
+      const format = (code: string) =>
+        prettier.format(code, prettierOptions).trim()
 
       for (const key in group) {
         const {
@@ -91,8 +94,10 @@ describe(`find`, function () {
           findOptions,
           replace: _replace,
           where,
+          expectMatchesSelf,
           expectedFind,
           expectedReplace,
+          expectedError,
           only,
           skip,
         } = testcases[key] as Fixture
@@ -103,6 +108,25 @@ describe(`find`, function () {
             if (parser) j = j.withParser(parser)
             const root = j(input)
 
+            if (
+              !expectMatchesSelf &&
+              !expectedFind &&
+              !expectedReplace &&
+              !expectedError
+            ) {
+              throw new Error(
+                `at least one must be exported: expectMatchesSelf, expectedFind, expectedReplace, expectedError`
+              )
+            }
+
+            if (expectMatchesSelf) {
+              const astx = new Astx(j, root.paths())
+              const matches = astx.find(input)
+              expect(
+                matches.length,
+                `expected input to match itself: ${input}`
+              ).to.equal(1)
+            }
             if (expectedFind) {
               const matches = find(
                 root.paths(),
@@ -116,6 +140,13 @@ describe(`find`, function () {
               astx.find(_find, { ...findOptions, where }).replace(_replace)
               const actual = root.toSource()
               expect(format(actual)).to.deep.equal(format(expectedReplace))
+            }
+            if (expectedError) {
+              expect(() => {
+                const astx = new Astx(j, root.paths())
+                const matches = astx.find(_find, { ...findOptions, where })
+                if (_replace) matches.replace(_replace)
+              }).to.throw(expectedError)
             }
           }
         )
