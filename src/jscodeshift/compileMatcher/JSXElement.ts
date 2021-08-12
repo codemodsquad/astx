@@ -19,7 +19,7 @@ export default function compileJSXElementMatcher(
 
   const { children } = pattern
 
-  if (children) {
+  if (children?.length) {
     return compileGenericNodeMatcher(path, compileOptions, {
       keyMatchers: {
         children: compileGenericArrayMatcher(

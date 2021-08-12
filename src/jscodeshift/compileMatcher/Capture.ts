@@ -56,7 +56,7 @@ export default function compileCaptureMatcher(
         const existingCapture = matchSoFar?.captures?.[captureAs]
         if (existingCapture) {
           return capturesAreEquivalent(existingCapture.node, path.node)
-            ? matchSoFar || {}
+            ? matchSoFar
             : null
         }
         if (whereCondition && !whereCondition(path)) {
@@ -90,7 +90,7 @@ export function compileStringCaptureMatcher<Node extends ASTNode>(
         if (!string) return null
         const existingCapture = matchSoFar?.stringCaptures?.[captureAs]
         if (existingCapture) {
-          return string === existingCapture ? matchSoFar || {} : null
+          return string === existingCapture ? matchSoFar : null
         }
         debug('  captured as %s', captureAs)
         return mergeCaptures(matchSoFar, {
