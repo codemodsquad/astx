@@ -14,6 +14,8 @@ import { promisify } from 'util'
 import _resolve from 'resolve'
 import makeTemplate from './util/template'
 import { FindOptions, Match } from './find'
+import omitBlankLineChanges from '../util/omitBlankLineChanges'
+import prepareForBabelGenerate from '../util/prepareForBabelGenerate'
 const resolve = promisify(_resolve) as any
 
 type TransformOptions = {
@@ -134,15 +136,15 @@ export const runTransformOnFile = (
       transformed = _result
       if (transformed === undefined) {
         if (useBabelGenerator) {
-          if (babelGenerator)
-            transformed = root
-              .nodes()
-              .map((n) => babelGenerator(n).code)
-              .join('\n')
-          else
+          if (babelGenerator) {
+            const ast = root.get().node
+            prepareForBabelGenerate(ast)
+            transformed = babelGenerator(ast).code
+          } else {
             throw new Error(
               `unable to resolve @babel/generator in this directory`
             )
+          }
         } else transformed = root.toSource()
       }
       if (transformed === null) transformed = undefined
@@ -155,6 +157,8 @@ export const runTransformOnFile = (
         if (/\.tsx?$/.test(file)) config.parser = 'typescript'
         transformed = prettier.format(transformed, config)
       }
+      if (transformed != null)
+        transformed = omitBlankLineChanges(source, transformed)
     } else {
       return {
         file,

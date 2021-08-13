@@ -1,9 +1,3 @@
-export const parsers = [
-  'babel',
-  'flow',
-  //'tsx'
-]
-
 export const input = `
 setFakeServerHandler(() =>
   Promise.resolve({

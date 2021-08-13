@@ -38,5 +38,3 @@ function foo(): React.Node {
   )
 }
 `
-
-export const skip = true

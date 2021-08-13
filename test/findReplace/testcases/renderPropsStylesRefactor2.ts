@@ -100,7 +100,7 @@ const Table = ({classes, children, striped, ...props}: Props): React.Node => (
 export default Table
 `
 
-export const parsers = ['babylon', 'flow']
+export const parsers = ['babylon-babel-generator']
 
 export const find = `
 import $createStyled from 'material-ui-render-props-styles'
@@ -225,5 +225,3 @@ const Table = (inputProps: Props): React.Node => {
 
 export default Table;
 `
-
-export const skip = true

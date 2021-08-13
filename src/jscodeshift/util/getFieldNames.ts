@@ -14,7 +14,8 @@ const objectPattern = addFieldNames('ObjectPattern', 'typeAnnotation')
 const callExpression = addFieldNames(
   'CallExpression',
   'typeAnnotation',
-  'typeArguments'
+  'typeArguments',
+  'typeParameters'
 )
 const newExpression = addFieldNames('NewExpression', 'typeParameters')
 
