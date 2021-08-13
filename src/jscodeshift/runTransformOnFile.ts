@@ -139,7 +139,7 @@ export const runTransformOnFile = (
           if (babelGenerator) {
             const ast = root.get().node
             prepareForBabelGenerate(ast)
-            transformed = babelGenerator(ast).code
+            transformed = babelGenerator(ast, { concise: true }).code
           } else {
             throw new Error(
               `unable to resolve @babel/generator in this directory`

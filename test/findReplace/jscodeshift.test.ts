@@ -167,8 +167,10 @@ describe(`find`, function () {
                 prepareForBabelGenerate(actualAst)
                 const expectedAst = j(expectedReplace).get().node
                 prepareForBabelGenerate(expectedAst)
-                expect(format(generate(actualAst).code)).to.equal(
-                  format(generate(expectedAst).code)
+                expect(
+                  format(generate(actualAst, { concise: true }).code)
+                ).to.equal(
+                  format(generate(expectedAst, { concise: true }).code)
                 )
               } else {
                 const actual = root.toSource()
