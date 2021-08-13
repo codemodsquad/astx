@@ -70,7 +70,7 @@ const CodeInputField = ({
 export default CodeInputField
 `
 
-export const parsers = ['babylon', 'flow']
+export const parsers = ['babylon-babel-generator']
 
 export const find = `
 import $createStyled from 'material-ui-render-props-styles'
@@ -170,5 +170,3 @@ const CodeInputField = (inputProps: CodeInputFieldProps): React.Node => {
 
 export default CodeInputField
 `
-
-export const skip = true

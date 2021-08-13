@@ -18,7 +18,7 @@ export const expectedFind = [
   },
 ]
 
-export const replace = `const [$$e, a, {c: {$$d}, h}, $$b, $f] = c`
+export const replace = `const [$$e, a, {c: {$$d}, i}, $$b, $f] = c`
 
 export const expectedReplace = `
 const [
@@ -30,7 +30,7 @@ const [
       h
     },
 
-    h},
+    i},
   b,
   foo,
 ] = c

@@ -23,6 +23,3 @@ export const expectedFind = [
 export const expectedReplace = `
   const [createFileAttachment] = useMutation<CreateFileAttachmentMutationFunction, any>(createFileAttachmentMutation)
 `
-
-// tsx not currently working...
-export const parsers = ['babylon', 'flow']

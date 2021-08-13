@@ -8,6 +8,9 @@ import mapValues from 'lodash/mapValues'
 import prettier from 'prettier'
 import parseFindOrReplace from '../../src/jscodeshift/util/parseFindOrReplace'
 import Astx, { GetReplacement } from '../../src/jscodeshift/Astx'
+import generate from '@babel/generator'
+
+import prepareForBabelGenerate from '../../src/util/prepareForBabelGenerate'
 
 type ExpectedMatch = {
   node?: string
@@ -64,9 +67,19 @@ describe(`find`, function () {
 
   for (const key in testcases) {
     const testcase = testcases[key]
-    const { parsers = ['babylon', 'flow', 'tsx'] } = testcase
+    const {
+      parsers = [
+        'babylon',
+        'flow',
+        'tsx',
+        'babylon-babel-generator',
+        'tsx-babel-generator',
+      ],
+    } = testcase
 
     for (const parser of parsers) {
+      if (parser.endsWith('-babel-generator') && !testcase.expectedReplace)
+        continue
       const group = groups[parser] || (groups[parser] = {})
       group[key] = testcases[key]
     }
@@ -75,18 +88,17 @@ describe(`find`, function () {
   for (const parser in groups) {
     const group = groups[parser]
 
+    const actualParser = parser.replace('-babel-generator', '')
+
     describe(`with parser: ${parser}`, function () {
       const prettierOptions = {
         parser:
-          parser === 'babylon'
+          actualParser === 'babylon'
             ? 'babel-flow'
-            : parser === 'tsx'
+            : actualParser === 'tsx'
             ? 'babel-ts'
-            : parser,
+            : actualParser,
       }
-      const format = (code: string) =>
-        prettier.format(code, prettierOptions).trim()
-
       for (const key in group) {
         const {
           input,
@@ -104,9 +116,11 @@ describe(`find`, function () {
         ;(skip ? it.skip : only ? it.only : it)(
           path.basename(key).replace(/\.[^.]+$/, ''),
           function () {
-            let j = jscodeshift
-            if (parser) j = j.withParser(parser)
+            const j = jscodeshift.withParser(actualParser)
             const root = j(input)
+
+            const format = (code: string) =>
+              prettier.format(code, prettierOptions).trim()
 
             if (
               !expectMatchesSelf &&
@@ -119,34 +133,47 @@ describe(`find`, function () {
               )
             }
 
-            if (expectMatchesSelf) {
-              const astx = new Astx(j, root.paths())
-              const matches = astx.find(input)
-              expect(
-                matches.length,
-                `expected input to match itself: ${input}`
-              ).to.equal(1)
+            if (!parser.endsWith('-babel-generator')) {
+              if (expectMatchesSelf) {
+                const astx = new Astx(j, root.paths())
+                const matches = astx.find(input)
+                expect(
+                  matches.length,
+                  `expected input to match itself: ${input}`
+                ).to.equal(1)
+              }
+              if (expectedFind) {
+                const matches = find(
+                  root.paths(),
+                  j(parseFindOrReplace(j, [_find] as any)).paths(),
+                  where ? { ...findOptions, where } : findOptions
+                )
+                expect(formatMatches(j, matches)).to.deep.equal(expectedFind)
+              }
+              if (expectedError) {
+                expect(() => {
+                  const astx = new Astx(j, root.paths())
+                  const matches = astx.find(_find, { ...findOptions, where })
+                  if (_replace) matches.replace(_replace)
+                }).to.throw(expectedError)
+              }
             }
-            if (expectedFind) {
-              const matches = find(
-                root.paths(),
-                j(parseFindOrReplace(j, [_find] as any)).paths(),
-                where ? { ...findOptions, where } : findOptions
-              )
-              expect(formatMatches(j, matches)).to.deep.equal(expectedFind)
-            }
+
             if (expectedReplace) {
               const astx = new Astx(j, root.paths())
               astx.find(_find, { ...findOptions, where }).replace(_replace)
-              const actual = root.toSource()
-              expect(format(actual)).to.deep.equal(format(expectedReplace))
-            }
-            if (expectedError) {
-              expect(() => {
-                const astx = new Astx(j, root.paths())
-                const matches = astx.find(_find, { ...findOptions, where })
-                if (_replace) matches.replace(_replace)
-              }).to.throw(expectedError)
+              if (parser.endsWith('-babel-generator')) {
+                const actualAst = root.get().node
+                prepareForBabelGenerate(actualAst)
+                const expectedAst = j(expectedReplace).get().node
+                prepareForBabelGenerate(expectedAst)
+                expect(format(generate(actualAst).code)).to.equal(
+                  format(generate(expectedAst).code)
+                )
+              } else {
+                const actual = root.toSource()
+                expect(format(actual)).to.deep.equal(format(expectedReplace))
+              }
             }
           }
         )

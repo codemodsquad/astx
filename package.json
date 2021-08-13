@@ -111,7 +111,7 @@
     "@jedwards1211/commitlint-config": "^1.0.2",
     "@jedwards1211/eslint-config": "^2.0.2",
     "@jedwards1211/eslint-config-typescript": "^2.0.2",
-    "@types/babel__traverse": "^7.11.1",
+    "@types/babel__traverse": "^7.14.2",
     "@types/chai": "^4.2.14",
     "@types/debug": "^4.1.5",
     "@types/diff": "^5.0.0",
@@ -152,6 +152,8 @@
   },
   "dependencies": {
     "@babel/runtime": "^7.12.5",
+    "@babel/traverse": "^7.15.0",
+    "@babel/types": "^7.15.0",
     "ast-types": "^0.14.2",
     "babel-parse-wild-code": "^1.1.1",
     "chalk": "^4.1.0",
