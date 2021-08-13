@@ -16,6 +16,7 @@ type Options = {
   find?: string
   replace?: string
   filesAndDirectories?: string[]
+  babelGenerator?: boolean
 }
 
 async function getEngine(
@@ -53,11 +54,11 @@ const transform: CommandModule<Options> = {
         alias: 't',
         describe: `path to the transform file. Can be either a local path or url. Defaults to ./astx.js if --find isn't given`,
       })
-      .options('engine', {
-        describe: 'engine to use',
-        type: 'string',
-        default: 'jscodeshift',
-      })
+      // .options('engine', {
+      //   describe: 'engine to use',
+      //   type: 'string',
+      //   default: 'jscodeshift',
+      // })
       .options('parser', {
         describe: 'parser to use',
         type: 'string',
@@ -71,6 +72,10 @@ const transform: CommandModule<Options> = {
         alias: 'r',
         describe: 'replace pattern',
         type: 'string',
+      })
+      .option('babel-generator', {
+        describe: 'use @babel/generator to generate output',
+        type: 'boolean',
       }),
 
   handler: async (argv: Arguments<Options>) => {
@@ -117,6 +122,7 @@ const transform: CommandModule<Options> = {
       matches,
     } of engine.runTransform(transform, {
       paths,
+      useBabelGenerator: argv.babelGenerator,
     })) {
       const logHeader = (logFn: (value: string) => any) =>
         logFn(

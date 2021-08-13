@@ -66,9 +66,26 @@ const getPrettier = memoize(
   }
 )
 
-export const runTransformOnFile = (transform: Transform) => async (
-  file: string
-): Promise<TransformResult> => {
+const getBabelGenerator = memoize(
+  async (path: string): Promise<any> => {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const babelGenerator = require(await resolve('@babel/generator', {
+        basedir: path,
+      }))
+      if (typeof babelGenerator.default === 'function')
+        return babelGenerator.default
+    } catch (error) {
+      // ignore
+    }
+    return null
+  }
+)
+
+export const runTransformOnFile = (
+  transform: Transform,
+  { useBabelGenerator = true }: { useBabelGenerator?: boolean } = {}
+) => async (file: string): Promise<TransformResult> => {
   try {
     const source = await fs.readFile(file, 'utf8')
     const parser =
@@ -109,12 +126,25 @@ export const runTransformOnFile = (transform: Transform) => async (
         ...template,
         astx: new Astx(j, root.paths()),
       }
-      const [_result, prettier] = await Promise.all([
+      const [_result, prettier, babelGenerator] = await Promise.all([
         transformFn(options),
         getPrettier(Path.dirname(file)),
+        useBabelGenerator ? getBabelGenerator(Path.dirname(file)) : null,
       ])
       transformed = _result
-      if (transformed === undefined) transformed = root.toSource()
+      if (transformed === undefined) {
+        if (useBabelGenerator) {
+          if (babelGenerator)
+            transformed = root
+              .nodes()
+              .map((n) => babelGenerator(n).code)
+              .join('\n')
+          else
+            throw new Error(
+              `unable to resolve @babel/generator in this directory`
+            )
+        } else transformed = root.toSource()
+      }
       if (transformed === null) transformed = undefined
       if (
         prettier &&

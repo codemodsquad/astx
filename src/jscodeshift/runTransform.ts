@@ -8,9 +8,12 @@ import { clearCache } from 'babel-parse-wild-code'
 
 export default async function* runTransform(
   transform: Transform,
-  options: { paths: string[] }
+  {
+    paths,
+    useBabelGenerator = false,
+  }: { paths: string[]; useBabelGenerator?: boolean }
 ): AsyncIterable<TransformResult> {
-  const files = await resolveGlobsAndDirs(options.paths, [
+  const files = await resolveGlobsAndDirs(paths, [
     'js',
     'jsx',
     'flow',
@@ -22,7 +25,9 @@ export default async function* runTransform(
   ])
 
   clearCache()
-  const transformResults = files.map(runTransformOnFile(transform))
+  const transformResults = files.map(
+    runTransformOnFile(transform, { useBabelGenerator })
+  )
 
   for (const elem of transformResults) {
     yield await elem
