@@ -3,7 +3,7 @@ import { ASTNode, ASTPath } from 'jscodeshift'
 import areASTsEqual from '../util/areASTsEqual'
 
 export function unescapeIdentifier(identifier: string): string {
-  return identifier.replace(/^\$\$/, '$')
+  return identifier.replace(/^\$_/, '$')
 }
 
 export function getCaptureAs(identifier: string): string | undefined {
@@ -11,7 +11,7 @@ export function getCaptureAs(identifier: string): string | undefined {
 }
 
 export function getArrayCaptureAs(identifier: string): string | undefined {
-  return /^\$_[a-z0-9]+/i.exec(identifier)?.[0]
+  return /^\$\$[a-z0-9]+/i.exec(identifier)?.[0]
 }
 
 export function compileArrayCaptureMatcher(

@@ -81,7 +81,7 @@ astx -f 'rmdir($path, $force)' -r 'rmdir($path, { force: $force })' src
 What's going on here? Find and replace must be valid JS expressions or statements. `astx` parses them
 into AST (Abstract Syntax Tree) nodes, and then looks for matching AST nodes in your code.
 `astx` treats any identifier in starting with `$` in the find or replace expression as a placeholder - in this case, `$path` and `$force`.
-(You can use `$$` as an escape, for instance `$$foo` will match literal identifier `$foo` in your code).
+(You can use leading `$_` as an escape, for instance `$_foo` will match literal identifier `$foo` in your code).
 
 When it gets to a function call, it checks that the function name matches `rmdir`, and that it has the same number of arguments.
 Then it checks if the arguments match.
@@ -275,7 +275,7 @@ For example you could do:
 ```ts
 astx.findStatements`
   const $a = $b;
-  $_c;
+  $$c;
   const $d = $a + $e;
 `()
 ```
@@ -338,23 +338,23 @@ An `ObjectExpression` (aka object literal) pattern will match any `ObjectExpress
 It will not match if there are missing or additional properties. For example, `{ foo: 1, bar: $bar }` will match `{ foo: 1, bar: 2 }` or `{ bar: 'hello', foo: 1 }`
 but not `{ foo: 1 }` or `{ foo: 1, bar: 2, baz: 3 }`.
 
-You can match additional properties by using `...$_captureName`, for example `{ foo: 1, ...$_rest }` will match `{ foo: 1 }`, `{ foo: 1, bar: 2 }`, `{ foo: 1, bar: 2, ...props }` etc.
+You can match additional properties by using `...$$captureName`, for example `{ foo: 1, ...$$rest }` will match `{ foo: 1 }`, `{ foo: 1, bar: 2 }`, `{ foo: 1, bar: 2, ...props }` etc.
 The additional properties will be captured in `match.arrayCaptures`/`match.arrayPathCaptures`, and can be spread in replacement expressions. For example,
-`` astx.find`{ foo: 1, ...$_rest }`.replace`{ bar: 1, ...$_rest }` `` will transform `{ foo: 1, qux: {}, ...props }` into `{ bar: 1, qux: {}, ...props }`.
+`` astx.find`{ foo: 1, ...$$rest }`.replace`{ bar: 1, ...$$rest }` `` will transform `{ foo: 1, qux: {}, ...props }` into `{ bar: 1, qux: {}, ...props }`.
 
-A spread property that isn't of the form `/^\$_[a-z0-9]+$/i` is not a capture variable, for example `{ ...foo }` will only match `{ ...foo }` and `{ ...$$_foo }` will only
-match `{ ...$_foo }` (leading `$$` is an escape for `$`).
+A spread property that isn't of the form `/^\$\$[a-z0-9]+$/i` is not a capture variable, for example `{ ...foo }` will only match `{ ...foo }` and `{ ...$_$foo }` will only
+match `{ ...$$foo }` (leading `$_` is an escape for `$`).
 
 There is currently no way to match properties in a specific order, but it could be added in the future.
 
 ## List Matching
 
 In many cases where there is a list of nodes in the AST you can match
-multiple elements with a capture variable starting with `$_`. For example, `[$_before, 3, $_after]` will match any array expression containing an element `3`; elements before the
-first `3` will be captured in `$_before` and elements after the first `3` will be captured in `$_after`.
+multiple elements with a capture variable starting with `$$`. For example, `[$$before, 3, $$after]` will match any array expression containing an element `3`; elements before the
+first `3` will be captured in `$$before` and elements after the first `3` will be captured in `$$after`.
 
-This works even with block statements. For example, `function foo() { $_before; throw new Error('test'); $_after; }` will match `function foo()` that contains a `throw new Error('test')`,
-and the statements before and after that throw statement will get captured in `$_before` and `$_after`, respectively.
+This works even with block statements. For example, `function foo() { $$before; throw new Error('test'); $$after; }` will match `function foo()` that contains a `throw new Error('test')`,
+and the statements before and after that throw statement will get captured in `$$before` and `$$after`, respectively.
 
 ## String Matching
 
@@ -398,7 +398,7 @@ Some items marked TODO probably actually work, but are untested.
 | `ObjectExpression.properties`                         | ✅                                         |                                                                   |
 | `ObjectPattern.decorators`                            | TODO                                       |                                                                   |
 | `ObjectPattern.properties`                            | ✅                                         |                                                                   |
-| `(ObjectTypeAnnotation/TSTypeLiteral).properties`     | ✅                                         | Use `$a: any` to match one property, `$_a: any` to match multiple |
+| `(ObjectTypeAnnotation/TSTypeLiteral).properties`     | ✅                                         | Use `$a: any` to match one property, `$$a: any` to match multiple |
 | `Program.body`                                        | ✅                                         |                                                                   |
 | `Property.decorators`                                 | TODO                                       |                                                                   |
 | `SequenceExpression`                                  | ✅                                         |                                                                   |

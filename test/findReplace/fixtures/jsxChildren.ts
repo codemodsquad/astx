@@ -15,9 +15,9 @@ const bar = <Foo>
 `
 
 export const find = `<$a>
-  {$_a}
+  {$$a}
   <div>hello</div>
-  {$_b}
+  {$$b}
 </$a>`
 
 export const expectedFind = [
@@ -32,16 +32,16 @@ export const expectedFind = [
       $a: 'Foo',
     },
     arrayCaptures: {
-      $_a: ['{a}'],
-      $_b: ['{b}', '\n  ', '<div>world</div>'],
+      $$a: ['{a}'],
+      $$b: ['{b}', '\n  ', '<div>world</div>'],
     },
   },
 ]
 
 export const replace = `<$a>
   <div>blah</div>
-  {$_b}
-  {$_a}
+  {$$b}
+  {$$a}
 </$a>`
 
 export const expectedReplace = `

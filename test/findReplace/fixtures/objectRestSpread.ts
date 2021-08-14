@@ -21,7 +21,7 @@ const b = {
 }
 `
 
-export const find = `{foo: 'bar', glorm: {a: 1, b: 2, ...$_inner}, ...$_outer}`
+export const find = `{foo: 'bar', glorm: {a: 1, b: 2, ...$$inner}, ...$$outer}`
 
 export const expectedFind = [
   {
@@ -37,13 +37,13 @@ export const expectedFind = [
   }
 }`,
     arrayCaptures: {
-      $_inner: ['c: 3', 'd: 4', '...qlom'],
-      $_outer: ["baz: 'qux'"],
+      $$inner: ['c: 3', 'd: 4', '...qlom'],
+      $$outer: ["baz: 'qux'"],
     },
   },
 ]
 
-export const replace = `{foo: 'bar', ...$_outer, glorm: {a: 5, ...$_inner}}`
+export const replace = `{foo: 'bar', ...$$outer, glorm: {a: 5, ...$$inner}}`
 
 export const expectedReplace = `
 const a = {

@@ -8,7 +8,7 @@ interface Foo {
 `
 export const find = `
 interface Foo {
-  $_a: any;
+  $$a: any;
   $b: any;
   d(x: number): string;
 }
@@ -26,7 +26,7 @@ export const expectedFind = [
       $b: 'c(): string',
     },
     arrayCaptures: {
-      $_a: ['a: number', 'b: string'],
+      $$a: ['a: number', 'b: string'],
     },
   },
 ]
@@ -36,7 +36,7 @@ interface Foo {
   d(x: number): string;
   $b: any;
   e(): number;
-  $_a: any;
+  $$a: any;
 }
 `
 

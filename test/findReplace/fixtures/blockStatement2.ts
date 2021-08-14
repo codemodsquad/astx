@@ -7,7 +7,7 @@ if (foo) {
 `
 
 export const find = `if ($a) {
-  $_b
+  $$b
   $c
   const $d = 1
 }`
@@ -21,7 +21,7 @@ export const expectedFind = [
 }`,
     captures: { $a: 'foo', $c: 'const baz = 3', $d: 'x' },
     arrayCaptures: {
-      $_b: ['const bar = foo'],
+      $$b: ['const bar = foo'],
     },
   },
 ]
@@ -29,7 +29,7 @@ export const expectedFind = [
 export const replace = `if ($a) {
   const $d = 1
   $c
-  $_b
+  $$b
 }`
 
 export const expectedReplace = `

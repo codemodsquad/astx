@@ -2,15 +2,15 @@ export const input = `
 const [a, b, {c, d: [e], h}, f] = foo
 `
 
-export const find = `const [a, $_b, {c, $_d}, $_e] = $f`
+export const find = `const [a, $$b, {c, $$d}, $$e] = $f`
 
 export const expectedFind = [
   {
     node: `const [a, b, {c, d: [e], h}, f] = foo`,
     arrayCaptures: {
-      $_b: ['b'],
-      $_d: ['d: [e]', 'h'],
-      $_e: ['f'],
+      $$b: ['b'],
+      $$d: ['d: [e]', 'h'],
+      $$e: ['f'],
     },
     captures: {
       $f: 'foo',
@@ -18,7 +18,7 @@ export const expectedFind = [
   },
 ]
 
-export const replace = `const [$_e, a, {c: {$_d}, h}, $_b, $f] = c`
+export const replace = `const [$$e, a, {c: {$$d}, h}, $$b, $f] = c`
 
 export const expectedReplace = `
 const [

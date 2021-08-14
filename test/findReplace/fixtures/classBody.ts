@@ -8,7 +8,7 @@ class Foo {
 `
 export const find = `
 class Foo {
-  $_a
+  $$a
   $b
   d(x: number): string {}
 }
@@ -26,7 +26,7 @@ export const expectedFind = [
       $b: 'c(): string {}',
     },
     arrayCaptures: {
-      $_a: ['a: number;', 'b: string;'],
+      $$a: ['a: number;', 'b: string;'],
     },
   },
 ]
@@ -36,7 +36,7 @@ class Foo {
   d(x: number): string {}
   $b
   e(): number {}
-  $_a
+  $$a
 }
 `
 
