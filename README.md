@@ -212,10 +212,10 @@ Note: the identifier `j` in all code examples is an instance of `jscodeshift`, a
 ## class Astx
 
 ```ts
-import { Astx } from 'astx'
+import { Astx } from 'astx/jscodeshift'
 import j from 'jscodeshift'
 
-const astx = new Astx(j, j('your code here'))
+const astx = new Astx(j, j('your code here').paths())
 ```
 
 ### `constructor(jscodeshift: JSCodeshift, paths: ASTPath<any>[] | Match[], options?: { withCaptures?: Match[] })`
@@ -379,6 +379,10 @@ Gets the paths of the first array of nodes that was captured with the given `nam
 Gets the first string value that was captured with the given `name`.
 
 ## Match
+
+```ts
+import { type Match } from 'astx/jscodeshift'
+```
 
 ### `.type`
 
