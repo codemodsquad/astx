@@ -29,12 +29,12 @@ Super powerful structural search and replace for JavaScript and TypeScript to au
       - [`FindOptions.where` (`{ [captureName: string]: (path: ASTPath<any>) => boolean }`)](#findoptionswhere--capturename-string-path-astpathany--boolean-)
       - [`FindOptions.withCaptures` (`Match | Match[]`)](#findoptionswithcaptures-match--match)
     - [`.find(...).replace(...)` (`void`)](#findreplace-void)
-    - [`size()` (`number`)](#size-number)
-    - [`length` (`number`)](#length-number)
-    - [`matches()` (`Match[]`)](#matches-match)
-    - [`match()` (`Match`)](#match-match)
-    - [`paths()` (`ASTPath[]`)](#paths-astpath)
-    - [`nodes()` (`ASTNode[]`)](#nodes-astnode)
+    - [`.size()` (`number`)](#size-number)
+    - [`.length` (`number`)](#length-number)
+    - [`.matches()` (`Match[]`)](#matches-match)
+    - [`.match()` (`Match`)](#match-match)
+    - [`.paths()` (`ASTPath[]`)](#paths-astpath)
+    - [`.nodes()` (`ASTNode[]`)](#nodes-astnode)
     - [`.filter(iteratee)` (`Astx`)](#filteriteratee-astx)
     - [`.at(index)` (`Astx`)](#atindex-astx)
     - [`.withCaptures(matches)` (`Astx`)](#withcapturesmatches-astx)
@@ -42,11 +42,11 @@ Super powerful structural search and replace for JavaScript and TypeScript to au
     - [`.captureNode(name)` (`ASTNode | null`)](#capturenodename-astnode--null)
     - [`.capturePath(name)` (`ASTPath<any> | null`)](#capturepathname-astpathany--null)
     - [`.arrayCaptures(name)` (`Astx`)](#arraycapturesname-astx)
-    - [`arrayCaptureNodes(name)` (`ASTNode[] | null`)](#arraycapturenodesname-astnode--null)
-    - [`arrayCapturePaths(name)` (`ASTPath<any>[] | null`)](#arraycapturepathsname-astpathany--null)
-    - [`stringCapture(name)` (`string | null`)](#stringcapturename-string--null)
+    - [`.arrayCaptureNodes(name)` (`ASTNode[] | null`)](#arraycapturenodesname-astnode--null)
+    - [`.arrayCapturePaths(name)` (`ASTPath<any>[] | null`)](#arraycapturepathsname-astpathany--null)
+    - [`.stringCapture(name)` (`string | null`)](#stringcapturename-string--null)
   - [Match](#match)
-    - [`type`](#type)
+    - [`.type`](#type)
     - [`.path`](#path)
     - [`.node`](#node)
     - [`.paths`](#paths)
@@ -300,31 +300,31 @@ astx
   .replace(({ captures: { $fn } }) => `${$fn.name.toUpperCase()}()`)
 ```
 
-### `size()` (`number`)
+### `.size()` (`number`)
 
 Returns the number of matches from the `.find()` or `.closest()` call that returned this instance.
 
-### `length` (`number`)
+### `.length` (`number`)
 
 Synonym for `size()`.
 
-### `matches()` (`Match[]`)
+### `.matches()` (`Match[]`)
 
 Gets the matches from the `.find()` or `.closest()` call that returned this instance.
 
-### `match()` (`Match`)
+### `.match()` (`Match`)
 
 Gets the first match from the `.find()` or `.closest()` call that returned this instance.
 
 Throws an error if there were no matches.
 
-### `paths()` (`ASTPath[]`)
+### `.paths()` (`ASTPath[]`)
 
 Returns the paths that `.find()` and `.closest()` will search within.
 If this instance was returned by `.find()` or `.closest()`, these are
 the paths of nodes that matched the search pattern.
 
-### `nodes()` (`ASTNode[]`)
+### `.nodes()` (`ASTNode[]`)
 
 Returns the nodes that `.find()` and `.closest()` will search within.
 If this instance was returned by `.find()` or `.closest()`, these are
@@ -366,21 +366,21 @@ Filters down to arrays of nodes captured with the given `name`. For example,
 but `astx.find('foo($$arg)').captures('$$arg')` will have just the
 arguments as matches/paths.
 
-### `arrayCaptureNodes(name)` (`ASTNode[] | null`)
+### `.arrayCaptureNodes(name)` (`ASTNode[] | null`)
 
 Gets the first array of nodes that was captured with the given `name`.
 
-### `arrayCapturePaths(name)` (`ASTPath<any>[] | null`)
+### `.arrayCapturePaths(name)` (`ASTPath<any>[] | null`)
 
 Gets the paths of the first array of nodes that was captured with the given `name`.
 
-### `stringCapture(name)` (`string | null`)
+### `.stringCapture(name)` (`string | null`)
 
 Gets the first string value that was captured with the given `name`.
 
 ## Match
 
-### `type`
+### `.type`
 
 The type of match: `'node'` or `'nodes'`.
 
@@ -606,7 +606,6 @@ A function to perform an arbitrary transform using the `Astx` API. It gets calle
 
 - `source` (`string`) - The source code of the file being transformed
 - `path` (`string`) - The path to the file being transformed
-- `root` (`Collection`) - the JSCodeshift Collection wrapping the parsed AST
 - `astx` (`Astx`) - the `Astx` API instance
 - `jscodeshift` (`JSCodeshift`) - the JSCodeshift instance
 - `j` (`JSCodeshift`) - shorthand for the same JSCodeshift instance
