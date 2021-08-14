@@ -28,6 +28,15 @@
     "open:coverage": "open coverage/lcov-report/index.html",
     "semantic-release": "semantic-release"
   },
+  "release": {
+    "branches": [
+      "master",
+      {
+        "name": "beta",
+        "prerelease": true
+      }
+    ]
+  },
   "config": {
     "lint": "--cache --ext .js,.ts src test",
     "mocha": "--extension js --extension ts test/configure.js 'src/**/*.spec.ts' 'test/**/*.ts'",
