@@ -8,6 +8,10 @@
 
 structural search and replace for JavaScript and TypeScript, using jscodeshift
 
+# Version 2 is coming with more powerful features!
+
+The beta is out.  See [docs](https://github.com/codemodsquad/astx/blob/beta/README.md) and [breaking changes](https://github.com/codemodsquad/astx/releases/tag/v2.0.0-beta.1).
+
 # Table of Contents
 
 <!-- toc -->
