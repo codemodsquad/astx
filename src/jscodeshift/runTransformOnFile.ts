@@ -15,6 +15,7 @@ import _resolve from 'resolve'
 import makeTemplate from './util/template'
 import { FindOptions, Match } from './find'
 import omitBlankLineChanges from '../util/omitBlankLineChanges'
+import generate from '@babel/generator'
 import prepareForBabelGenerate from '../util/prepareForBabelGenerate'
 const resolve = promisify(_resolve) as any
 
@@ -80,7 +81,7 @@ const getBabelGenerator = memoize(
     } catch (error) {
       // ignore
     }
-    return null
+    return generate
   }
 )
 
