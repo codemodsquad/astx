@@ -55,9 +55,7 @@ export default function find<Node extends ASTNode>(
 
   const matches: Array<Match<Node>> = []
 
-  const nodeTypes = Array.isArray(matcher.nodeType)
-    ? matcher.nodeType
-    : matcher.nodeType
+  const nodeTypes = matcher.nodeType
     ? [matcher.nodeType]
     : ['Node']
 
