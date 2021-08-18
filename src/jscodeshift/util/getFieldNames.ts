@@ -18,6 +18,7 @@ const callExpression = addFieldNames(
   'typeParameters'
 )
 const newExpression = addFieldNames('NewExpression', 'typeParameters')
+const importSpecifier = addFieldNames('ImportSpecifier', 'importKind')
 
 export default function getFieldNames(node: ASTNode): string[] {
   switch (node.type) {
@@ -29,6 +30,8 @@ export default function getFieldNames(node: ASTNode): string[] {
       return callExpression
     case 'NewExpression':
       return newExpression
+    case 'ImportSpecifier':
+      return importSpecifier
     default:
       return t.getFieldNames(node)
   }

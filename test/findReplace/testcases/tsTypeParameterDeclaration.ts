@@ -24,6 +24,13 @@ export const expectedFind = [
 export const replace = `type Foo<Z extends {bar: $foo}, $$b, $a> = $c`
 
 export const expectedReplace = `
-type Foo<Z extends {bar: 1}, X, Y, W> = [W, X, Y, Z]
+type Foo<
+  Z extends {
+    bar: 1
+  },
+  X,
+  Y,
+  W
+> = [W, X, Y, Z]
 type Bar<A, B, C> = [A, B, C]
 `

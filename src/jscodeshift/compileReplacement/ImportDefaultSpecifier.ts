@@ -1,4 +1,4 @@
-import { ImportDefaultSpecifier, ASTPath } from 'jscodeshift'
+import { ImportDefaultSpecifier, ASTPath, ImportDeclaration } from 'jscodeshift'
 import { CompiledReplacement, CompileReplacementOptions } from '.'
 import compileCaptureReplacement from './Capture'
 
@@ -9,7 +9,8 @@ export default function compileImportDefaultSpecifierReplacement(
   const pattern = path.node
   const { local } = pattern
   if (local != null) {
-    if ((pattern as any).importKind == null) {
+    const { importKind } = (path.parentPath as ASTPath<ImportDeclaration>).node
+    if (importKind == null || importKind === 'value') {
       const captureReplacement = compileCaptureReplacement(
         path,
         local.name,

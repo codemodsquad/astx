@@ -1,4 +1,4 @@
-export const parsers = ['babylon', 'flow', 'babylon-babel-generator']
+export const parsers = ['tsx', 'tsx-babel-generator']
 
 export const input = `
 import A, {B, C, D, E} from 'foo'
@@ -20,9 +20,9 @@ export const expectedFind = [
 ]
 
 export const replace = `
-import {$$b, $C as Q, B, $$a, type $c, $_$d} from 'foo'
+import {$$b, $C as Q, B, $$a, $_$d} from 'foo'
 `
 
 export const expectedReplace = `
-import A, { D, E, C as Q, B, type $c, $$d } from 'foo'
+import A, { D, E, C as Q, B, $$d } from 'foo'
 `

@@ -1,4 +1,4 @@
-export const parsers = ['babylon', 'flow', 'babylon-babel-generator']
+export const parsers = ['tsx', 'tsx-babel-generator']
 
 export const input = `
 type Foo = (a: number, b: string, c: [number, string], d: any, $e) => any
@@ -23,7 +23,7 @@ export const expectedFind = [
 ]
 
 export const replace = `
-type $1 = (c: [$$b, number], $d, x: number, $$a, $_q, $X<Y>) => any
+type $1 = (c: [$$b, number], $d, x: number, $$a, $_q) => any
 `
 
 export const expectedReplace = `
@@ -33,7 +33,6 @@ type Foo = (
   x: number,
   a: number,
   b: string,
-  $q,
-  $X<Y>
+  $q
 ) => any;
 `

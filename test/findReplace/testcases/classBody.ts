@@ -37,6 +37,9 @@ class Foo {
   $b
   e(): number {}
   $$a
+  q
+  $e = 1
+  'hello-world': string
 }
 `
 
@@ -47,5 +50,8 @@ class Foo {
   e(): number {}
   a: number;
   b: string;
+  q;
+  $e = 1;
+  'hello-world': string;
 }
 `
