@@ -9,8 +9,13 @@ import prettier from 'prettier'
 import parseFindOrReplace from '../../src/jscodeshift/util/parseFindOrReplace'
 import Astx, { GetReplacement } from '../../src/jscodeshift/Astx'
 import generate from '@babel/generator'
-
 import prepareForBabelGenerate from '../../src/util/prepareForBabelGenerate'
+
+const projRoot = path.resolve(__dirname, '..', '..')
+const testcaseDir = path.relative(
+  projRoot,
+  path.resolve(__dirname, 'testcases')
+)
 
 type ExpectedMatch = {
   node?: string
@@ -114,7 +119,7 @@ describe(`find`, function () {
           skip,
         } = testcases[key] as Fixture
         ;(skip ? it.skip : only ? it.only : it)(
-          path.basename(key).replace(/\.[^.]+$/, ''),
+          `${testcaseDir}/${key}.ts`,
           function () {
             const j = jscodeshift.withParser(actualParser)
             const root = j(input)
