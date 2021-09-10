@@ -673,4 +673,7 @@ Options:
   -f, --find             search pattern                                 [string]
   -r, --replace          replace pattern                                [string]
       --babel-generator  use @babel/generator to generate output       [boolean]
+  -y, --yes              don't ask for confirmation before writing changes
+                                                                       [boolean]
+
 ```

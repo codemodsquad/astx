@@ -17,6 +17,7 @@ type Options = {
   replace?: string
   filesAndDirectories?: string[]
   babelGenerator?: boolean
+  yes?: boolean
 }
 
 async function getEngine(
@@ -75,6 +76,11 @@ const transform: CommandModule<Options> = {
       })
       .option('babel-generator', {
         describe: 'use @babel/generator to generate output',
+        type: 'boolean',
+      })
+      .option('yes', {
+        alias: 'y',
+        describe: `don't ask for confirmation before writing changes`,
         type: 'boolean',
       }),
 
@@ -140,8 +146,10 @@ const transform: CommandModule<Options> = {
       } else if (source && transformed && source !== transformed) {
         changedCount++
         results[file] = transformed
-        logHeader(console.error)
-        console.log(formatDiff(source, transformed))
+        if (!argv.yes) {
+          logHeader(console.error)
+          console.log(formatDiff(source, transformed))
+        }
       } else if (
         matches?.length &&
         source &&
@@ -199,14 +207,18 @@ const transform: CommandModule<Options> = {
     }
 
     if (!isEmpty(results)) {
-      const { apply } = await inquirer.prompt([
-        {
-          type: 'confirm',
-          name: 'apply',
-          message: 'Apply changes',
-          default: false,
-        },
-      ])
+      const apply = argv.yes
+        ? true
+        : (
+            await inquirer.prompt([
+              {
+                type: 'confirm',
+                name: 'apply',
+                message: 'Apply changes',
+                default: false,
+              },
+            ])
+          ).apply
       if (apply) {
         for (const file in results) {
           await fs.writeFile(file, results[file], 'utf8')
