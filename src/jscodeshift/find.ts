@@ -244,7 +244,8 @@ function findStatements(
       )
       if (match) {
         let result = match[0]
-        const [start, end] = match[1]
+        const start = firstNonArrayCaptureIndex > 0 ? 0 : match[1][0]
+        const [, end] = match[1]
 
         // make sure all * captures are present in results
         // (if there are more than one adjacent *, all captured paths will be in the
