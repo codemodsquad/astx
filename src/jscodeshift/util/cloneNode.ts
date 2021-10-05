@@ -8,7 +8,6 @@ export default function cloneNode<T extends ASTNode>(node: T): T {
       case 'end':
       case 'loc':
       case 'range':
-      case 'extra':
         continue
     }
     const value = (node as any)[field]
