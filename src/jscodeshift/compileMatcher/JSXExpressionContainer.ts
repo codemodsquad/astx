@@ -1,6 +1,6 @@
 import { JSXExpressionContainer, ASTPath } from 'jscodeshift'
 import { CompiledMatcher, CompileOptions } from '.'
-import compileArrayCaptureMatcher from './Capture'
+import compileCaptureMatcher from './Capture'
 
 export default function compileJSXExpressionContainerMatcher(
   path: ASTPath<any>,
@@ -9,7 +9,7 @@ export default function compileJSXExpressionContainerMatcher(
   const pattern: JSXExpressionContainer = path.node
 
   if (pattern.expression.type === 'Identifier') {
-    const captureMatcher = compileArrayCaptureMatcher(
+    const captureMatcher = compileCaptureMatcher(
       pattern.expression.name,
       compileOptions
     )

@@ -1,6 +1,6 @@
 import { ClassImplements, ASTPath } from 'jscodeshift'
 import { CompiledMatcher, CompileOptions } from '.'
-import compileArrayCaptureMatcher from './Capture'
+import compileCaptureMatcher from './Capture'
 
 export default function compileClassImplementsMatcher(
   path: ASTPath<any>,
@@ -10,7 +10,7 @@ export default function compileClassImplementsMatcher(
 
   if (pattern.id.type === 'Identifier') {
     if (pattern.typeParameters == null) {
-      const captureMatcher = compileArrayCaptureMatcher(
+      const captureMatcher = compileCaptureMatcher(
         pattern.id.name,
         compileOptions
       )

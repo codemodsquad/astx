@@ -1,6 +1,6 @@
 import { JSXAttribute, ASTPath } from 'jscodeshift'
 import { CompiledMatcher, CompileOptions } from '.'
-import compileArrayCaptureMatcher from './Capture'
+import compileCaptureMatcher from './Capture'
 
 export default function compileJSXAttributeMatcher(
   path: ASTPath<any>,
@@ -10,7 +10,7 @@ export default function compileJSXAttributeMatcher(
 
   if (pattern.name.type === 'JSXIdentifier') {
     if (pattern.value == null) {
-      const captureMatcher = compileArrayCaptureMatcher(
+      const captureMatcher = compileCaptureMatcher(
         pattern.name.name,
         compileOptions
       )

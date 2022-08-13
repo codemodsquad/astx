@@ -1,6 +1,6 @@
 import { TSTypeReference, ASTPath } from 'jscodeshift'
 import { CompiledMatcher, CompileOptions } from '.'
-import compileArrayCaptureMatcher from './Capture'
+import compileCaptureMatcher from './Capture'
 import compileSpecialMatcher from './SpecialMatcher'
 
 export default function compileTSTypeReferenceMatcher(
@@ -11,7 +11,7 @@ export default function compileTSTypeReferenceMatcher(
 
   if (typeName.type === 'Identifier') {
     if (typeParameters == null) {
-      const captureMatcher = compileArrayCaptureMatcher(
+      const captureMatcher = compileCaptureMatcher(
         typeName.name,
         compileOptions
       )
