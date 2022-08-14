@@ -91,6 +91,7 @@ export interface CompiledMatcher {
   predicate?: false
   captureAs?: string
   arrayCaptureAs?: string
+  restCaptureAs?: string
   match: (path: ASTPath, matchSoFar: MatchResult) => MatchResult
   nodeType?: NodeType | NodeType[]
 }

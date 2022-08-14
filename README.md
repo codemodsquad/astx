@@ -17,6 +17,7 @@ These are docs for the version 2 beta branch.
 <!-- toc -->
 
 - [astx](#astx)
+- [Version 2 Beta](#version-2-beta)
 - [Table of Contents](#table-of-contents)
 - [Introduction](#introduction)
 - [Usage examples](#usage-examples)
@@ -63,6 +64,7 @@ These are docs for the version 2 beta branch.
 - [Match Patterns](#match-patterns)
   - [Object Matching](#object-matching)
   - [List Matching](#list-matching)
+    - [Unordered List Matching](#unordered-list-matching)
     - [Support Table](#support-table)
   - [String Matching](#string-matching)
   - [Extracting nodes](#extracting-nodes)
@@ -455,6 +457,14 @@ first `3` will be captured in `$$before` and elements after the first `3` will b
 
 This works even with block statements. For example, `function foo() { $$before; throw new Error('test'); $$after; }` will match `function foo()` that contains a `throw new Error('test')`,
 and the statements before and after that throw statement will get captured in `$$before` and `$$after`, respectively.
+
+### Unordered List Matching
+
+If you use a capture variable starting with `$$$`, it's treated as a "rest" capture, and all other elements of the
+match expression will be matched out of order. For example, `import {a, b, $$$rest} from 'foo'` would match
+`import {c, b, d, e, a} from 'foo'`, putting specifiers `c`, `d`, and `e`, into the `$$$rest` capture variable.
+
+Rest captures (`$$$`) may not be sibilings of ordered list captures (`$$`).
 
 ### Support Table
 

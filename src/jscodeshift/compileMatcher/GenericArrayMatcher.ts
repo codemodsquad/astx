@@ -27,6 +27,28 @@ export default function compileGenericArrayMatcher(
     compileMatcher(paths[i], elemOptions)
   )
 
+  const otherMatchers: CompiledMatcher[] = []
+  let arrayMatcherCount = 0
+  let restMatcher
+  for (let i = 0; i < matchers.length; i++) {
+    if (matchers[i].restCaptureAs) {
+      if (restMatcher) {
+        throw new Error(`can't have two or more rest matchers as siblings`)
+      } else if (arrayMatcherCount) {
+        throw new Error(`can't mix array and rest matchers`)
+      } else {
+        restMatcher = matchers[i]
+      }
+    } else if (matchers[i].arrayCaptureAs) {
+      if (restMatcher) {
+        throw new Error(`can't mix array and rest matchers`)
+      }
+      arrayMatcherCount++
+    } else {
+      otherMatchers.push(matchers[i])
+    }
+  }
+
   function remainingElements(matcherIndex: number): number {
     let count = 0
     for (let i = matcherIndex; i < matchers.length; i++) {
@@ -47,6 +69,42 @@ export default function compileGenericArrayMatcher(
     }
 
     return result
+  }
+
+  if (restMatcher) {
+    const { restCaptureAs } = restMatcher
+    if (!restCaptureAs)
+      throw new Error(`unexpected: restMatcher.restCaptureAs == null`)
+    return {
+      match: (path: ASTPath, result: MatchResult): MatchResult => {
+        debug('Array')
+        if (!Array.isArray(path.value)) {
+          debug('  path.value is not an array')
+          return null
+        }
+
+        const paths = slicePath(path, 0, path.value.length)
+
+        for (const m of otherMatchers) {
+          let i
+          let found = false
+          for (i = 0; i < paths.length; i++) {
+            const match = m.match(paths[i], result)
+            if (!match) continue
+            result = match
+            paths.splice(i, 1)
+            found = true
+            break
+          }
+          if (!found) {
+            return null
+          }
+        }
+        return mergeCaptures(result, {
+          arrayCaptures: { [restCaptureAs]: paths },
+        })
+      },
+    }
   }
 
   function matchElem(

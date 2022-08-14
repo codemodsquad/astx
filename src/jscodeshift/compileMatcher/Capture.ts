@@ -12,7 +12,11 @@ export function getCaptureAs(identifier: string): string | undefined {
 }
 
 export function getArrayCaptureAs(identifier: string): string | undefined {
-  return /^\$\$[a-z0-9]+/i.exec(identifier)?.[0]
+  return /^\${2}[a-z0-9]+/i.exec(identifier)?.[0]
+}
+
+export function getRestCaptureAs(identifier: string): string | undefined {
+  return /^\${3}[a-z0-9]+/i.exec(identifier)?.[0]
 }
 
 export function compileArrayCaptureMatcher(
@@ -27,6 +31,24 @@ export function compileArrayCaptureMatcher(
       match: (): MatchResult => {
         throw new Error(
           `array capture placeholder ${arrayCaptureAs} is in an invalid position`
+        )
+      },
+    }
+  }
+}
+
+export function compileRestCaptureMatcher(
+  identifier: string,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  compileOptions: CompileOptions
+): CompiledMatcher | void {
+  const restCaptureAs = getRestCaptureAs(identifier)
+  if (restCaptureAs) {
+    return {
+      restCaptureAs,
+      match: (): MatchResult => {
+        throw new Error(
+          `rest capture placeholder ${restCaptureAs} is in an invalid position`
         )
       },
     }
@@ -68,7 +90,10 @@ export default function compileCaptureMatcher(
       },
     }
   }
-  return compileArrayCaptureMatcher(identifier, compileOptions)
+  return (
+    compileArrayCaptureMatcher(identifier, compileOptions) ||
+    compileRestCaptureMatcher(identifier, compileOptions)
+  )
 }
 
 export function compileStringCaptureMatcher<Node extends ASTNode>(

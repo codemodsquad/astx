@@ -4,6 +4,7 @@ import { Match } from '../find'
 import {
   getArrayCaptureAs,
   getCaptureAs,
+  getRestCaptureAs,
   unescapeIdentifier,
 } from '../compileMatcher/Capture'
 import createReplacementConverter, { bulkConvert } from '../convertReplacement'
@@ -16,7 +17,8 @@ export function compileArrayCaptureReplacement(
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   compileReplacementOptions: CompileReplacementOptions
 ): CompiledReplacement | void {
-  const arrayCaptureAs = getArrayCaptureAs(identifier)
+  const arrayCaptureAs =
+    getArrayCaptureAs(identifier) || getRestCaptureAs(identifier)
   if (arrayCaptureAs) {
     const convertReplacement = createReplacementConverter(pattern)
     return {
