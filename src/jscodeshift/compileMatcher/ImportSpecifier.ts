@@ -11,6 +11,7 @@ export default function compileImportSpecifierMatcher(
   if (!pattern.local || pattern.local.name === pattern.imported.name) {
     if ((pattern as any).importKind == null) {
       const captureMatcher = compileCaptureMatcher(
+        path,
         pattern.imported.name,
         compileOptions
       )

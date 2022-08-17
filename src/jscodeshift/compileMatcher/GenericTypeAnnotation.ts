@@ -11,7 +11,11 @@ export default function compileGenericTypeAnnotationMatcher(
 
   if (id.type === 'Identifier') {
     if (typeParameters == null) {
-      const captureMatcher = compileCaptureMatcher(id.name, compileOptions)
+      const captureMatcher = compileCaptureMatcher(
+        path,
+        id.name,
+        compileOptions
+      )
 
       if (captureMatcher) return captureMatcher
     } else {

@@ -4,12 +4,14 @@ import compileMatcher, { MatchResult } from './'
 
 export default function compileOptionalMatcher(
   path: ASTPath<any>,
+  subpath: ASTPath<any>,
   compileOptions: CompileOptions
 ): CompiledMatcher | void {
-  const matcher = compileMatcher(path, compileOptions)
+  const matcher = compileMatcher(subpath, compileOptions)
 
   return {
     ...matcher,
+    pattern: path,
     optional: true,
 
     match: (path: ASTPath, matchSoFar: MatchResult): MatchResult => {

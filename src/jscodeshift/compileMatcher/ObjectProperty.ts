@@ -15,6 +15,7 @@ export default function compileObjectPropertyMatcher(
       pattern.accessibility == null
     ) {
       const captureMatcher = compileCaptureMatcher(
+        path,
         pattern.key.name,
         compileOptions
       )

@@ -19,7 +19,7 @@ export default function compileSpecialMatcher(
           path
         )
       }
-      return compileOptionalMatcher(params[0], compileOptions)
+      return compileOptionalMatcher(path, params[0], compileOptions)
     case '$Or':
       if (params.length < 2) {
         throw new CompilePathError(
@@ -27,7 +27,7 @@ export default function compileSpecialMatcher(
           path
         )
       }
-      return compileOrMatcher(params, compileOptions)
+      return compileOrMatcher(path, params, compileOptions)
     case '$And':
       if (params.length < 2) {
         throw new CompilePathError(
@@ -35,6 +35,6 @@ export default function compileSpecialMatcher(
           path
         )
       }
-      return compileAndMatcher(params, compileOptions)
+      return compileAndMatcher(path, params, compileOptions)
   }
 }

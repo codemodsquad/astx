@@ -9,7 +9,11 @@ export default function compileTypeParameterMatcher(
   const pattern: TypeParameter = path.node
 
   if (pattern.variance == null && pattern.bound == null) {
-    const captureMatcher = compileCaptureMatcher(pattern.name, compileOptions)
+    const captureMatcher = compileCaptureMatcher(
+      path,
+      pattern.name,
+      compileOptions
+    )
 
     if (captureMatcher) return captureMatcher
   }

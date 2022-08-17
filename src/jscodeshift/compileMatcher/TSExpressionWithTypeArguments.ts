@@ -11,6 +11,7 @@ export default function compileTSExpressionWithTypeArgumentsMatcher(
   if (pattern.expression.type === 'Identifier') {
     if (pattern.typeParameters == null) {
       const captureMatcher = compileCaptureMatcher(
+        path,
         pattern.expression.name,
         compileOptions
       )

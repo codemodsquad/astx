@@ -76,6 +76,7 @@ export default function compileGenericArrayMatcher(
     if (!restCaptureAs)
       throw new Error(`unexpected: restMatcher.restCaptureAs == null`)
     return {
+      pattern: path,
       match: (path: ASTPath, result: MatchResult): MatchResult => {
         debug('Array')
         if (!Array.isArray(path.value)) {
@@ -184,6 +185,7 @@ export default function compileGenericArrayMatcher(
 
   if (matchers.some((m) => m.captureAs || m.arrayCaptureAs)) {
     return {
+      pattern: path,
       match: (path: ASTPath, matchSoFar: MatchResult): MatchResult => {
         debug('Array')
         if (!Array.isArray(path.value)) {
@@ -211,6 +213,7 @@ export default function compileGenericArrayMatcher(
   }
 
   return {
+    pattern: path,
     match: (path: ASTPath, matchSoFar: MatchResult): MatchResult => {
       debug('Array')
       if (!Array.isArray(path.value)) {

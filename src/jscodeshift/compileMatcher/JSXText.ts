@@ -10,10 +10,8 @@ export default function matchJSXText(
   const normalizedValue = normalizeJSXTextValue(pattern.value)
 
   return convertPredicateMatcher(
-    pattern,
+    path,
     {
-      predicate: true,
-
       match: (path: ASTPath): boolean => {
         const { node } = path
 
@@ -22,7 +20,6 @@ export default function matchJSXText(
           normalizedValue === normalizeJSXTextValue(node.value)
         )
       },
-
       nodeType: 'JSXText',
     },
     compileOptions

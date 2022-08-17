@@ -10,6 +10,7 @@ export default function compileExpressionStatementMatcher(
 
   if (pattern.expression.type === 'Identifier') {
     const captureMatcher = compileCaptureMatcher(
+      path,
       pattern.expression.name,
       compileOptions
     )

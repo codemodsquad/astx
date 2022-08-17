@@ -13,7 +13,7 @@ export default function matchTemplateLiteral(
   const pattern: TemplateLiteral = path.node
 
   const captureMatcher = compileStringCaptureMatcher(
-    pattern,
+    path,
     (node: TemplateLiteral) =>
       node.quasis.length === 1 ? node.quasis[0].value.cooked ?? null : null,
     compileOptions

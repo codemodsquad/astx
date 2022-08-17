@@ -12,6 +12,7 @@ export default function compileTSTypeReferenceMatcher(
   if (typeName.type === 'Identifier') {
     if (typeParameters == null) {
       const captureMatcher = compileCaptureMatcher(
+        path,
         typeName.name,
         compileOptions
       )

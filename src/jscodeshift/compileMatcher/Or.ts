@@ -3,6 +3,7 @@ import compileMatcher, { CompiledMatcher, CompileOptions, MatchResult } from '.'
 import { NodeType } from '../util/NodeType'
 
 export default function compileOrMatcher(
+  path: ASTPath,
   paths: ASTPath[],
   compileOptions: CompileOptions
 ): CompiledMatcher | void {
@@ -13,6 +14,7 @@ export default function compileOrMatcher(
     else if (m.nodeType) nodeType.add(m.nodeType)
   }
   return {
+    pattern: path,
     nodeType: nodeType.size ? [...nodeType] : undefined,
     optional: true,
     match: (path: ASTPath, matchSoFar: MatchResult): MatchResult => {

@@ -13,6 +13,7 @@ export default function compileFunctionTypeParamMatcher(
   ) {
     if (pattern.typeAnnotation.typeParameters == null) {
       const captureMatcher = compileCaptureMatcher(
+        path,
         pattern.typeAnnotation.id.name,
         compileOptions
       )

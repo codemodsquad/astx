@@ -14,7 +14,11 @@ export default function compileTSTypeParameterMatcher(
     pattern.default == null &&
     !pattern.optional
   ) {
-    const captureMatcher = compileCaptureMatcher(pattern.name, compileOptions)
+    const captureMatcher = compileCaptureMatcher(
+      path,
+      pattern.name,
+      compileOptions
+    )
 
     if (captureMatcher) return captureMatcher
   }

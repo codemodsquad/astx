@@ -13,6 +13,7 @@ export default function compileTypeAnnotationMatcher(
 
   if (annotationMatcher.optional) {
     return {
+      pattern: path,
       nodeType: 'TypeAnnotation',
       optional: true,
 

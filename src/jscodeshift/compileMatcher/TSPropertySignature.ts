@@ -16,6 +16,7 @@ export default function compileTSPropertySignatureMatcher(
         pattern.typeAnnotation?.typeAnnotation?.type === 'TSAnyKeyword')
     ) {
       const captureMatcher = compileCaptureMatcher(
+        path,
         pattern.key.name,
         compileOptions
       )

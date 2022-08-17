@@ -8,7 +8,7 @@ export default function matchStringLiteral(
 ): CompiledMatcher {
   const pattern: StringLiteral = path.node
   const captureMatcher = compileStringCaptureMatcher(
-    pattern,
+    path,
     (pattern) => pattern.value,
     compileOptions
   )
@@ -18,16 +18,13 @@ export default function matchStringLiteral(
   pattern.value = unescapeIdentifier(pattern.value)
 
   return convertPredicateMatcher(
-    pattern,
+    path,
     {
-      predicate: true,
-
       match: (path: ASTPath): boolean => {
         const { node } = path
 
         return node.type === 'StringLiteral' && pattern.value === node.value
       },
-
       nodeType: 'StringLiteral',
     },
     compileOptions

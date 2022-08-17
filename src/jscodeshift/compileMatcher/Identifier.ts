@@ -14,7 +14,11 @@ export default function compileIdentifierMatcher(
 
   const { typeAnnotation } = pattern
 
-  const captureMatcher = compileCaptureMatcher(pattern.name, compileOptions)
+  const captureMatcher = compileCaptureMatcher(
+    path,
+    pattern.name,
+    compileOptions
+  )
 
   if (captureMatcher) {
     const { captureAs } = captureMatcher

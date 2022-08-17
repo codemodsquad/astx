@@ -10,10 +10,8 @@ export default function matchRegExpLiteral(
   const queryFlags = sortFlags(pattern.flags)
 
   return convertPredicateMatcher(
-    pattern,
+    path,
     {
-      predicate: true,
-
       match: (path: ASTPath): boolean => {
         const { node } = path
 
@@ -23,7 +21,6 @@ export default function matchRegExpLiteral(
           sortFlags(node.flags) === queryFlags
         )
       },
-
       nodeType: 'RegExpLiteral',
     },
     compileOptions

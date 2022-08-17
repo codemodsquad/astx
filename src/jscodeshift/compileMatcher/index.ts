@@ -1,4 +1,4 @@
-import { ASTPath, ASTNode } from 'jscodeshift'
+import { ASTPath } from 'jscodeshift'
 import * as t from 'ast-types'
 import { NodeType } from '../util/NodeType'
 import __debug, { Debugger } from 'debug'
@@ -81,14 +81,13 @@ export function mergeCaptures(...results: MatchResult[]): MatchResult {
 }
 
 export type PredicateMatcher = {
-  predicate: true
   match: (path: ASTPath, matchSoFar: MatchResult) => boolean
   nodeType?: keyof typeof t.namedTypes | (keyof typeof t.namedTypes)[]
 }
 
 export interface CompiledMatcher {
+  pattern: ASTPath | ASTPath<any[]> | ASTPath<any>[]
   optional?: true
-  predicate?: false
   captureAs?: string
   arrayCaptureAs?: string
   restCaptureAs?: string
@@ -134,14 +133,15 @@ const nodeMatchers: Record<
 }
 
 export function convertPredicateMatcher(
-  pattern: ASTNode,
+  pattern: ASTPath,
   matcher: PredicateMatcher,
   { debug }: CompileOptions
 ): CompiledMatcher {
   return {
+    pattern,
     nodeType: matcher.nodeType,
     match: (path: ASTPath, matchSoFar: MatchResult): MatchResult => {
-      debug('%s (specific)', pattern.type)
+      debug('%s (specific)', pattern.node.type)
       const result = matcher.match(path, matchSoFar)
       if (result) {
         if (result === true) debug('  matched')

@@ -116,6 +116,7 @@ export default function compileObjectExpressionMatcher(
   }
 
   return {
+    pattern: path,
     match: (path: ASTPath, matchSoFar: MatchResult): MatchResult => {
       const { node } = path
 

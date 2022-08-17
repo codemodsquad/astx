@@ -11,6 +11,7 @@ export default function compileVariableDeclaratorMatcher(
   if (pattern.id.type === 'Identifier' && pattern.id.typeAnnotation == null) {
     if (pattern.init == null) {
       const captureMatcher = compileCaptureMatcher(
+        path,
         pattern.id.name,
         compileOptions
       )

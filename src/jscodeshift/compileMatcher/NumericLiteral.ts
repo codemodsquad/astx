@@ -8,16 +8,13 @@ export default function matchNumericLiteral(
   const pattern: NumericLiteral = path.node
 
   return convertPredicateMatcher(
-    pattern,
+    path,
     {
-      predicate: true,
-
       match: (path: ASTPath): boolean => {
         const { node } = path
 
         return node.type === 'NumericLiteral' && pattern.value === node.value
       },
-
       nodeType: 'NumericLiteral',
     },
     compileOptions

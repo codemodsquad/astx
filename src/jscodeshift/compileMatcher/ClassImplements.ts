@@ -11,6 +11,7 @@ export default function compileClassImplementsMatcher(
   if (pattern.id.type === 'Identifier') {
     if (pattern.typeParameters == null) {
       const captureMatcher = compileCaptureMatcher(
+        path,
         pattern.id.name,
         compileOptions
       )

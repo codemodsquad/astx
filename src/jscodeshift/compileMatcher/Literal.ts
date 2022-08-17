@@ -19,10 +19,8 @@ export default function matchLiteral(
     const regexFlags = sortFlags(regex.flags)
 
     return convertPredicateMatcher(
-      pattern,
+      path,
       {
-        predicate: true,
-
         match: (path: ASTPath): boolean => {
           const { node } = path
 
@@ -34,7 +32,6 @@ export default function matchLiteral(
             sortFlags(node.regex.flags) === sortFlags(regexFlags)
           )
         },
-
         nodeType: 'Literal',
       },
       compileOptions
@@ -43,7 +40,7 @@ export default function matchLiteral(
 
   if (typeof pattern.value === 'string') {
     const captureMatcher = compileStringCaptureMatcher(
-      pattern,
+      path,
       (node: Literal) => (typeof node.value === 'string' ? node.value : null),
       compileOptions
     )
@@ -54,10 +51,8 @@ export default function matchLiteral(
   }
 
   return convertPredicateMatcher(
-    pattern,
+    path,
     {
-      predicate: true,
-
       match: (path: ASTPath): boolean => {
         const { node } = path
 
@@ -65,7 +60,6 @@ export default function matchLiteral(
 
         return node.value === pattern.value
       },
-
       nodeType: 'Literal',
     },
     compileOptions

@@ -11,6 +11,7 @@ export default function compileJSXAttributeMatcher(
   if (pattern.name.type === 'JSXIdentifier') {
     if (pattern.value == null) {
       const captureMatcher = compileCaptureMatcher(
+        path,
         pattern.name.name,
         compileOptions
       )

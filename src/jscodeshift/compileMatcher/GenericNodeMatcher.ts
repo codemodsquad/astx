@@ -85,6 +85,7 @@ export default function compileGenericNodeMatcher(
           return [
             key,
             {
+              pattern: path.get(key),
               match: (path: ASTPath, matchSoFar: MatchResult): MatchResult => {
                 const nodeValue = t.getFieldValue(path.node, key)
 
@@ -102,6 +103,7 @@ export default function compileGenericNodeMatcher(
           return [
             key,
             {
+              pattern: path.get(key),
               match: (path: ASTPath, matchSoFar: MatchResult): MatchResult => {
                 const nodeValue = t.getFieldValue(path.node, key)
 
@@ -120,6 +122,7 @@ export default function compileGenericNodeMatcher(
   )
 
   return {
+    pattern: path,
     match: (path: ASTPath, matchSoFar: MatchResult): MatchResult => {
       if (!path.value) return null
 

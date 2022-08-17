@@ -7,7 +7,11 @@ export default function compileJSXIdentifierMatcher(
   compileOptions: CompileOptions
 ): CompiledMatcher | void {
   const pattern: JSXIdentifier = path.node
-  const captureMatcher = compileCaptureMatcher(pattern.name, compileOptions)
+  const captureMatcher = compileCaptureMatcher(
+    path,
+    pattern.name,
+    compileOptions
+  )
 
   if (captureMatcher) return captureMatcher
 

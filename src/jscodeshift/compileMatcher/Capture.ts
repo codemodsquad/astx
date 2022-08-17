@@ -20,6 +20,7 @@ export function getRestCaptureAs(identifier: string): string | undefined {
 }
 
 export function compileArrayCaptureMatcher(
+  pattern: ASTPath,
   identifier: string,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   compileOptions: CompileOptions
@@ -27,6 +28,7 @@ export function compileArrayCaptureMatcher(
   const arrayCaptureAs = getArrayCaptureAs(identifier)
   if (arrayCaptureAs) {
     return {
+      pattern,
       arrayCaptureAs,
       match: (): MatchResult => {
         throw new Error(
@@ -38,6 +40,7 @@ export function compileArrayCaptureMatcher(
 }
 
 export function compileRestCaptureMatcher(
+  pattern: ASTPath,
   identifier: string,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   compileOptions: CompileOptions
@@ -45,6 +48,7 @@ export function compileRestCaptureMatcher(
   const restCaptureAs = getRestCaptureAs(identifier)
   if (restCaptureAs) {
     return {
+      pattern,
       restCaptureAs,
       match: (): MatchResult => {
         throw new Error(
@@ -63,6 +67,7 @@ export function capturesAreEquivalent(a: ASTNode, b: ASTNode): boolean {
 }
 
 export default function compileCaptureMatcher(
+  pattern: ASTPath,
   identifier: string,
   compileOptions: CompileOptions
 ): CompiledMatcher | void {
@@ -71,6 +76,7 @@ export default function compileCaptureMatcher(
   if (captureAs) {
     const whereCondition = compileOptions?.where?.[captureAs]
     return {
+      pattern,
       captureAs,
       match: (path: ASTPath, matchSoFar: MatchResult): MatchResult => {
         if (path.value == null) return null
@@ -91,25 +97,26 @@ export default function compileCaptureMatcher(
     }
   }
   return (
-    compileArrayCaptureMatcher(identifier, compileOptions) ||
-    compileRestCaptureMatcher(identifier, compileOptions)
+    compileArrayCaptureMatcher(pattern, identifier, compileOptions) ||
+    compileRestCaptureMatcher(pattern, identifier, compileOptions)
   )
 }
 
 export function compileStringCaptureMatcher<Node extends ASTNode>(
-  pattern: Node,
+  pattern: ASTPath<Node>,
   getString: (node: Node) => string | null,
   compileOptions: CompileOptions
 ): CompiledMatcher | void {
   const { debug } = compileOptions
-  const string = getString(pattern)
+  const string = getString(pattern.node)
   if (!string) return
   const captureAs = getCaptureAs(string)
   if (captureAs) {
     return {
+      pattern,
       captureAs,
       match: (path: ASTPath<any>, matchSoFar: MatchResult): MatchResult => {
-        if (path.node.type !== pattern.type) return null
+        if (path.node.type !== pattern.node.type) return null
         debug('String Capture', captureAs)
         const string = getString(path.node)
         if (!string) return null
