@@ -17,6 +17,7 @@ import compileMatcher, {
 } from './index'
 
 import { getArrayCaptureAs } from './Capture'
+import CompilePathError from '../util/CompilePathError'
 
 function getSimpleKey(
   property:
@@ -93,8 +94,9 @@ export default function compileObjectExpressionMatcher(
 
     if (_captureRestVariable) {
       if (captureRestVariable)
-        throw new Error(
-          `two capture rest variables aren't allowed, found ${_captureRestVariable} and ${captureRestVariable}`
+        throw new CompilePathError(
+          `two capture rest variables aren't allowed, found ${_captureRestVariable} and ${captureRestVariable}`,
+          path.get('properties').get(i)
         )
 
       captureRestVariable = _captureRestVariable
