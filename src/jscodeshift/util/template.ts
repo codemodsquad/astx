@@ -117,31 +117,16 @@ export default function withParser(
   ) => Expression
 } {
   function statements(
-    _template: TemplateStringsArray | string[],
+    template: TemplateStringsArray | string[],
     ...nodes: any[]
   ): Statement[] {
-    function attempt(template: TemplateStringsArray | string[]): Statement[] {
-      const varNames = nodes.map(() => getUniqueVarName())
-      const src = [...template].reduce(
-        (result: string, elem: string, i: number) =>
-          result + varNames[i - 1] + elem
-      )
+    const varNames = nodes.map(() => getUniqueVarName())
+    const src = [...template].reduce(
+      (result: string, elem: string, i: number) =>
+        result + varNames[i - 1] + elem
+    )
 
-      return replaceNodes(src, varNames, nodes, jscodeshift).program.body
-    }
-    try {
-      const template = [..._template]
-      if (template.length > 0) {
-        template[0] = 'async () => {' + template[0]
-        template[template.length - 1] += '}'
-      }
-      const attempted = attempt(template)
-      if (attempted.length === 1)
-        return (attempted[0] as any).expression.body.body
-    } catch (error) {
-      // fallthrough
-    }
-    return attempt(_template)
+    return replaceNodes(src, varNames, nodes, jscodeshift).program.body
   }
 
   function statement(

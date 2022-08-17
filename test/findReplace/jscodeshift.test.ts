@@ -1,7 +1,7 @@
 import { describe, it } from 'mocha'
 import { expect } from 'chai'
 import path from 'path'
-import jscodeshift, { ASTPath, JSCodeshift } from 'jscodeshift'
+import jscodeshift, { ASTNode, ASTPath, JSCodeshift } from 'jscodeshift'
 import find, { FindOptions, Match } from '../../src/jscodeshift/find'
 import requireGlob from 'require-glob'
 import mapValues from 'lodash/mapValues'
@@ -10,6 +10,8 @@ import parseFindOrReplace from '../../src/jscodeshift/util/parseFindOrReplace'
 import Astx, { GetReplacement } from '../../src/jscodeshift/Astx'
 import generate from '@babel/generator'
 import prepareForBabelGenerate from '../../src/util/prepareForBabelGenerate'
+import { jsParser, tsParser } from 'babel-parse-wild-code'
+import { ParserOptions } from '@babel/parser'
 
 const projRoot = path.resolve(__dirname, '..', '..')
 const testcaseDir = path.relative(
@@ -47,13 +49,13 @@ export function formatMatches(
   function toSource(path: ASTPath<any>): string {
     return j([path]).toSource().replace(/,$/, '')
   }
-  const result = []
+  const result: ExpectedMatch[] = []
   matches.forEach((_match: Match) => {
     const { type, pathCaptures, arrayPathCaptures, stringCaptures } = _match
     const { path, paths }: { path?: ASTPath; paths?: ASTPath[] } = _match as any
     const match: ExpectedMatch = {}
-    if (type === 'node') match.node = toSource(path)
-    if (type === 'nodes') match.nodes = paths.map(toSource)
+    if (type === 'node' && path) match.node = toSource(path)
+    if (type === 'nodes' && paths) match.nodes = paths.map(toSource)
     if (pathCaptures) match.captures = mapValues(pathCaptures, toSource)
     if (arrayPathCaptures)
       match.arrayCaptures = mapValues(arrayPathCaptures, (paths) =>
@@ -121,7 +123,18 @@ describe(`find`, function () {
         ;(skip ? it.skip : only ? it.only : it)(
           `${testcaseDir}/${key}.ts`,
           function () {
-            const j = jscodeshift.withParser(actualParser)
+            const parserOpts: ParserOptions = {
+              allowReturnOutsideFunction: true,
+              allowSuperOutsideMethod: true,
+              allowUndeclaredExports: true,
+              tokens: true,
+              plugins: ['jsx', 'topLevelAwait'],
+            }
+            const j = jscodeshift.withParser(
+              actualParser.startsWith('ts')
+                ? tsParser.bindParserOpts(parserOpts)
+                : jsParser.bindParserOpts(parserOpts)
+            )
             const root = j(input)
 
             const format = (code: string) =>
@@ -150,7 +163,9 @@ describe(`find`, function () {
               if (expectedFind) {
                 const matches = find(
                   root.paths(),
-                  j(parseFindOrReplace(j, [_find] as any)).paths(),
+                  j(
+                    parseFindOrReplace(j, [_find] as any) as ASTNode | ASTNode[]
+                  ).paths(),
                   where ? { ...findOptions, where } : findOptions
                 )
                 expect(formatMatches(j, matches)).to.deep.equal(expectedFind)

@@ -17,6 +17,7 @@ import { FindOptions, Match } from './find'
 import omitBlankLineChanges from '../util/omitBlankLineChanges'
 import generate from '@babel/generator'
 import prepareForBabelGenerate from '../util/prepareForBabelGenerate'
+import CodeFrameError from './util/CodeFrameError'
 const resolve = promisify(_resolve) as any
 
 type TransformOptions = {
@@ -92,7 +93,14 @@ export const runTransformOnFile = (
   try {
     const source = await fs.readFile(file, 'utf8')
     const parser =
-      transform.parser || (await getParserAsync(file, { tokens: true }))
+      transform.parser ||
+      (await getParserAsync(file, {
+        allowReturnOutsideFunction: true,
+        allowSuperOutsideMethod: true,
+        allowUndeclaredExports: true,
+        tokens: true,
+        plugins: ['topLevelAwait'],
+      }))
     const j = jscodeshift.withParser(parser)
     const template = makeTemplate(j)
 
@@ -117,7 +125,15 @@ export const runTransformOnFile = (
       }
     }
     if (typeof transformFn === 'function') {
-      const root = j(source)
+      let root
+      try {
+        root = j(source)
+      } catch (error) {
+        if (error instanceof Error) {
+          CodeFrameError.rethrow(error, { filename: file, source })
+        }
+        throw error
+      }
       const options = {
         source,
         path: file,
@@ -178,7 +194,7 @@ export const runTransformOnFile = (
   } catch (error) {
     return {
       file,
-      error,
+      error: error instanceof Error ? error : new Error(String(error)),
     }
   }
 }

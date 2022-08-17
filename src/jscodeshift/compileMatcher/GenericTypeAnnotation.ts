@@ -16,6 +16,7 @@ export default function compileGenericTypeAnnotationMatcher(
       if (captureMatcher) return captureMatcher
     } else {
       const special = compileSpecialMatcher(
+        path,
         id.name,
         path
           .get('typeParameters')

@@ -1,13 +1,6 @@
 import chalk from 'chalk'
+import countLines from '../../util/countLines'
 import { Match } from '../find'
-
-function countLines(source: string): number {
-  if (!source) return 0
-  let lines = 1
-  const eolRegex = /\r\n?|\n/gm
-  while (eolRegex.exec(source)) lines++
-  return lines
-}
 
 const captureColors = [
   chalk.green,

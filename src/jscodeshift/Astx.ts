@@ -3,6 +3,7 @@ import find, { Match, convertWithCaptures, createMatch } from './find'
 import replace from './replace'
 import parseFindOrReplace from './util/parseFindOrReplace'
 import compileMatcher, { MatchResult } from './compileMatcher'
+import CodeFrameError from './util/CodeFrameError'
 
 export type ParseTag = (
   strings: TemplateStringsArray,
@@ -204,54 +205,65 @@ export default class Astx {
       | TemplateStringsArray,
     ...rest: any[]
   ): Astx | ((options?: FindOptions) => Astx) {
-    let paths: ASTPath<any>[], options: FindOptions | undefined
-    if (typeof arg0 === 'string') {
-      paths = this.jscodeshift(
-        parseFindOrReplace(this.jscodeshift, [arg0] as any) as
-          | ASTNode
-          | ASTNode[]
-      ).paths()
-      options = rest[0]
-    } else if (isNode(arg0) || isNodeArray(arg0)) {
-      paths = this.jscodeshift(arg0).paths()
-      options = rest[0]
-    } else if (isNodePath(arg0)) {
-      paths = [arg0]
-      options = rest[0]
-    } else if (isNodePathArray(arg0)) {
-      paths = arg0
-      options = rest[0]
-    } else {
-      const finalPaths = this.jscodeshift(
-        parseFindOrReplace(this.jscodeshift, arg0 as any, ...rest) as
-          | ASTNode
-          | ASTNode[]
-      ).paths()
-      return (options?: FindOptions) => this.closest(finalPaths, options) as any
-    }
-    if (paths.length !== 1) {
-      throw new Error(`must be a single node`)
-    }
-    const matcher = compileMatcher(paths[0], options)
-    const matchSoFar = this._createInitialMatch()
-
-    const matchedParents: Set<ASTPath> = new Set()
-    const matches: Match[] = []
-    this._paths.forEach((path) => {
-      let parent = path.parent
-      while (parent) {
-        if (matchedParents.has(parent)) return
-        const match = matcher.match(parent, matchSoFar)
-        if (match) {
-          matchedParents.add(parent)
-          matches.push(createMatch(parent, match))
-          return
-        }
-        parent = parent.parent
+    try {
+      let paths: ASTPath<any>[], options: FindOptions | undefined
+      if (typeof arg0 === 'string') {
+        paths = this.jscodeshift(
+          parseFindOrReplace(this.jscodeshift, [arg0] as any) as
+            | ASTNode
+            | ASTNode[]
+        ).paths()
+        options = rest[0]
+      } else if (isNode(arg0) || isNodeArray(arg0)) {
+        paths = this.jscodeshift(arg0).paths()
+        options = rest[0]
+      } else if (isNodePath(arg0)) {
+        paths = [arg0]
+        options = rest[0]
+      } else if (isNodePathArray(arg0)) {
+        paths = arg0
+        options = rest[0]
+      } else {
+        const finalPaths = this.jscodeshift(
+          parseFindOrReplace(this.jscodeshift, arg0 as any, ...rest) as
+            | ASTNode
+            | ASTNode[]
+        ).paths()
+        return (options?: FindOptions) =>
+          this.closest(finalPaths, options) as any
       }
-    })
+      if (paths.length !== 1) {
+        throw new Error(`must be a single node`)
+      }
+      const matcher = compileMatcher(paths[0], options)
+      const matchSoFar = this._createInitialMatch()
 
-    return new Astx(this.jscodeshift, matches)
+      const matchedParents: Set<ASTPath> = new Set()
+      const matches: Match[] = []
+      this._paths.forEach((path) => {
+        let parent = path.parent
+        while (parent) {
+          if (matchedParents.has(parent)) return
+          const match = matcher.match(parent, matchSoFar)
+          if (match) {
+            matchedParents.add(parent)
+            matches.push(createMatch(parent, match))
+            return
+          }
+          parent = parent.parent
+        }
+      })
+
+      return new Astx(this.jscodeshift, matches)
+    } catch (error) {
+      if (error instanceof Error) {
+        CodeFrameError.rethrow(error, {
+          filename: 'find pattern',
+          source: typeof arg0 === 'string' ? arg0 : undefined,
+        })
+      }
+      throw error
+    }
   }
 
   find(
@@ -272,35 +284,45 @@ export default class Astx {
       | TemplateStringsArray,
     ...rest: any[]
   ): Astx | ((options?: FindOptions) => Astx) {
-    let pattern, options: FindOptions | undefined
-    if (typeof arg0 === 'string') {
-      pattern = this.jscodeshift(
-        parseFindOrReplace(this.jscodeshift, [arg0] as any) as
-          | ASTNode
-          | ASTNode[]
-      ).paths()
-      options = rest[0]
-    } else if (isNode(arg0) || isNodeArray(arg0)) {
-      pattern = this.jscodeshift(arg0).paths()
-      options = rest[0]
-    } else if (isNodePath(arg0) || isNodePathArray(arg0)) {
-      pattern = arg0
-      options = rest[0]
-    } else {
-      const finalPaths = this.jscodeshift(
-        parseFindOrReplace(this.jscodeshift, arg0 as any, ...rest) as
-          | ASTNode
-          | ASTNode[]
-      ).paths()
-      return (options?: FindOptions) => this.find(finalPaths, options) as any
+    try {
+      let pattern, options: FindOptions | undefined
+      if (typeof arg0 === 'string') {
+        pattern = this.jscodeshift(
+          parseFindOrReplace(this.jscodeshift, [arg0] as any) as
+            | ASTNode
+            | ASTNode[]
+        ).paths()
+        options = rest[0]
+      } else if (isNode(arg0) || isNodeArray(arg0)) {
+        pattern = this.jscodeshift(arg0).paths()
+        options = rest[0]
+      } else if (isNodePath(arg0) || isNodePathArray(arg0)) {
+        pattern = arg0
+        options = rest[0]
+      } else {
+        const finalPaths = this.jscodeshift(
+          parseFindOrReplace(this.jscodeshift, arg0 as any, ...rest) as
+            | ASTNode
+            | ASTNode[]
+        ).paths()
+        return (options?: FindOptions) => this.find(finalPaths, options) as any
+      }
+      return new Astx(
+        this.jscodeshift,
+        find(this._paths, pattern, {
+          ...options,
+          matchSoFar: this._createInitialMatch(),
+        })
+      )
+    } catch (error) {
+      if (error instanceof Error) {
+        CodeFrameError.rethrow(error, {
+          filename: 'find pattern',
+          source: typeof arg0 === 'string' ? arg0 : undefined,
+        })
+      }
+      throw error
     }
-    return new Astx(
-      this.jscodeshift,
-      find(this._paths, pattern, {
-        ...options,
-        matchSoFar: this._createInitialMatch(),
-      })
-    )
   }
 
   replace(strings: TemplateStringsArray, ...quasis: any[]): () => void
@@ -309,28 +331,38 @@ export default class Astx {
     arg0: string | ASTNode | ASTNode[] | GetReplacement | TemplateStringsArray,
     ...quasis: any[]
   ): void | (() => void) {
-    const { _matches, _parseTag, jscodeshift } = this
-    if (typeof arg0 === 'function') {
-      replace(
-        _matches,
-        (match: Match): ASTNode => {
-          const result = arg0(match, _parseTag)
-          return typeof result === 'string'
-            ? (parseFindOrReplace(jscodeshift, [result] as any) as any)
-            : result
-        }
-      )
-    } else if (typeof arg0 === 'string') {
-      replace(_matches, parseFindOrReplace(jscodeshift, [arg0] as any) as any)
-    } else if (isNode(arg0) || isNodeArray(arg0)) {
-      replace(_matches, arg0 as any)
-    } else {
-      const parsed = parseFindOrReplace(
-        jscodeshift,
-        arg0 as any,
-        ...quasis
-      ) as any
-      return () => replace(_matches, parsed)
+    try {
+      const { _matches, _parseTag, jscodeshift } = this
+      if (typeof arg0 === 'function') {
+        replace(
+          _matches,
+          (match: Match): ASTNode => {
+            const result = arg0(match, _parseTag)
+            return typeof result === 'string'
+              ? (parseFindOrReplace(jscodeshift, [result] as any) as any)
+              : result
+          }
+        )
+      } else if (typeof arg0 === 'string') {
+        replace(_matches, parseFindOrReplace(jscodeshift, [arg0] as any) as any)
+      } else if (isNode(arg0) || isNodeArray(arg0)) {
+        replace(_matches, arg0 as any)
+      } else {
+        const parsed = parseFindOrReplace(
+          jscodeshift,
+          arg0 as any,
+          ...quasis
+        ) as any
+        return () => replace(_matches, parsed)
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        CodeFrameError.rethrow(error, {
+          filename: 'replace pattern',
+          source: typeof arg0 === 'string' ? arg0 : undefined,
+        })
+      }
+      throw error
     }
   }
 }

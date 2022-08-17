@@ -10,6 +10,7 @@ export default function compileCallExpressionMatcher(
 
   if (callee.type === 'Identifier') {
     const special = compileSpecialMatcher(
+      path,
       callee.name,
       path.get('arguments').filter(() => true),
       compileOptions

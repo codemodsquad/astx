@@ -19,6 +19,7 @@ export default function compileTSTypeReferenceMatcher(
       if (captureMatcher) return captureMatcher
     } else {
       const special = compileSpecialMatcher(
+        path,
         typeName.name,
         path
           .get('typeParameters')

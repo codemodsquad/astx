@@ -6,6 +6,8 @@ import isEmpty from 'lodash/isEmpty'
 import inquirer from 'inquirer'
 import fs from 'fs-extra'
 import dedent from 'dedent-js'
+import CodeFrameError from '../jscodeshift/util/CodeFrameError'
+import { codeFrameColumns } from '@babel/code-frame'
 
 /* eslint-disable no-console */
 
@@ -142,7 +144,23 @@ const transform: CommandModule<Options> = {
       if (error) {
         errorCount++
         logHeader(console.error)
-        console.error(chalk.red(error.stack))
+        if (error instanceof CodeFrameError && error.source && error.loc) {
+          console.error(
+            dedent`
+              ${chalk.red(
+                `Error in ${error.filename} (${error.loc.start.line}:${error.loc.start.column})`
+              )}
+              ${codeFrameColumns(error.source, error.loc, {
+                highlightCode: true,
+                forceColor: true,
+                message: error.message,
+              })}
+              ${chalk.red(error.stack?.replace(/^.*?(\r\n?|\n)/, ''))}
+            `
+          )
+        } else {
+          console.error(chalk.red(error.stack))
+        }
       } else if (source && transformed && source !== transformed) {
         changedCount++
         results[file] = transformed
