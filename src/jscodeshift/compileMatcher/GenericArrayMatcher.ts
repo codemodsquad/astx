@@ -1,4 +1,5 @@
 import { ASTPath, ASTNode } from 'jscodeshift'
+import CompilePathError from '../util/CompilePathError'
 import compileMatcher, {
   CompiledMatcher,
   CompileOptions,
@@ -33,15 +34,24 @@ export default function compileGenericArrayMatcher(
   for (let i = 0; i < matchers.length; i++) {
     if (matchers[i].restCaptureAs) {
       if (restMatcher) {
-        throw new Error(`can't have two or more rest matchers as siblings`)
+        throw new CompilePathError(
+          `can't have two or more rest matchers as siblings`,
+          matchers[i].pattern as ASTPath
+        )
       } else if (arrayMatcherCount) {
-        throw new Error(`can't mix array and rest matchers`)
+        throw new CompilePathError(
+          `can't mix array and rest matchers`,
+          matchers[i].pattern as ASTPath
+        )
       } else {
         restMatcher = matchers[i]
       }
     } else if (matchers[i].arrayCaptureAs) {
       if (restMatcher) {
-        throw new Error(`can't mix array and rest matchers`)
+        throw new CompilePathError(
+          `can't mix array and rest matchers`,
+          matchers[i].pattern as ASTPath
+        )
       }
       arrayMatcherCount++
     } else {
