@@ -1,5 +1,5 @@
 import { ObjectProperty, ASTPath } from 'jscodeshift'
-import { CompiledMatcher, CompileOptions } from '.'
+import compileMatcher, { CompiledMatcher, CompileOptions, MatchResult } from '.'
 import compileCaptureMatcher from './Capture'
 
 export default function compileObjectPropertyMatcher(
@@ -21,6 +21,22 @@ export default function compileObjectPropertyMatcher(
       )
 
       if (captureMatcher) return captureMatcher
+    }
+  }
+  if (!pattern.computed) {
+    const keyMatcher = compileMatcher(path.get('key'), compileOptions)
+    const valueMatcher = compileMatcher(path.get('value'), compileOptions)
+    return {
+      pattern: path,
+      nodeType: ['Property', 'ObjectProperty'],
+      match: (path: ASTPath, matchSoFar: MatchResult): MatchResult => {
+        const { node } = path
+        if (node.type !== 'Property' && node.type !== 'ObjectProperty')
+          return null
+        matchSoFar = keyMatcher.match(path.get('key'), matchSoFar)
+        if (!matchSoFar) return null
+        return valueMatcher.match(path.get('value'), matchSoFar)
+      },
     }
   }
 }
