@@ -17,7 +17,7 @@ export const expectedFind = [
   },
   {
     captures: {
-      $a: 'bar: number',
+      $a: 'bar',
       $type: 'number',
       $init: '1',
     },

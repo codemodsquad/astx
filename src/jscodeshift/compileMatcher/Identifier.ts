@@ -5,6 +5,7 @@ import compileMatcher, {
   MatchResult,
 } from './'
 import compileCaptureMatcher, { unescapeIdentifier } from './Capture'
+import indentDebug from './indentDebug'
 
 export default function compileIdentifierMatcher(
   path: ASTPath<any>,
@@ -24,10 +25,11 @@ export default function compileIdentifierMatcher(
     const { captureAs } = captureMatcher
 
     if (typeAnnotation) {
-      const typeAnnotationMatcher = compileMatcher(
-        path.get('typeAnnotation'),
-        compileOptions
-      )
+      const { debug } = compileOptions
+      const typeAnnotationMatcher = compileMatcher(path.get('typeAnnotation'), {
+        ...compileOptions,
+        debug: indentDebug(debug, 2),
+      })
 
       return {
         ...captureMatcher,
@@ -43,6 +45,8 @@ export default function compileIdentifierMatcher(
             (captured.node as any).astx = {
               excludeTypeAnnotationFromCapture: true,
             }
+
+          debug('  .typeAnnotation')
 
           const typeAnnotation = path.get('typeAnnotation')
           return typeAnnotationMatcher.match(typeAnnotation, matchSoFar)

@@ -10,8 +10,8 @@ const $a: $type = $init
 export const expectedFind = [
   {
     captures: {
-      $a: 'bar: number',
-      $type: 'number',
+      $a: 'bar',
+      $type: 'let bar: /**/number',
       $init: '1',
     },
     node: 'const bar: number = 1',

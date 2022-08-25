@@ -16,5 +16,3 @@ export const expectedFind = [
     node: 'let bar = 1',
   },
 ]
-
-// export const only = true

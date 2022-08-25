@@ -2,21 +2,24 @@ import { describe, it } from 'mocha'
 import { expect } from 'chai'
 import JscodeshiftAstx from '../src/jscodeshift/Astx'
 import j, { ASTPath as JscodeshiftASTPath } from 'jscodeshift'
-import { formatMatches as jscodeshiftFormatMatches } from './findReplace/jscodeshift.test'
+import { formatMatches as _formatMatches } from './findReplace/findReplace.test'
+import jscodeshiftBackend from '../src/jscodeshift/jscodeshiftBackend'
 
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
 describe(`Astx`, function () {
-  for (const { engine, createAstx, formatMatches, toSource } of [
+  for (const { engine, createAstx, backend } of [
     {
       engine: 'jscodeshift',
+      backend: jscodeshiftBackend(j),
       createAstx: (code: string | JscodeshiftASTPath<any>[]) =>
         new JscodeshiftAstx(j, j(code).paths()),
-      formatMatches: (astx: JscodeshiftAstx) =>
-        jscodeshiftFormatMatches(j, astx.matches()),
-      toSource: (astx: JscodeshiftAstx) => j(astx.paths()).toSource(),
     },
   ]) {
+    const formatMatches = (astx: JscodeshiftAstx) =>
+      _formatMatches(astx.matches(), backend)
+    const toSource = (astx: JscodeshiftAstx) =>
+      backend.generate(astx.nodes()[0]).code
     describe(engine, function () {
       it(`.find tagged template works`, function () {
         expect(

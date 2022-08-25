@@ -11,17 +11,17 @@ let $a: $And<$type, {foo: $fooType}>
 export const expectedFind = [
   {
     captures: {
-      $a: 'b: {foo: number}',
+      $a: 'b',
       $fooType: 'number',
-      $type: '{foo: number}',
+      $type: 'let a: /**/ {foo: number}',
     },
     node: 'let b: {foo: number}',
   },
   {
     captures: {
-      $a: 'c: {foo: string}',
+      $a: 'c',
       $fooType: 'string',
-      $type: '{foo: string}',
+      $type: 'let a: /**/ {foo: string}',
     },
     node: 'let c: {foo: string}',
   },

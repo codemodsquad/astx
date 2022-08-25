@@ -18,10 +18,10 @@ export const find = `
 export const expectedFind = [
   {
     node: `<div>
-  foo  bar
+    foo  bar
 
-  {bar}
-</div>`,
+    {bar}
+  </div>`,
   },
   {
     node: `<div>foo bar{bar}</div>`,

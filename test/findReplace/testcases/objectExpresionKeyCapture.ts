@@ -3,7 +3,7 @@ const a = {foo: 1}
 `
 
 export const find = `
-const a = {$p: 1}
+const a = /**/{$p: 1}
 `
 
 export const expectedFind = [
@@ -11,8 +11,6 @@ export const expectedFind = [
     captures: {
       $p: 'foo',
     },
-    node: '{foo: 1}',
+    node: 'x = /**/{foo: 1}',
   },
 ]
-
-export const skip = true

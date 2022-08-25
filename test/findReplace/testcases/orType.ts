@@ -11,15 +11,15 @@ const $a: $Or<number, {foo: $value}> = $b
 export const expectedFind = [
   {
     captures: {
-      $a: 'a: number',
+      $a: 'a',
       $b: '1',
     },
     node: 'const a: number = 1',
   },
   {
     captures: {
-      $a: 'b: {foo: number}',
-      $b: '{foo: 3}',
+      $a: 'b',
+      $b: 'x = /**/{foo: 3}',
       $value: 'number',
     },
     node: 'const b: {foo: number} = {foo: 3}',

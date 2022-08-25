@@ -9,11 +9,11 @@ export const expectedFind = [
     node: `<Foo a b c={2} e={d} />`,
     captures: {
       $a: 'Foo',
-      $c: '{2}',
+      $c: 'x = <X c=/**/{2} />',
     },
     arrayCaptures: {
       $$b: ['a', 'b'],
-      $$d: ['e={d}'],
+      $$d: ['x = <X /**/e={d} />'],
     },
   },
 ]
