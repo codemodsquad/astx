@@ -4,9 +4,6 @@ import path from 'path'
 import jscodeshift from 'jscodeshift'
 import find, { FindOptions, Match } from '../../src/find'
 import replace from '../../src/replace'
-import parseFindOrReplace, {
-  parseFindOrReplaceToNodes,
-} from '../../src/parseFindOrReplace'
 import { Node, NodePath } from '../../src/types'
 import requireGlob from 'require-glob'
 import mapValues from 'lodash/mapValues'
@@ -20,6 +17,7 @@ import jscodeshiftBackend from '../../src/jscodeshift/jscodeshiftBackend'
 import babelBackend from '../../src/babel/babelBackend'
 import generate from '@babel/generator'
 import { Backend } from '../../src/Backend'
+import createParse from '../../src/createParse'
 
 const projRoot = path.resolve(__dirname, '..', '..')
 const testcaseDir = path.relative(
@@ -197,6 +195,8 @@ for (const parser in groups) {
   const reformat = (code: string) =>
     format(backend.generate(backend.parse(code)).code)
 
+  const { parsePaths, parseNodes } = createParse(backend)
+
   describe(`with parser: ${parser}`, function () {
     if (!parser.endsWith('-babel-generator')) {
       describe('<find>', function () {
@@ -219,29 +219,29 @@ for (const parser in groups) {
               const root = backend.rootPath(backend.parse(input))
 
               if (expectMatchesSelf) {
-                const matches = find(
-                  [root],
-                  parseFindOrReplace(backend, [input] as any),
-                  { ...findOptions, where, backend }
-                )
+                const matches = find([root], parsePaths(input), {
+                  ...findOptions,
+                  where,
+                  backend,
+                })
                 expect(
                   matches.length,
                   `expected input to match itself: ${input}`
                 ).to.equal(1)
               }
               if (expectedFind) {
-                const matches = find(
-                  [root],
-                  parseFindOrReplace(backend, [_find] as any),
-                  { ...findOptions, where, backend }
-                )
+                const matches = find([root], parsePaths(_find), {
+                  ...findOptions,
+                  where,
+                  backend,
+                })
                 expect(
                   extractMatchSource(matches, input, backend)
                 ).to.deep.equal(expectedFind)
               }
               if (expectedError) {
                 expect(() => {
-                  find([root], parseFindOrReplace(backend, [_find] as any), {
+                  find([root], parsePaths(_find), {
                     ...findOptions,
                     where,
                     backend,
@@ -271,11 +271,11 @@ for (const parser in groups) {
           `${testcaseDir}/${key}.ts`,
           function () {
             const root = backend.rootPath(backend.parse(input))
-            const matches = find(
-              [root],
-              parseFindOrReplace(backend, [_find] as any),
-              { ...findOptions, where, backend }
-            )
+            const matches = find([root], parsePaths(_find), {
+              ...findOptions,
+              where,
+              backend,
+            })
 
             if (expectedError) {
               expect(() => {
@@ -283,13 +283,11 @@ for (const parser in groups) {
                   replace(
                     matches,
                     typeof _replace === 'string'
-                      ? parseFindOrReplaceToNodes(backend, [_replace] as any)
+                      ? parseNodes(_replace)
                       : (match): Node | Node[] => {
                           const result = _replace(match)
                           return typeof result === 'string'
-                            ? parseFindOrReplaceToNodes(backend, [
-                                result,
-                              ] as any)
+                            ? parseNodes(result)
                             : result
                         },
                     { backend }
@@ -300,11 +298,11 @@ for (const parser in groups) {
               replace(
                 matches,
                 typeof _replace === 'string'
-                  ? parseFindOrReplaceToNodes(backend, [_replace] as any)
+                  ? parseNodes(_replace)
                   : (match): Node | Node[] => {
                       const result = _replace(match)
                       return typeof result === 'string'
-                        ? parseFindOrReplaceToNodes(backend, [result] as any)
+                        ? parseNodes(result)
                         : result
                     },
                 { backend }
