@@ -141,10 +141,10 @@ export default function compileObjectExpressionMatcher(
         const simpleKey = getSimpleKey(property)
 
         if (simpleKey) {
-          debug(`  ${simpleKey}`)
           const matcher = remainingSimpleProperties.get(simpleKey)
 
           if (matcher) {
+            debug(`  ${simpleKey} (exact key)`)
             const result = matcher.match(propertyPath, matchSoFar)
 
             if (!result) return null
@@ -152,14 +152,13 @@ export default function compileObjectExpressionMatcher(
             matchSoFar = result
             remainingSimpleProperties.delete(simpleKey)
             continue
-          } else {
-            debug('    no simple key matcher found')
           }
         }
-        debug('  (other)')
 
         let matched = false
+        let o = 0
         for (const otherMatcher of remainingOtherProperties) {
+          debug(`  (other property [${o++}])`)
           const result = otherMatcher.match(propertyPath, matchSoFar)
 
           if (!result) continue

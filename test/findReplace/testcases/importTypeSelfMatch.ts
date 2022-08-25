@@ -1,4 +1,4 @@
-export const parsers = ['babylon', 'flow']
+export const parsers = ['recast/babylon', 'babel', 'recast/flow']
 
 export const input = `import { type Foo } from 'foo'`
 

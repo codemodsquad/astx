@@ -47,6 +47,7 @@ export default function compileGenericNodeMatcher(
       defaultFieldValue,
       areFieldValuesEqual,
       isTypeFns,
+      hasNode,
     },
   } = compileOptions
 
@@ -88,7 +89,7 @@ export default function compileGenericNodeMatcher(
               debug: indentDebug(debug, 2),
             }),
           ]
-        } else if (isTypeFns.Node(fieldPath)) {
+        } else if (hasNode(fieldPath)) {
           return [
             key,
             compileMatcher(fieldPath, {

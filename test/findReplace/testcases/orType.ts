@@ -19,7 +19,7 @@ export const expectedFind = [
   {
     captures: {
       $a: 'b',
-      $b: 'x = /**/{foo: 3}',
+      $b: '{foo: 3}',
       $value: 'number',
     },
     node: 'const b: {foo: number} = {foo: 3}',

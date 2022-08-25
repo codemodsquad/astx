@@ -18,7 +18,7 @@ class Foo {
 }
 `
 
-export const parsers = ['babylon']
+export const parsers = ['recast/babylon', 'babel']
 
 export const expectedFind = [
   {

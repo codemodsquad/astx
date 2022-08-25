@@ -13,7 +13,7 @@ export const expectedFind = [
     captures: {
       $a: 'b',
       $fooType: 'number',
-      $type: 'let a: /**/ {foo: number}',
+      $type: '{foo: number}',
     },
     node: 'let b: {foo: number}',
   },
@@ -21,7 +21,7 @@ export const expectedFind = [
     captures: {
       $a: 'c',
       $fooType: 'string',
-      $type: 'let a: /**/ {foo: string}',
+      $type: '{foo: string}',
     },
     node: 'let c: {foo: string}',
   },

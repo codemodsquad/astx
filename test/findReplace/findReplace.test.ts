@@ -13,6 +13,7 @@ import Astx, { GetReplacement } from '../../src/jscodeshift/Astx'
 import prepareForBabelGenerate from '../../src/util/prepareForBabelGenerate'
 import { jsParser, tsParser } from 'babel-parse-wild-code'
 import { ParserOptions } from '@babel/parser'
+import jscodeshiftBackend from '../../src/jscodeshift/jscodeshiftBackend'
 import babelBackend from '../../src/babel/babelBackend'
 import generate from '@babel/generator'
 import { Backend } from '../../src/Backend'
@@ -46,35 +47,39 @@ type Fixture = {
   expectedError?: string
 }
 
-export function formatExpectedMatches(
-  matches: ExpectedMatch[],
-  backend: Backend
-): ExpectedMatch[] {
-  function reformat(code: string): string {
-    const paths = parseFindOrReplace(backend, [code])
-    return Array.isArray(paths)
-      ? paths.map((p) => backend.generate(p.node).code).join('\n')
-      : backend.generate(paths.node).code
+function extractMatchSource(matches: Match[], source: string): ExpectedMatch[] {
+  function toSource(path: NodePath): string {
+    const { node } = path
+    const { type, start, end, astx, typeAnnotation } = node as any
+    if (type === 'TSPropertySignature') {
+      if (astx?.excludeTypeAnnotationFromCapture && typeAnnotation) {
+        return toSource((path as any).get('key'))
+      }
+      return source.substring(start, end).replace(/,$/, '')
+    }
+    if (astx?.excludeTypeAnnotationFromCapture && typeAnnotation) {
+      return source.substring(start, typeAnnotation.start)
+    }
+    return source.substring(start, end)
   }
   const result: ExpectedMatch[] = []
-  matches.forEach(
-    ({
-      node,
-      nodes,
-      captures,
-      arrayCaptures,
-      stringCaptures,
-    }: ExpectedMatch) => {
-      const match: ExpectedMatch = {}
-      if (node) match.node = reformat(node)
-      if (nodes) match.nodes = nodes.map(reformat)
-      if (captures) match.captures = mapValues(captures, reformat)
-      if (arrayCaptures)
-        match.arrayCaptures = mapValues(arrayCaptures, (c) => c.map(reformat))
-      if (stringCaptures) match.stringCaptures = stringCaptures
-      result.push(match)
-    }
-  )
+  matches.forEach((_match: Match) => {
+    const { type, pathCaptures, arrayPathCaptures, stringCaptures } = _match
+    const {
+      path,
+      paths,
+    }: { path?: NodePath; paths?: NodePath[] } = _match as any
+    const match: ExpectedMatch = {}
+    if (type === 'node' && path) match.node = toSource(path)
+    if (type === 'nodes' && paths) match.nodes = paths.map(toSource)
+    if (pathCaptures) match.captures = mapValues(pathCaptures, toSource)
+    if (arrayPathCaptures)
+      match.arrayCaptures = mapValues(arrayPathCaptures, (paths) =>
+        paths.map(toSource)
+      )
+    if (stringCaptures) match.stringCaptures = stringCaptures
+    result.push(match)
+  })
   return result
 }
 
@@ -116,13 +121,17 @@ for (const key in testcases) {
   const testcase = testcases[key]
   const {
     parsers = [
-      'babylon',
-      'flow',
-      'tsx',
-      'babylon-babel-generator',
-      'tsx-babel-generator',
+      'babel',
+      'babel/tsx',
+      'recast/babylon',
+      'recast/flow',
+      'recast/tsx',
+      'recast/babylon-babel-generator',
+      'recast/tsx-babel-generator',
     ],
   } = testcase
+
+  parsers.sort()
 
   for (const parser of parsers) {
     if (parser.endsWith('-babel-generator') && !testcase.expectedReplace)
@@ -138,7 +147,9 @@ for (const parser in groups) {
   const findTestcases = pickBy(group, (t) => !t.replace)
   const replaceTestcases = pickBy(group, (t) => t.replace)
 
-  const actualParser = parser.replace('-babel-generator', '')
+  const backendName = parser.replace(/\/.+/, '')
+  const actualParser =
+    parser.replace(/^.+?\//, '').replace('-babel-generator', '') || 'babylon'
 
   const parserOpts: ParserOptions = {
     allowReturnOutsideFunction: true,
@@ -152,9 +163,12 @@ for (const parser in groups) {
     : jsParser.bindParserOpts(parserOpts)
   const j = jscodeshift.withParser(babelParser)
   // const backend = jscodeshiftBackend(j)
-  const backend = babelBackend({
-    parserOptions: babelParser.parserOpts,
-  })
+  const backend =
+    backendName === 'recast'
+      ? jscodeshiftBackend(j)
+      : babelBackend({
+          parserOptions: babelParser.parserOpts,
+        })
   const prettierOptions = {
     parser:
       actualParser === 'babylon'
@@ -208,8 +222,8 @@ for (const parser in groups) {
                   parseFindOrReplace(backend, [_find] as any),
                   { ...findOptions, where, backend }
                 )
-                expect(formatMatches(matches, backend)).to.deep.equal(
-                  formatExpectedMatches(expectedFind, backend)
+                expect(extractMatchSource(matches, input)).to.deep.equal(
+                  expectedFind
                 )
               }
               if (expectedError) {

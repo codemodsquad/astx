@@ -70,7 +70,7 @@ const CodeInputField = ({
 export default CodeInputField
 `
 
-export const parsers = ['babylon-babel-generator']
+export const parsers = ['recast/babylon-babel-generator']
 
 export const find = `
 import $createStyled from 'material-ui-render-props-styles'

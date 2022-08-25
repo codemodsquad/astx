@@ -1,10 +1,5 @@
 import { Backend } from './Backend'
-import {
-  Expression,
-  Statement,
-  NodePath,
-  JSXExpressionContainer,
-} from './types'
+import { Expression, Statement, NodePath } from './types'
 
 type ParseFindOrReplaceBackend = Pick<
   Backend,

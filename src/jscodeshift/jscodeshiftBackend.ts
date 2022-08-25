@@ -15,6 +15,21 @@ export default function jscodeshiftBackend(
   return {
     parse: (code: string) => j(code).get().node,
     generate: (node: Node) => recast.print(node),
+    template: {
+      expression: (code: string) => j.template.expression([code]),
+      statements: (code: string) => j.template.statements([code]),
+      smart: (code: string) => {
+        try {
+          return j.template.expression([code])
+        } catch (error) {
+          let ast = j.template.statements([code])
+          if (Array.isArray(ast) && ast.length === 1) {
+            ast = ast[0]
+          }
+          return ast.type === 'ExpressionStatement' ? ast.expression : ast
+        }
+      },
+    },
     rootPath: (node: Node) => JSCodeshiftNodePath.wrap(j([node]).get()),
     getFieldNames: (nodeType: string) =>
       getFieldNames({ type: nodeType } as any),
@@ -46,5 +61,7 @@ export default function jscodeshiftBackend(
         (node: any) => value.check(node),
       ])
     ),
+    hasNode: <T = any>(path: NodePath<T>): path is NodePath<NonNullable<T>> =>
+      t.namedTypes.Node.check(path.node),
   }
 }

@@ -6,13 +6,13 @@ export const find = `type x = { /**/ $a: number }`
 
 export const expectedFind = [
   {
-    node: `let x: { /**/ foo: number }`,
+    node: `foo: number`,
     captures: {
       $a: 'foo',
     },
   },
   {
-    node: `let x: { /**/ baz: number }`,
+    node: `baz: number`,
     captures: {
       $a: 'baz',
     },

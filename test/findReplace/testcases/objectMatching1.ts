@@ -53,7 +53,7 @@ export const find = `{foo: 'bar', 'baz-age': $baz, ...$_qux, [$a + $b]: {a: 1, b
 
 export const expectedFind = [
   {
-    node: `x = /**/{
+    node: `{
   foo: 'bar',
   'baz-age': 'qux',
   [1 + 2]: {
@@ -67,7 +67,7 @@ export const expectedFind = [
 }`,
     captures: { $baz: "'qux'", $a: '1', $b: '2' },
     arrayCaptures: {
-      $$inner: ['x = {/**/c: 3}', 'x = {/**/d: 4}', 'x = {/**/...qlom}'],
+      $$inner: ['c: 3', 'd: 4', '...qlom'],
     },
   },
 ]

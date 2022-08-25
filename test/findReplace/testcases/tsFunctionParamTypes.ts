@@ -1,4 +1,4 @@
-export const parsers = ['tsx', 'tsx-babel-generator']
+export const parsers = ['recast/tsx', 'babel/tsx', 'recast/tsx-babel-generator']
 
 export const input = `
 type Foo = (a: number, b: string, c: [number, string], d: any, $e) => any

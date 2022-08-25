@@ -1,10 +1,11 @@
 export const parsers = [
   // recast bug
-  // 'babylon',
-  // 'flow',
-  'tsx',
-  'babylon-babel-generator',
-  'tsx-babel-generator',
+  // 'recast/babylon', 'babel',
+  // 'recast/flow',,
+  'recast/tsx',
+  'babel/tsx',
+  'recast/babylon-babel-generator',
+  'recast/tsx-babel-generator',
 ]
 
 export const input = `

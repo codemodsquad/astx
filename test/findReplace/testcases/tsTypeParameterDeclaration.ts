@@ -1,4 +1,4 @@
-export const parsers = ['tsx', 'tsx-babel-generator']
+export const parsers = ['recast/tsx', 'babel/tsx', 'recast/tsx-babel-generator']
 
 export const input = `
 type Foo<W, X, Y, Z extends {foo: 1}> = [W, X, Y, Z]

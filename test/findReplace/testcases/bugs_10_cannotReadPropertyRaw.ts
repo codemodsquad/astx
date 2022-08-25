@@ -1,8 +1,10 @@
 export const parsers = [
-  'babylon',
-  'tsx',
-  'babylon-babel-generator',
-  'tsx-babel-generator',
+  'recast/babylon',
+  'babel',
+  'recast/tsx',
+  'babel/tsx',
+  'recast/babylon-babel-generator',
+  'recast/tsx-babel-generator',
 ]
 
 export const input = `

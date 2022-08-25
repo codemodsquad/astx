@@ -20,12 +20,7 @@ export const find = `
 export const expectedFind = [
   {
     arrayCaptures: {
-      $$c: [
-        'x = <X x=/**/{bar} />',
-        'x = <X>{/**/}\n    baz\n  </X>',
-        'x = <X x=/**/{qux} />',
-        'x = <X>{/**/}\n</X>',
-      ],
+      $$c: ['{bar}', '\n    baz\n    ', '{qux}', '\n  '],
     },
     node: `<div>
     foo  bar
@@ -37,7 +32,7 @@ export const expectedFind = [
   },
   {
     arrayCaptures: {
-      $$c: ['x = <X x=/**/{bar} />'],
+      $$c: ['{bar}'],
     },
     node: `<div>foo bar{bar}</div>`,
   },
