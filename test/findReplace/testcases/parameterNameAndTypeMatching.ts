@@ -13,7 +13,7 @@ function $fn($arg: $type): $ret {
 export const expectedFind = [
   {
     captures: {
-      $arg: 'bar: number',
+      $arg: 'bar',
       $fn: 'foo',
       $ret: 'string',
       $type: 'number',

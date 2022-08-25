@@ -1,4 +1,4 @@
-import { NodeType, Node, NodePath, Statement, Expression } from './types'
+import { NodeType, NodePath, Statement, Expression } from './types'
 
 export type Backend<Node = any> = {
   parse: (code: string) => Node
@@ -9,6 +9,9 @@ export type Backend<Node = any> = {
   }
   generate: (node: Node) => { code: string }
   rootPath: (node: Node) => NodePath
+  sourceRange: (
+    node: Node
+  ) => [number | null | undefined, number | null | undefined]
   getFieldNames: (nodeType: string) => string[]
   defaultFieldValue: (nodeType: string, field: string) => any
   areASTsEqual: (a: Node, b: Node) => any

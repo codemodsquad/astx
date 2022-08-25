@@ -3,13 +3,16 @@ import { expect } from 'chai'
 import path from 'path'
 import jscodeshift from 'jscodeshift'
 import find, { FindOptions, Match } from '../../src/find'
-import parseFindOrReplace from '../../src/parseFindOrReplace'
-import { NodePath } from '../../src/types'
+import replace from '../../src/replace'
+import parseFindOrReplace, {
+  parseFindOrReplaceToNodes,
+} from '../../src/parseFindOrReplace'
+import { Node, NodePath } from '../../src/types'
 import requireGlob from 'require-glob'
 import mapValues from 'lodash/mapValues'
 import pickBy from 'lodash/pickBy'
 import prettier from 'prettier'
-import Astx, { GetReplacement } from '../../src/jscodeshift/Astx'
+import { ParseTag } from '../../src/jscodeshift/Astx'
 import prepareForBabelGenerate from '../../src/util/prepareForBabelGenerate'
 import { jsParser, tsParser } from 'babel-parse-wild-code'
 import { ParserOptions } from '@babel/parser'
@@ -37,7 +40,7 @@ type Fixture = {
   find: string
   findOptions?: FindOptions
   where?: FindOptions['where']
-  replace: string | GetReplacement
+  replace: string | ((match: Match, parse: ParseTag) => string | Node | Node[])
   expectMatchesSelf?: boolean
   expectedFind?: ExpectedMatch[]
   expectedReplace?: string
@@ -47,10 +50,17 @@ type Fixture = {
   expectedError?: string
 }
 
-function extractMatchSource(matches: Match[], source: string): ExpectedMatch[] {
+function extractMatchSource(
+  matches: Match[],
+  source: string,
+  backend: Backend
+): ExpectedMatch[] {
   function toSource(path: NodePath): string {
     const { node } = path
-    const { type, start, end, astx, typeAnnotation } = node as any
+    const [start, end] = backend.sourceRange(node)
+    if (start == null || end == null)
+      throw new Error(`failed to get node source range`)
+    const { type, astx, typeAnnotation } = node as any
     if (type === 'TSPropertySignature') {
       if (astx?.excludeTypeAnnotationFromCapture && typeAnnotation) {
         return toSource((path as any).get('key'))
@@ -144,7 +154,7 @@ for (const key in testcases) {
 for (const parser in groups) {
   const group = groups[parser]
 
-  const findTestcases = pickBy(group, (t) => !t.replace)
+  const findTestcases = pickBy(group, (t) => t.expectedFind || !t.replace)
   const replaceTestcases = pickBy(group, (t) => t.replace)
 
   const backendName = parser.replace(/\/.+/, '')
@@ -171,7 +181,7 @@ for (const parser in groups) {
         })
   const prettierOptions = {
     parser:
-      actualParser === 'babylon'
+      parser === 'babel' || actualParser === 'babylon'
         ? 'babel-flow'
         : actualParser === 'tsx'
         ? 'babel-ts'
@@ -183,6 +193,9 @@ for (const parser in groups) {
       .format(code, prettierOptions)
       .trim()
       .replace(/\n{2,}/gm, '\n')
+
+  const reformat = (code: string) =>
+    format(backend.generate(backend.parse(code)).code)
 
   describe(`with parser: ${parser}`, function () {
     if (!parser.endsWith('-babel-generator')) {
@@ -222,14 +235,17 @@ for (const parser in groups) {
                   parseFindOrReplace(backend, [_find] as any),
                   { ...findOptions, where, backend }
                 )
-                expect(extractMatchSource(matches, input)).to.deep.equal(
-                  expectedFind
-                )
+                expect(
+                  extractMatchSource(matches, input, backend)
+                ).to.deep.equal(expectedFind)
               }
               if (expectedError) {
                 expect(() => {
-                  const astx = new Astx(j, j(input).paths())
-                  astx.find(_find, { ...findOptions, where })
+                  find([root], parseFindOrReplace(backend, [_find] as any), {
+                    ...findOptions,
+                    where,
+                    backend,
+                  })
                 }).to.throw(expectedError)
               }
             }
@@ -254,19 +270,47 @@ for (const parser in groups) {
         ;(skip ? it.skip : only ? it.only : it)(
           `${testcaseDir}/${key}.ts`,
           function () {
+            const root = backend.rootPath(backend.parse(input))
+            const matches = find(
+              [root],
+              parseFindOrReplace(backend, [_find] as any),
+              { ...findOptions, where, backend }
+            )
+
             if (expectedError) {
               expect(() => {
-                const astx = new Astx(j, j(input).paths())
-                const matches = astx.find(_find, { ...findOptions, where })
-                if (_replace) matches.replace(_replace)
+                if (_replace)
+                  replace(
+                    matches,
+                    typeof _replace === 'string'
+                      ? parseFindOrReplaceToNodes(backend, [_replace] as any)
+                      : (match): Node | Node[] => {
+                          const result = _replace(match)
+                          return typeof result === 'string'
+                            ? parseFindOrReplaceToNodes(backend, [
+                                result,
+                              ] as any)
+                            : result
+                        },
+                    { backend }
+                  )
               }).to.throw(expectedError)
             }
             if (expectedReplace) {
-              const root = j(input)
-              const astx = new Astx(j, root.paths())
-              astx.find(_find, { ...findOptions, where }).replace(_replace)
+              replace(
+                matches,
+                typeof _replace === 'string'
+                  ? parseFindOrReplaceToNodes(backend, [_replace] as any)
+                  : (match): Node | Node[] => {
+                      const result = _replace(match)
+                      return typeof result === 'string'
+                        ? parseFindOrReplaceToNodes(backend, [result] as any)
+                        : result
+                    },
+                { backend }
+              )
               if (parser.endsWith('-babel-generator')) {
-                const actualAst = root.get().node
+                const actualAst = root.node
                 prepareForBabelGenerate(actualAst)
                 const expectedAst = j(expectedReplace).get().node
                 prepareForBabelGenerate(expectedAst)
@@ -276,8 +320,8 @@ for (const parser in groups) {
                   format(generate(expectedAst, { concise: true }).code)
                 )
               } else {
-                const actual = backend.generate(root.get().node).code
-                expect(format(actual)).to.deep.equal(format(expectedReplace))
+                const actual = backend.generate(root.node).code
+                expect(format(actual)).to.deep.equal(reformat(expectedReplace))
               }
             }
           }

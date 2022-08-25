@@ -17,11 +17,11 @@ export const expectedFind = [
       $max: '{NARROW_WIDTH}',
     },
     arrayCaptures: {
-      $$children: ['\n  ', '{(matches) => <div />}', '\n'],
+      $$children: ['\n      ', '{(matches) => <div />}', '\n    '],
     },
     node: `<BreakpointMedia max={NARROW_WIDTH}>
-  {(matches) => <div />}
-</BreakpointMedia>`,
+      {(matches) => <div />}
+    </BreakpointMedia>`,
   },
 ]
 

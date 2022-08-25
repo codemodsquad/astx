@@ -1,4 +1,5 @@
-import { Node, NodeType, NodePath, Statement } from '../types'
+import { NodeType, NodePath, Statement } from '../types'
+import { ASTNode as Node } from 'jscodeshift'
 import { Backend } from '../Backend'
 import areASTsEqual, { areFieldValuesEqual } from './util/areASTsEqual'
 import getFieldNames from './util/getFieldNames'
@@ -31,6 +32,7 @@ export default function jscodeshiftBackend(
       },
     },
     rootPath: (node: Node) => JSCodeshiftNodePath.wrap(j([node]).get()),
+    sourceRange: (node: Node) => [(node as any).start, (node as any).end],
     getFieldNames: (nodeType: string) =>
       getFieldNames({ type: nodeType } as any),
     defaultFieldValue: (nodeType: string, field: string) =>

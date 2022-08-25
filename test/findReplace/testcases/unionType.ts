@@ -9,7 +9,7 @@ export const expectedFind = [
   {
     node: `type A = B | C | D[] | E[] | F`,
     captures: { $a: 'A', $c: 'E' },
-    arrayCaptures: { $$b: ['B', 'C', 'type x = /**/ D[]'] },
+    arrayCaptures: { $$b: ['B', 'C', 'D[]'] },
   },
 ]
 

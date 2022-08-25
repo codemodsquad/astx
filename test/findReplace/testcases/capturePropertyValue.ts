@@ -8,7 +8,7 @@ const x = { /**/ a: $a }
 
 export const expectedFind = [
   {
-    node: 'x = { /**/ a: c }',
+    node: 'a: c',
     captures: { $a: 'c' },
   },
 ]

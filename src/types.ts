@@ -7,6 +7,28 @@ export type NodeType =
   | keyof b.Aliases
 
 export type Node = b.Node | t.namedTypes.ASTNode
+
+export interface NodePath<T = Node> {
+  node: T
+  parentPath: NodePath | null | undefined
+  container?: Node | Node[]
+  key?: string | number
+  listKey?: string | number
+  get<K extends keyof T>(
+    key: K
+  ): T[K] extends Array<Node | null | undefined>
+    ? Array<NodePath<T[K][number]>>
+    : T[K] extends Array<Node | null | undefined> | null | undefined
+    ? Array<NodePath<NonNullable<T[K]>[number]>> | NodePath<null | undefined>
+    : T[K] extends Node | null | undefined
+    ? NodePath<T[K]>
+    : never
+  get(key: string | number): NodePath<any> | NodePath<any>[]
+
+  remove(): void
+  replaceWith(replacement: Node | NodePath): unknown
+  insertBefore(nodes: Node | readonly Node[]): unknown
+}
 export type Expression = b.Expression | t.namedTypes.Expression
 export type Statement =
   | b.Statement
@@ -58,34 +80,15 @@ export type Statement =
   | t.namedTypes.TSExportAssignment
   | t.namedTypes.TSNamespaceExportDeclaration
 
-export interface NodePath<T = Node> {
-  node: T
-  parentPath: NodePath | null | undefined
-  container?: Node | Node[]
-  key?: string | number
-  listKey?: string | number
-  get<K extends keyof T>(
-    key: K
-  ): T[K] extends Array<Node | null | undefined>
-    ? Array<NodePath<T[K][number]>>
-    : T[K] extends Array<Node | null | undefined> | null | undefined
-    ? Array<NodePath<NonNullable<T[K]>[number]>> | NodePath<null | undefined>
-    : T[K] extends Node | null | undefined
-    ? NodePath<T[K]>
-    : never
-  get(key: string | number): NodePath | NodePath[]
-
-  // hasNode(): this is NodePath<NonNullable<T>>
-  // isNode(): this is NodePath<Node>
-}
-
 export type BooleanLiteral = b.BooleanLiteral | t.namedTypes.BooleanLiteral
 export type CallExpression = b.CallExpression | t.namedTypes.CallExpression
+export type ClassDeclaration = b.ClassImplements | t.namedTypes.ClassImplements
 export type ClassImplements = b.ClassImplements | t.namedTypes.ClassImplements
 export type ClassProperty = b.ClassProperty | t.namedTypes.ClassProperty
 export type ExpressionStatement =
   | b.ExpressionStatement
   | t.namedTypes.ExpressionStatement
+export type FlowType = b.FlowType | t.namedTypes.FlowType
 export type FunctionTypeParam =
   | b.FunctionTypeParam
   | t.namedTypes.FunctionTypeParam
@@ -93,6 +96,15 @@ export type GenericTypeAnnotation =
   | b.GenericTypeAnnotation
   | t.namedTypes.GenericTypeAnnotation
 export type Identifier = b.Identifier | t.namedTypes.Identifier
+export type ImportDefaultSpecifier =
+  | b.ImportDefaultSpecifier
+  | t.namedTypes.ImportDefaultSpecifier
+export type ImportDeclaration =
+  | b.ImportDeclaration
+  | t.namedTypes.ImportDeclaration
+export type ImportNamespaceSpecifier =
+  | b.ImportNamespaceSpecifier
+  | t.namedTypes.ImportNamespaceSpecifier
 export type ImportSpecifier = b.ImportSpecifier | t.namedTypes.ImportSpecifier
 export type JSXAttribute = b.JSXAttribute | t.namedTypes.JSXAttribute
 export type JSXElement = b.JSXElement | t.namedTypes.JSXElement

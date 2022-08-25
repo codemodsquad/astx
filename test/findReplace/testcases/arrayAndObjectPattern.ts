@@ -9,7 +9,7 @@ export const expectedFind = [
     node: `const [a, b, {c, d: [e], h}, f] = foo`,
     arrayCaptures: {
       $$b: ['b'],
-      $$d: ['x = {/**/ d: [e]}', 'h'],
+      $$d: ['d: [e]', 'h'],
       $$e: ['f'],
     },
     captures: {

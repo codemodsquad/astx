@@ -1,5 +1,5 @@
 import { Backend } from './Backend'
-import { Expression, Statement, NodePath } from './types'
+import { Expression, Statement, Node, NodePath } from './types'
 
 type ParseFindOrReplaceBackend = Pick<
   Backend,
@@ -97,4 +97,13 @@ export default function parseFindOrReplace(
     }
   })
   return result
+}
+
+export function parseFindOrReplaceToNodes(
+  backend: ParseFindOrReplaceBackend,
+  strings: TemplateStringsArray,
+  ...quasis: any[]
+): Node | Node[] {
+  const paths = parseFindOrReplace(backend, strings, ...quasis)
+  return Array.isArray(paths) ? paths.map((p) => p.node) : paths.node
 }

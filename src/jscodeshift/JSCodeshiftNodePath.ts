@@ -42,6 +42,25 @@ export default class JSCodeshiftNodePath<T = Node> implements NodePath<T> {
     return JSCodeshiftNodePath.wrap(parentPath)
   }
 
+  insertBefore(nodes: Node | readonly Node[]): void {
+    if (Array.isArray(nodes)) {
+      this.original.insertBefore(...nodes)
+    } else {
+      this.original.insertBefore(nodes)
+    }
+  }
+
+  remove(): void {
+    this.original.prune()
+  }
+  replaceWith(replacement: Node | NodePath): void {
+    this.original.replace(
+      replacement instanceof JSCodeshiftNodePath
+        ? (replacement as any).node
+        : (replacement as any)
+    )
+  }
+
   get<K extends keyof T>(
     key: K
   ): T[K] extends Array<Node | null | undefined>
@@ -51,7 +70,7 @@ export default class JSCodeshiftNodePath<T = Node> implements NodePath<T> {
     : T[K] extends Node | null | undefined
     ? NodePath<T[K]>
     : never
-  get(key: string | number): NodePath | NodePath[] {
+  get(key: string | number): NodePath<any> | NodePath<any>[] {
     const path = this.original.get(key)
     if (Array.isArray(path.value)) {
       return path.filter(() => true).map(JSCodeshiftNodePath.wrap)

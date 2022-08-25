@@ -1,14 +1,12 @@
-import { Node, NodeType, NodePath, Statement, Expression } from '../types'
+import { NodeType, NodePath, Statement, Expression } from '../types'
 import { Backend } from '../Backend'
+import { Node } from '@babel/types'
 import * as defaultParser from '@babel/parser'
 import { ParserOptions } from '@babel/parser'
 import * as defaultTemplate from '@babel/template'
 import * as defaultTypes from '@babel/types'
 import defaultGenerate from '@babel/generator'
-import defaultTraverse, {
-  Visitor,
-  NodePath as BabelNodePath,
-} from '@babel/traverse'
+import * as defaultTraverse from '@babel/traverse'
 import shallowEqual from 'shallowequal'
 
 export default function babelBackend({
@@ -30,27 +28,8 @@ export default function babelBackend({
     return Object.keys(t.NODE_FIELDS[nodeType])
   }
 
-  function validatorDefaultValue(validate: any): any {
-    switch (validate.type) {
-      case 'boolean':
-        return false
-      case 'array':
-        return []
-    }
-    if (validate.chainOf) {
-      for (const el of validate.chainOf) {
-        const def = validatorDefaultValue(el)
-        if (def) return def
-      }
-    }
-  }
-
   function defaultFieldValue(nodeType: string, field: string): any {
     return (t.NODE_FIELDS[nodeType] as any)?.[field]?.default
-    // const def = (t.NODE_FIELDS[nodeType] as any)?.[field]
-    // if (!def) return undefined
-    // if (def.default != null) return def.default
-    // return validatorDefaultValue(def.validate)
   }
 
   function getFieldValue(node: any, field: string): any {
@@ -127,25 +106,19 @@ export default function babelBackend({
       return generate(node as any)
     },
     rootPath: (node: Node): NodePath => {
-      const origNode = node.type === 'File' ? node.program : node
-      if (node.type !== 'File') {
-        if (t.isExpression(node)) {
-          node = t.expressionStatement(node as any)
-        }
-        node = t.file(t.program([node as any]))
-      }
-      let root: NodePath | undefined
-      traverse(node as any, {
-        enter(path: BabelNodePath) {
-          if (path.node === origNode) {
-            root = path as any
-            path.stop()
-          }
-        },
+      // This is a big, big hack.
+      // Babel seems designed to only start traversal
+      // at the root File node.  But this works for now...
+      const rootPath = traverse.NodePath.get({
+        hub: null as any,
+        parent: node,
+        container: { root: node } as any,
+        key: 'root',
+        parentPath: null,
       })
-      if (!root) throw new Error(`failed to get root path`)
-      return root
+      return rootPath as any
     },
+    sourceRange: (node: Node) => [node.start, node.end],
     getFieldNames,
     defaultFieldValue,
     areASTsEqual,
@@ -162,11 +135,13 @@ export default function babelBackend({
         visited.add(path.node)
         iteratee(path)
       }
-      const visitor: Visitor = {}
+      const visitor: defaultTraverse.Visitor = { noScope: true } as any
       for (const nodeType of nodeTypes) {
         ;(visitor as any)[nodeType === 'Node' ? 'enter' : nodeType] = visitNode
       }
-      paths.forEach((path: NodePath) => path.traverse(visitor))
+      paths.forEach((path: NodePath) =>
+        (path as defaultTraverse.NodePath).traverse(visitor)
+      )
     },
     isTypeFns: Object.fromEntries(
       [...Object.entries(t)]

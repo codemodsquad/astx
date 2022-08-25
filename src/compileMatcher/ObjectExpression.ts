@@ -104,9 +104,12 @@ export default function compileObjectExpressionMatcher(
       continue
     }
 
-    otherProperties.push(
-      compileMatcher(propertiesPaths[i], propertyCompileOptions)
-    )
+    const matcher = compileMatcher(propertiesPaths[i], propertyCompileOptions)
+    if (matcher.arrayCaptureAs) {
+      return compileGenericNodeMatcher(path, compileOptions)
+    }
+
+    otherProperties.push(matcher)
   }
 
   for (const m of simpleProperties.values()) {
