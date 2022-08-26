@@ -36,7 +36,7 @@ export default function recastBackend({
         }
       },
     },
-    rootPath: (node: Node) => JSCodeshiftNodePath.wrap(new t.NodePath(node)),
+    makePath: (node: Node) => JSCodeshiftNodePath.wrap(new t.NodePath(node)),
     sourceRange: (node: Node) => [(node as any).start, (node as any).end],
     getFieldNames: (nodeType: string) =>
       getFieldNames({ type: nodeType } as any),

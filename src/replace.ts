@@ -35,8 +35,8 @@ export default function replace(
                   : (replace as Node | Node[]),
                 (nodes: Node | Node[]) =>
                   Array.isArray(nodes)
-                    ? nodes.map((n) => backend.rootPath(n))
-                    : backend.rootPath(nodes)
+                    ? nodes.map((n) => backend.makePath(n))
+                    : backend.makePath(nodes)
               ),
               { backend }
             )

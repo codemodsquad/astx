@@ -3,7 +3,7 @@ import { Expression, Statement, Node, NodePath } from './types'
 
 type ParseBackend = Pick<
   Backend,
-  'parse' | 'template' | 'forEachNode' | 'rootPath'
+  'parse' | 'template' | 'forEachNode' | 'makePath'
 >
 
 export default function createParse(
@@ -49,8 +49,8 @@ export default function createParse(
   ): NodePath | NodePath[] {
     const ast = parse0(strings, ...quasis)
     let result: NodePath | NodePath[] = Array.isArray(ast)
-      ? ast.map((n) => backend.rootPath(n))
-      : [backend.rootPath(ast)]
+      ? ast.map((n) => backend.makePath(n))
+      : [backend.makePath(ast)]
     let extractNext = false
     let done = false
     backend.forEachNode(result, ['Node'], (path: NodePath) => {

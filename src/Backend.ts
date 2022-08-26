@@ -8,7 +8,7 @@ export type Backend<Node = any> = {
     statements: (code: string) => Statement[]
   }
   generate: (node: Node) => { code: string }
-  rootPath: (node: Node) => NodePath
+  makePath: (node: Node) => NodePath
   sourceRange: (
     node: Node
   ) => [number | null | undefined, number | null | undefined]

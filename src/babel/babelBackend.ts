@@ -105,18 +105,18 @@ export default function babelBackend({
       }
       return generate(node as any)
     },
-    rootPath: (node: Node): NodePath => {
+    makePath: (node: Node): NodePath => {
       // This is a big, big hack.
       // Babel seems designed to only start traversal
       // at the root File node.  But this works for now...
-      const rootPath = traverse.NodePath.get({
+      const makePath = traverse.NodePath.get({
         hub: null as any,
         parent: node,
         container: { root: node } as any,
         key: 'root',
         parentPath: null,
       })
-      return rootPath as any
+      return makePath as any
     },
     sourceRange: (node: Node) => [node.start, node.end],
     getFieldNames,
