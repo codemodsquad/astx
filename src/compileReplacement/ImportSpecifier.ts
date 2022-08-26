@@ -7,8 +7,9 @@ export default function compileImportSpecifierReplacement(
   compileOptions: CompileReplacementOptions
 ): CompiledReplacement | void {
   const pattern = path.node
+  const { importKind } = pattern as any
   if (!pattern.local || pattern.local.name === pattern.imported.name) {
-    if ((pattern as any).importKind == null) {
+    if (importKind == null || importKind === 'value') {
       const captureReplacement = compileCaptureReplacement(
         path,
         pattern.imported.name,

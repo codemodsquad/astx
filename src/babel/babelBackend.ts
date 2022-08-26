@@ -143,6 +143,12 @@ export default function babelBackend({
         (path as defaultTraverse.NodePath).traverse(visitor)
       )
     },
+    traverse: (
+      ast: Node,
+      { Node, ...rest }: { [n in NodeType]?: (path: NodePath) => void }
+    ) => {
+      traverse.default(ast, { ...rest, ...(Node && { enter: Node }) } as any)
+    },
     isTypeFns: Object.fromEntries(
       [...Object.entries(t)]
         .filter(([key]) => /^is[A-Z]/.test(key))

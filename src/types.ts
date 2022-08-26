@@ -29,6 +29,7 @@ export interface NodePath<T = Node> {
   replaceWith(replacement: Node | NodePath): unknown
   insertBefore(nodes: Node | readonly Node[]): unknown
 }
+export type Block = b.Block | t.namedTypes.Block
 export type Expression = b.Expression | t.namedTypes.Expression
 export type Statement =
   | b.Statement

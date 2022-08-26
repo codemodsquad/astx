@@ -1,8 +1,8 @@
 import { Node, NodePath } from '../types'
-import * as t from 'ast-types'
 import { NodePath as ASTPath } from 'ast-types/lib/node-path'
+import * as t from 'ast-types'
 
-export default class JSCodeshiftNodePath<T = Node> implements NodePath<T> {
+export default class RecastNodePath<T = Node> implements NodePath<T> {
   original: ASTPath<T>
 
   constructor(original: ASTPath<T>) {
@@ -10,7 +10,7 @@ export default class JSCodeshiftNodePath<T = Node> implements NodePath<T> {
   }
 
   static wrap<T = Node>(original: ASTPath<T>): NodePath<T> {
-    return new JSCodeshiftNodePath(original) as any
+    return new RecastNodePath(original) as any
   }
 
   get node(): T {
@@ -37,9 +37,9 @@ export default class JSCodeshiftNodePath<T = Node> implements NodePath<T> {
     const { parentPath } = this.original
     if (!parentPath) return undefined
     if (Array.isArray(parentPath.value)) {
-      return JSCodeshiftNodePath.wrap(parentPath.parentPath)
+      return RecastNodePath.wrap(parentPath.parentPath)
     }
-    return JSCodeshiftNodePath.wrap(parentPath)
+    return RecastNodePath.wrap(parentPath)
   }
 
   insertBefore(nodes: Node | readonly Node[]): void {
@@ -55,7 +55,7 @@ export default class JSCodeshiftNodePath<T = Node> implements NodePath<T> {
   }
   replaceWith(replacement: Node | NodePath): void {
     this.original.replace(
-      replacement instanceof JSCodeshiftNodePath
+      replacement instanceof RecastNodePath
         ? (replacement as any).node
         : (replacement as any)
     )
@@ -73,9 +73,9 @@ export default class JSCodeshiftNodePath<T = Node> implements NodePath<T> {
   get(key: string | number): NodePath<any> | NodePath<any>[] {
     const path = this.original.get(key)
     if (Array.isArray(path.value)) {
-      return path.filter(() => true).map(JSCodeshiftNodePath.wrap)
+      return path.filter(() => true).map(RecastNodePath.wrap)
     } else {
-      return JSCodeshiftNodePath.wrap(path) as any
+      return RecastNodePath.wrap(path) as any
     }
   }
 

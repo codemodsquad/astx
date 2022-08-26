@@ -6,7 +6,7 @@ import isEmpty from 'lodash/isEmpty'
 import inquirer from 'inquirer'
 import fs from 'fs-extra'
 import dedent from 'dedent-js'
-import CodeFrameError from '../jscodeshift/util/CodeFrameError'
+import CodeFrameError from '../util/CodeFrameError'
 import { codeFrameColumns } from '@babel/code-frame'
 
 /* eslint-disable no-console */
@@ -33,12 +33,11 @@ async function getEngine(
   switch (engine) {
     case 'jscodeshift':
       return {
-        Astx: (await import('../jscodeshift/Astx')).default,
-        runTransform: (await import('../jscodeshift/runTransform')).default,
-        runTransformOnFile: (await import('../jscodeshift/runTransformOnFile'))
+        Astx: (await import('../Astx')).default,
+        runTransform: (await import('../runTransform')).default,
+        runTransformOnFile: (await import('../runTransformOnFile'))
           .runTransformOnFile,
-        formatMatches: (await import('../jscodeshift/util/formatMatches'))
-          .default,
+        formatMatches: (await import('../util/formatMatches')).default,
       }
   }
   throw new Error(`invalid engine: ${engine}`)

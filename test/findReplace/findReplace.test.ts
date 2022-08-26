@@ -1,7 +1,6 @@
 import { describe, it } from 'mocha'
 import { expect } from 'chai'
 import path from 'path'
-import jscodeshift from 'jscodeshift'
 import find, { FindOptions, Match } from '../../src/find'
 import replace from '../../src/replace'
 import { Node, NodePath } from '../../src/types'
@@ -9,11 +8,10 @@ import requireGlob from 'require-glob'
 import mapValues from 'lodash/mapValues'
 import pickBy from 'lodash/pickBy'
 import prettier from 'prettier'
-import { ParseTag } from '../../src/jscodeshift/Astx'
 import prepareForBabelGenerate from '../../src/util/prepareForBabelGenerate'
 import { jsParser, tsParser } from 'babel-parse-wild-code'
 import { ParserOptions } from '@babel/parser'
-import jscodeshiftBackend from '../../src/jscodeshift/jscodeshiftBackend'
+import recastBackend from '../../src/recast/recastBackend'
 import babelBackend from '../../src/babel/babelBackend'
 import generate from '@babel/generator'
 import { Backend } from '../../src/Backend'
@@ -33,12 +31,19 @@ type ExpectedMatch = {
   stringCaptures?: Record<string, string>
 }
 
+type ParseNodes = (
+  strings: string | string[] | TemplateStringsArray,
+  ...quasis: any[]
+) => Node | Node[]
+
 type Fixture = {
   input: string
   find: string
   findOptions?: FindOptions
   where?: FindOptions['where']
-  replace: string | ((match: Match, parse: ParseTag) => string | Node | Node[])
+  replace:
+    | string
+    | ((match: Match, parse: ParseNodes) => string | Node | Node[])
   expectMatchesSelf?: boolean
   expectedFind?: ExpectedMatch[]
   expectedReplace?: string
@@ -169,11 +174,10 @@ for (const parser in groups) {
   const babelParser = actualParser.startsWith('ts')
     ? tsParser.bindParserOpts(parserOpts)
     : jsParser.bindParserOpts(parserOpts)
-  const j = jscodeshift.withParser(babelParser)
   // const backend = jscodeshiftBackend(j)
   const backend =
     backendName === 'recast'
-      ? jscodeshiftBackend(j)
+      ? recastBackend({ parseOptions: { parser: babelParser } })
       : babelBackend({
           parserOptions: babelParser.parserOpts,
         })
@@ -216,10 +220,10 @@ for (const parser in groups) {
           ;(skip ? it.skip : only ? it.only : it)(
             `${testcaseDir}/${key}.ts`,
             function () {
-              const root = backend.rootPath(backend.parse(input))
+              const ast = backend.parse(input)
 
               if (expectMatchesSelf) {
-                const matches = find([root], parsePaths(input), {
+                const matches = find(ast, parsePaths(input), {
                   ...findOptions,
                   where,
                   backend,
@@ -230,7 +234,7 @@ for (const parser in groups) {
                 ).to.equal(1)
               }
               if (expectedFind) {
-                const matches = find([root], parsePaths(_find), {
+                const matches = find(ast, parsePaths(_find), {
                   ...findOptions,
                   where,
                   backend,
@@ -241,7 +245,7 @@ for (const parser in groups) {
               }
               if (expectedError) {
                 expect(() => {
-                  find([root], parsePaths(_find), {
+                  find(ast, parsePaths(_find), {
                     ...findOptions,
                     where,
                     backend,
@@ -270,8 +274,8 @@ for (const parser in groups) {
         ;(skip ? it.skip : only ? it.only : it)(
           `${testcaseDir}/${key}.ts`,
           function () {
-            const root = backend.rootPath(backend.parse(input))
-            const matches = find([root], parsePaths(_find), {
+            const ast = backend.parse(input)
+            const matches = find(ast, parsePaths(_find), {
               ...findOptions,
               where,
               backend,
@@ -285,7 +289,7 @@ for (const parser in groups) {
                     typeof _replace === 'string'
                       ? parseNodes(_replace)
                       : (match): Node | Node[] => {
-                          const result = _replace(match)
+                          const result = _replace(match, parseNodes)
                           return typeof result === 'string'
                             ? parseNodes(result)
                             : result
@@ -300,7 +304,7 @@ for (const parser in groups) {
                 typeof _replace === 'string'
                   ? parseNodes(_replace)
                   : (match): Node | Node[] => {
-                      const result = _replace(match)
+                      const result = _replace(match, parseNodes)
                       return typeof result === 'string'
                         ? parseNodes(result)
                         : result
@@ -308,17 +312,14 @@ for (const parser in groups) {
                 { backend }
               )
               if (parser.endsWith('-babel-generator')) {
-                const actualAst = root.node
-                prepareForBabelGenerate(actualAst)
-                const expectedAst = j(expectedReplace).get().node
+                prepareForBabelGenerate(ast)
+                const expectedAst = backend.parse(expectedReplace)
                 prepareForBabelGenerate(expectedAst)
-                expect(
-                  format(generate(actualAst, { concise: true }).code)
-                ).to.equal(
+                expect(format(generate(ast, { concise: true }).code)).to.equal(
                   format(generate(expectedAst, { concise: true }).code)
                 )
               } else {
-                const actual = backend.generate(root.node).code
+                const actual = backend.generate(ast).code
                 expect(format(actual)).to.deep.equal(reformat(expectedReplace))
               }
             }

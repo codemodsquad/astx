@@ -1,4 +1,4 @@
-import { NodeType, NodePath, Node, Statement } from './types'
+import { NodeType, NodePath, Node, Statement, Block } from './types'
 import mapValues from 'lodash/mapValues'
 import compileMatcher, {
   CompiledNodeMatcher,
@@ -76,19 +76,22 @@ export function createMatch(
 }
 
 export default function find(
-  paths: NodePath[],
+  ast: Node,
   pattern: NodePath | NodePath[],
   options: FindOptions
 ): Match[] {
   const {
-    backend: { isStatement, forEachNode },
+    backend: { isStatement, traverse },
   } = options
   if (Array.isArray(pattern) && pattern.length === 1) pattern = pattern[0]
-  if (Array.isArray(pattern) && isStatement(pattern[0]?.node)) {
-    return findStatements(paths, pattern as NodePath<Statement>[], options)
+  if (Array.isArray(pattern)) {
+    if (!isStatement(pattern[0].node)) {
+      throw new Error(`pattern array must be an array of statements`)
+    }
+    return findStatements(ast, pattern as NodePath<Statement>[], options)
   }
 
-  const matcher = compileMatcher(pattern as NodePath, options)
+  const matcher = compileMatcher(pattern, options)
 
   const matches: Array<Match> = []
 
@@ -98,41 +101,29 @@ export default function find(
     ? [matcher.nodeType]
     : ['Node']
 
-  forEachNode(paths, nodeTypes, (path: NodePath) => {
+  const visitor: { [n in NodeType]?: (path: NodePath) => void } = {}
+  const visited: Set<Node> = new Set()
+  function handler(path: NodePath) {
+    if (visited.has(path.node)) return
+    visited.add(path.node)
     const result = matcher.match(path, options?.matchSoFar ?? null)
     if (result) matches.push(createMatch(path, result))
-  })
+  }
+  for (const nodeType of nodeTypes) visitor[nodeType] = handler
+
+  traverse(ast, visitor)
 
   return matches
 }
 
-function findStatementArrayPaths(
-  backend: Backend,
-  paths: NodePath[]
-): NodePath<Statement>[][] {
-  const containers: Set<any[]> = new Set()
-  const result: NodePath<Statement>[][] = []
-  backend.forEachNode(paths, ['Statement'], (path: NodePath) => {
-    const { listKey, container, parentPath } = path
-    if (
-      Array.isArray(container) &&
-      !containers.has(container) &&
-      listKey &&
-      parentPath
-    ) {
-      containers.add(container)
-      const parents = parentPath.get(listKey)
-      if (Array.isArray(parents)) result.push(parents as NodePath<Statement>[])
-    }
-  })
-  return result
-}
-
 function findStatements(
-  paths: NodePath[],
+  ast: Node,
   pattern: NodePath<Statement>[],
   options: FindOptions
 ): Match[] {
+  const {
+    backend: { traverse },
+  } = options
   const matchers: CompiledNodeMatcher[] = pattern.map((queryElem) =>
     compileMatcher(queryElem, options)
   )
@@ -216,24 +207,26 @@ function findStatements(
     return null
   }
 
-  // reverse order.  Otherwise, statements in an outer array could get replaced
-  // before those in an inner array (for example, a function in root scope might
-  // get replaced before a match within the function body gets replaced)
-  const statementArrayPaths: NodePath<Statement>[][] = findStatementArrayPaths(
-    options.backend,
-    paths
-  ).reverse()
+  const blocks: NodePath<Block>[] = []
+
+  traverse(ast, {
+    Block(path: NodePath<Block>) {
+      blocks.push(path)
+    },
+  })
+  blocks.reverse()
 
   const matches: Match[] = []
 
   const initialMatch = options?.matchSoFar ?? null
 
-  for (const _paths of statementArrayPaths) {
-    const end = _paths.length - remainingElements(firstNonArrayCaptureIndex + 1)
+  for (const block of blocks) {
+    const body: NodePath<Statement>[] = block.get('body') as any
+    const end = body.length - remainingElements(firstNonArrayCaptureIndex + 1)
     let sliceStart = 0
     for (let arrayIndex = 0; arrayIndex < end; arrayIndex++) {
       const match = matchElem(
-        _paths,
+        body,
         sliceStart,
         arrayIndex,
         firstNonArrayCaptureIndex,
@@ -256,7 +249,7 @@ function findStatements(
             })
         }
 
-        const paths = _paths.slice(start, end)
+        const paths = body.slice(start, end)
 
         const finalMatch: Match = {
           type: 'nodes',

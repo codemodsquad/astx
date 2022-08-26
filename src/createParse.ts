@@ -29,31 +29,18 @@ export default function createParse(
     if (typeof strings === 'string') strings = [strings]
     if (strings.length > 1 || quasis.length)
       throw new Error('...quasis not supported yet')
-    // try {
-    //   const result = statements(strings[0]) //, ...quasis)
-    //   if (result.length === 1) {
-    //     return result[0].type === 'ExpressionStatement'
-    //       ? result[0].expression
-    //       : result[0]
-    //   }
-    //   if (!result.length) return result
-    // } catch (error) {
-    //   // fallthrough
-    // }
-    // return expression(strings[0]) //, ...quasis)
-
     try {
-      return expression(strings[0]) //, ...quasis)
+      const result = statements(strings[0]) //, ...quasis)
+      if (result.length === 1) {
+        return result[0].type === 'ExpressionStatement'
+          ? result[0].expression
+          : result[0]
+      }
+      if (result.length) return result
     } catch (error) {
       // fallthrough
     }
-    const result = statements(strings[0]) //, ...quasis)
-    if (result.length === 1) {
-      return result[0].type === 'ExpressionStatement'
-        ? result[0].expression
-        : result[0]
-    }
-    return result
+    return expression(strings[0]) //, ...quasis)
   }
 
   function parsePaths(

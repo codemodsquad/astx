@@ -1,55 +1,56 @@
-import { ASTNode, JSCodeshift, ASTPath } from 'jscodeshift'
+import { Node, NodePath } from './types'
+import { Backend } from './Backend'
 import find, { Match, convertWithCaptures, createMatch } from './find'
 import replace from './replace'
-import parseFindOrReplace from './util/parseFindOrReplace'
 import compileMatcher, { MatchResult } from './compileMatcher'
 import CodeFrameError from './util/CodeFrameError'
+import createParse from './createParse'
 
 export type ParseTag = (
-  strings: TemplateStringsArray,
+  strings: string | string[] | TemplateStringsArray,
   ...quasis: any[]
-) => ASTNode
+) => Node | Node[]
 
 export type GetReplacement = (
   match: Match,
   parse: ParseTag
-) => string | ASTNode | ASTNode[]
+) => string | Node | Node[]
 
-function isNode(x: unknown): x is ASTNode {
+function isNode(x: unknown): x is Node {
   return x instanceof Object && typeof (x as any).type === 'string'
 }
-function isNodeArray(x: unknown): x is ASTNode[] {
+function isNodeArray(x: unknown): x is Node[] {
   return Array.isArray(x) && !Array.isArray((x as any).raw)
 }
-function isNodePath(x: unknown): x is ASTPath {
+function isNodePath(x: unknown): x is NodePath {
   return x instanceof Object && typeof (x as any).insertAt === 'function'
 }
-function isNodePathArray(x: unknown): x is ASTPath[] {
+function isNodePathArray(x: unknown): x is NodePath[] {
   return Array.isArray(x) && !Array.isArray((x as any).raw) && isNodePath(x[0])
 }
 
 export type FindOptions = {
-  where?: { [captureName: string]: (path: ASTPath) => boolean }
+  where?: { [captureName: string]: (path: NodePath) => boolean }
 }
 
 export default class Astx {
-  jscodeshift: JSCodeshift
-  private _paths: ASTPath<any>[]
+  private backend: Backend
+  private _paths: NodePath<any>[]
   private _matches: Match[]
   private _parseTag: ParseTag
   private _withCaptures: Match[]
 
   constructor(
-    jscodeshift: JSCodeshift,
-    paths: ASTPath<any>[] | Match[],
+    backend: Backend,
+    paths: NodePath<any>[] | Match[],
     { withCaptures = [] }: { withCaptures?: Match[] } = {}
   ) {
-    this.jscodeshift = jscodeshift
+    this.backend = backend
     this._paths = isNodePath(paths[0])
-      ? (paths as ASTPath[])
+      ? (paths as NodePath[])
       : (paths as Match[]).map((m) => m.paths).flat()
     this._matches = isNodePath(paths[0])
-      ? (paths as ASTPath[]).map((path) => ({
+      ? (paths as NodePath[]).map((path) => ({
           type: 'node',
           path,
           node: path.node,
@@ -57,7 +58,7 @@ export default class Astx {
           nodes: [path.node],
         }))
       : (paths as Match[])
-    this._parseTag = parseFindOrReplace.bind(undefined, jscodeshift) as any
+    this._parseTag = createParse(backend).parseNodes
     this._withCaptures = withCaptures
   }
 
@@ -81,28 +82,28 @@ export default class Astx {
     return match
   }
 
-  paths(): ASTPath[] {
+  paths(): NodePath[] {
     return this._paths
   }
 
-  nodes(): ASTNode[] {
+  nodes(): Node[] {
     return this._paths.map((p) => p.node)
   }
 
   filter(
     iteratee: (match: Match, index: number, matches: Match[]) => boolean
   ): Astx {
-    return new Astx(this.jscodeshift, this._matches.filter(iteratee))
+    return new Astx(this.backend, this._matches.filter(iteratee))
   }
 
   at(index: number): Astx {
-    return new Astx(this.jscodeshift, [this._matches[index]])
+    return new Astx(this.backend, [this._matches[index]])
   }
 
-  on(root: ASTPath<any> | ASTPath<any>[] | Match | Match[]): Astx {
+  on(root: NodePath<any> | NodePath<any>[] | Match | Match[]): Astx {
     return new Astx(
-      this.jscodeshift,
-      Array.isArray(root) ? root : ([root] as ASTPath<any>[] | Match[])
+      this.backend,
+      Array.isArray(root) ? root : ([root] as NodePath<any>[] | Match[])
     )
   }
 
@@ -120,7 +121,7 @@ export default class Astx {
     } else {
       withCaptures.push(matches)
     }
-    return new Astx(this.jscodeshift, this._matches, {
+    return new Astx(this.backend, this._matches, {
       withCaptures,
     })
   }
@@ -131,10 +132,10 @@ export default class Astx {
       const capture = match.pathCaptures?.[name]
       if (capture) matches.push(createMatch(capture, {}))
     }
-    return new Astx(this.jscodeshift, matches)
+    return new Astx(this.backend, matches)
   }
 
-  captureNode(name: string): ASTNode | null {
+  captureNode(name: string): Node | null {
     for (const match of this._matches) {
       const capture = match.captures?.[name]
       if (capture) return capture
@@ -142,7 +143,7 @@ export default class Astx {
     return null
   }
 
-  capturePath(name: string): ASTPath | null {
+  capturePath(name: string): NodePath | null {
     for (const match of this._matches) {
       const capture = match.pathCaptures?.[name]
       if (capture) return capture
@@ -156,10 +157,10 @@ export default class Astx {
       const capture = match.arrayPathCaptures?.[name]
       if (capture) matches.push(createMatch(capture, {}))
     }
-    return new Astx(this.jscodeshift, matches)
+    return new Astx(this.backend, matches)
   }
 
-  arrayCaptureNodes(name: string): ASTNode[] | null {
+  arrayCaptureNodes(name: string): Node[] | null {
     for (const match of this._matches) {
       const capture = match.arrayCaptures?.[name]
       if (capture) return capture
@@ -167,7 +168,7 @@ export default class Astx {
     return null
   }
 
-  arrayCapturePaths(name: string): ASTPath[] | null {
+  arrayCapturePaths(name: string): NodePath[] | null {
     for (const match of this._matches) {
       const capture = match.arrayPathCaptures?.[name]
       if (capture) return capture
@@ -192,30 +193,28 @@ export default class Astx {
     ...quasis: any[]
   ): (options?: FindOptions) => Astx
   closest(
-    pattern: string | ASTNode | ASTNode[] | ASTPath<any> | ASTPath<any>[],
+    pattern: string | Node | Node[] | NodePath<any> | NodePath<any>[],
     options?: FindOptions
   ): Astx
   closest(
     arg0:
       | string
-      | ASTNode
-      | ASTNode[]
-      | ASTPath<any>
-      | ASTPath<any>[]
+      | Node
+      | Node[]
+      | NodePath<any>
+      | NodePath<any>[]
       | TemplateStringsArray,
     ...rest: any[]
   ): Astx | ((options?: FindOptions) => Astx) {
     try {
-      let paths: ASTPath<any>[], options: FindOptions | undefined
+      let paths: NodePath<any>[], options: FindOptions | undefined
       if (typeof arg0 === 'string') {
-        paths = this.jscodeshift(
-          parseFindOrReplace(this.jscodeshift, [arg0] as any) as
-            | ASTNode
-            | ASTNode[]
+        paths = this.backend(
+          parseFindOrReplace(this.backend, [arg0] as any) as Node | Node[]
         ).paths()
         options = rest[0]
       } else if (isNode(arg0) || isNodeArray(arg0)) {
-        paths = this.jscodeshift(arg0).paths()
+        paths = this.backend(arg0).paths()
         options = rest[0]
       } else if (isNodePath(arg0)) {
         paths = [arg0]
@@ -224,10 +223,10 @@ export default class Astx {
         paths = arg0
         options = rest[0]
       } else {
-        const finalPaths = this.jscodeshift(
-          parseFindOrReplace(this.jscodeshift, arg0 as any, ...rest) as
-            | ASTNode
-            | ASTNode[]
+        const finalPaths = this.backend(
+          parseFindOrReplace(this.backend, arg0 as any, ...rest) as
+            | Node
+            | Node[]
         ).paths()
         return (options?: FindOptions) =>
           this.closest(finalPaths, options) as any
@@ -238,7 +237,7 @@ export default class Astx {
       const matcher = compileMatcher(paths[0], options)
       const matchSoFar = this._createInitialMatch()
 
-      const matchedParents: Set<ASTPath> = new Set()
+      const matchedParents: Set<NodePath> = new Set()
       const matches: Match[] = []
       this._paths.forEach((path) => {
         let parent = path.parent
@@ -254,7 +253,7 @@ export default class Astx {
         }
       })
 
-      return new Astx(this.jscodeshift, matches)
+      return new Astx(this.backend, matches)
     } catch (error) {
       if (error instanceof Error) {
         CodeFrameError.rethrow(error, {
@@ -271,44 +270,42 @@ export default class Astx {
     ...quasis: any[]
   ): (options?: FindOptions) => Astx
   find(
-    pattern: string | ASTNode | ASTNode[] | ASTPath<any> | ASTPath<any>[],
+    pattern: string | Node | Node[] | NodePath<any> | NodePath<any>[],
     options?: FindOptions
   ): Astx
   find(
     arg0:
       | string
-      | ASTNode
-      | ASTNode[]
-      | ASTPath<any>
-      | ASTPath<any>[]
+      | Node
+      | Node[]
+      | NodePath<any>
+      | NodePath<any>[]
       | TemplateStringsArray,
     ...rest: any[]
   ): Astx | ((options?: FindOptions) => Astx) {
     try {
       let pattern, options: FindOptions | undefined
       if (typeof arg0 === 'string') {
-        pattern = this.jscodeshift(
-          parseFindOrReplace(this.jscodeshift, [arg0] as any) as
-            | ASTNode
-            | ASTNode[]
+        pattern = this.backend(
+          parseFindOrReplace(this.backend, [arg0] as any) as Node | Node[]
         ).paths()
         options = rest[0]
       } else if (isNode(arg0) || isNodeArray(arg0)) {
-        pattern = this.jscodeshift(arg0).paths()
+        pattern = this.backend(arg0).paths()
         options = rest[0]
       } else if (isNodePath(arg0) || isNodePathArray(arg0)) {
         pattern = arg0
         options = rest[0]
       } else {
-        const finalPaths = this.jscodeshift(
-          parseFindOrReplace(this.jscodeshift, arg0 as any, ...rest) as
-            | ASTNode
-            | ASTNode[]
+        const finalPaths = this.backend(
+          parseFindOrReplace(this.backend, arg0 as any, ...rest) as
+            | Node
+            | Node[]
         ).paths()
         return (options?: FindOptions) => this.find(finalPaths, options) as any
       }
       return new Astx(
-        this.jscodeshift,
+        this.backend,
         find(this._paths, pattern, {
           ...options,
           matchSoFar: this._createInitialMatch(),
@@ -326,9 +323,9 @@ export default class Astx {
   }
 
   replace(strings: TemplateStringsArray, ...quasis: any[]): () => void
-  replace(replacement: string | ASTNode | ASTNode[] | GetReplacement): void
+  replace(replacement: string | Node | Node[] | GetReplacement): void
   replace(
-    arg0: string | ASTNode | ASTNode[] | GetReplacement | TemplateStringsArray,
+    arg0: string | Node | Node[] | GetReplacement | TemplateStringsArray,
     ...quasis: any[]
   ): void | (() => void) {
     try {
@@ -336,7 +333,7 @@ export default class Astx {
       if (typeof arg0 === 'function') {
         replace(
           _matches,
-          (match: Match): ASTNode => {
+          (match: Match): Node => {
             const result = arg0(match, _parseTag)
             return typeof result === 'string'
               ? (parseFindOrReplace(jscodeshift, [result] as any) as any)

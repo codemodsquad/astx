@@ -5,8 +5,10 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import { ASTNode, Expression, JSCodeshift, Statement } from 'jscodeshift'
+import * as t from 'ast-types'
 import * as recast from 'recast'
+
+type RecastType = typeof recast
 
 const builders = recast.types.builders
 const types = recast.types.namedTypes
@@ -15,7 +17,7 @@ function splice<T>(arr: T[], element: T, replacement: T[]) {
   arr.splice(arr.indexOf(element), 1, ...replacement)
 }
 
-function ensureStatement(node: ASTNode): Statement {
+function ensureStatement(node: t.ASTNode): t.namedTypes.Statement {
   return types.Statement.check(node)
     ? // Removing the location information seems to ensure that the node is
       // correctly reprinted with a trailing semicolon
@@ -79,13 +81,13 @@ function getVistor(
 }
 
 function replaceNodes(
-  src: string,
+  recast: RecastType,
+  ast: t.namedTypes.File,
   varNames: string[],
-  nodes: any[],
-  jscodeshift: JSCodeshift
-) {
-  const ast = jscodeshift(src).nodes()[0]
-  const errors = ast.type === 'File' ? ast.program.errors : ast.errors
+  nodes: any[]
+): t.namedTypes.File {
+  const errors =
+    ast.type === 'File' ? (ast as any).program.errors : (ast as any).errors
   if (errors?.length) {
     // Flow parser returns a bogus AST instead of throwing when the grammar is invalid,
     // but it at least includes parse errors in this array
@@ -101,45 +103,51 @@ function getUniqueVarName() {
 }
 
 export default function withParser(
-  jscodeshift: JSCodeshift
+  recast: RecastType,
+  parseOptions?: recast.Options
 ): {
   statements: (
     template: TemplateStringsArray | string[],
     ...nodes: any[]
-  ) => Statement[]
+  ) => t.namedTypes.Statement[]
   statement: (
     template: TemplateStringsArray | string[],
     ...nodes: any[]
-  ) => Statement
+  ) => t.namedTypes.Statement
   expression: (
     template: TemplateStringsArray | string[],
     ...nodes: any[]
-  ) => Expression
+  ) => t.namedTypes.Expression
 } {
   function statements(
     template: TemplateStringsArray | string[],
     ...nodes: any[]
-  ): Statement[] {
+  ): t.namedTypes.Statement[] {
     const varNames = nodes.map(() => getUniqueVarName())
     const src = [...template].reduce(
       (result: string, elem: string, i: number) =>
         result + varNames[i - 1] + elem
     )
 
-    return replaceNodes(src, varNames, nodes, jscodeshift).program.body
+    return replaceNodes(
+      recast,
+      recast.parse(src, parseOptions),
+      varNames,
+      nodes
+    ).program.body
   }
 
   function statement(
     template: TemplateStringsArray | string[],
     ...nodes: any[]
-  ): Statement {
+  ): t.namedTypes.Statement {
     return statements(template, ...nodes)[0]
   }
 
   function expression(
     _template: TemplateStringsArray | string[],
     ...nodes: any[]
-  ): Expression {
+  ): t.namedTypes.Expression {
     // wrap code in `(...)` to force evaluation as expression
     const template = [..._template]
     if (template.length > 0) {

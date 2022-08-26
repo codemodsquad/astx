@@ -10,6 +10,9 @@ export default function cloneNode<T extends Node>(node: T): T {
       case 'range':
         continue
     }
+    if (field === 'lines') {
+      throw new Error('TEST')
+    }
     const value = (node as any)[field]
     result[field] = cloneValue(value)
   }
@@ -26,6 +29,9 @@ function cloneValue<T>(value: T): T {
     }
     const result: any = {}
     for (const key in value) {
+      if (key === 'lines') {
+        throw new Error('TEST')
+      }
       result[key] = cloneValue(value[key])
     }
     return result

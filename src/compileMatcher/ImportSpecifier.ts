@@ -9,9 +9,10 @@ export default function compileImportSpecifierMatcher(
 ): CompiledMatcher | void {
   const pattern: ImportSpecifier = path.node
 
+  const { importKind } = pattern as any
   const importedName = convertToJSXIdentifierName(pattern.imported)
   if (importedName && (!pattern.local || pattern.local.name === importedName)) {
-    if ((pattern as any).importKind == null) {
+    if (importKind == null || importKind === 'value') {
       const captureMatcher = compileCaptureMatcher(
         path,
         importedName,
