@@ -1,6 +1,5 @@
-import { NodePath } from '../types'
+import { NodePath, NodeType } from '../types'
 import compileMatcher, { CompiledMatcher, CompileOptions, MatchResult } from '.'
-import { NodeType } from '../util/NodeType'
 
 export default function compileOrMatcher(
   path: NodePath,

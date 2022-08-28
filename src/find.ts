@@ -6,6 +6,8 @@ import compileMatcher, {
   mergeCaptures,
 } from './compileMatcher'
 import { Backend } from './Backend'
+import ensureArray from './util/ensureArray'
+import { match } from 'assert'
 
 export type Match = {
   type: 'node' | 'nodes'
@@ -28,7 +30,7 @@ export type FindOptions = {
 
 export function convertWithCaptures(matches: Match | Match[]): MatchResult {
   return mergeCaptures(
-    ...(Array.isArray(matches) ? matches : [matches]).map(
+    ...ensureArray(matches).map(
       ({ pathCaptures, arrayPathCaptures, stringCaptures }): MatchResult => ({
         captures: pathCaptures,
         arrayCaptures: arrayPathCaptures,
@@ -76,7 +78,7 @@ export function createMatch(
 }
 
 export default function find(
-  root: NodePath,
+  paths: NodePath | NodePath[],
   pattern: NodePath | NodePath[],
   options: FindOptions
 ): Match[] {
@@ -88,20 +90,16 @@ export default function find(
     if (!isStatement(pattern[0].node)) {
       throw new Error(`pattern array must be an array of statements`)
     }
-    return findStatements(root, pattern as NodePath<Statement>[], options)
+    return findStatements(paths, pattern as NodePath<Statement>[], options)
   }
 
   const matcher = compileMatcher(pattern, options)
 
   const matches: Array<Match> = []
 
-  const nodeTypes: NodeType[] = Array.isArray(matcher.nodeType)
-    ? matcher.nodeType
-    : matcher.nodeType
-    ? [matcher.nodeType]
-    : ['Node']
+  const nodeTypes: NodeType[] = ensureArray(matcher.nodeType || 'Node')
 
-  forEachNode([root], nodeTypes, (path: NodePath) => {
+  forEachNode(ensureArray(paths), nodeTypes, (path: NodePath) => {
     const result = matcher.match(path, options?.matchSoFar ?? null)
     if (result) matches.push(createMatch(path, result))
   })
@@ -110,7 +108,7 @@ export default function find(
 }
 
 function findStatements(
-  root: NodePath,
+  paths: NodePath | NodePath[],
   pattern: NodePath<Statement>[],
   options: FindOptions
 ): Match[] {
@@ -202,7 +200,7 @@ function findStatements(
 
   const blocks: NodePath<Block>[] = []
 
-  forEachNode([root], ['Block'], (path: NodePath) => {
+  forEachNode(ensureArray(paths), ['Block'], (path: NodePath) => {
     blocks.push(path as any)
   })
   blocks.reverse()

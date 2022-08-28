@@ -1,4 +1,4 @@
-import { NodeType, NodePath, Statement, Expression } from '../types'
+import { NodeType, NodePath, Statement } from '../types'
 import { Backend } from '../Backend'
 import { Node } from '@babel/types'
 import * as defaultParser from '@babel/parser'

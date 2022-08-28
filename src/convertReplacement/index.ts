@@ -10,6 +10,7 @@ import convertExpressionReplacement from './convertExpressionReplacement'
 import convertStatementReplacement from './convertStatementReplacement'
 import convertImportSpecifierReplacement from './convertImportSpecifierReplacement'
 import * as t from '@babel/types'
+import ensureArray from '../util/ensureArray'
 
 export type ReplacementConverter = (replacement: Node) => Node | Node[]
 
@@ -71,14 +72,8 @@ export function* bulkConvert(
   nodes: Node | Node[],
   convert: ReplacementConverter
 ): Iterable<Node> {
-  if (Array.isArray(nodes)) {
-    for (const node of nodes) {
-      const converted = convert(node)
-      if (Array.isArray(converted)) yield* converted
-      else yield converted
-    }
-  } else {
-    const converted = convert(nodes)
+  for (const node of ensureArray(nodes)) {
+    const converted = convert(node)
     if (Array.isArray(converted)) yield* converted
     else yield converted
   }

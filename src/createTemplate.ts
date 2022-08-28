@@ -10,6 +10,7 @@ import { Node, Expression, Statement } from './types'
 import compileReplacement from './compileReplacement'
 import convertToExpression from './convertReplacement/convertToExpression'
 import convertStatementReplacement from './convertReplacement/convertStatementReplacement'
+import ensureArray from './util/ensureArray'
 
 export default function createTemplate(
   backend: Backend
@@ -49,7 +50,7 @@ export default function createTemplate(
         varNames.push(name)
       }
     }
-    const src = (Array.isArray(code) ? [...code] : ([code] as string[])).reduce(
+    const src = ([...ensureArray(code)] as string[]).reduce(
       (result: string, elem: string, i: number) =>
         result + varNames[i - 1] + elem
     )
@@ -58,8 +59,7 @@ export default function createTemplate(
     const result = compileReplacement(parseStatements(src).map(makePath), {
       backend,
     }).generate({ captures, arrayCaptures })
-    const result1 = Array.isArray(result) ? result : [result]
-    return result1.map(convertStatementReplacement) as Statement[]
+    return ensureArray(result).map(convertStatementReplacement) as Statement[]
   }
 
   function statement(
@@ -90,7 +90,7 @@ export default function createTemplate(
         varNames.push(name)
       }
     }
-    const src = (Array.isArray(code) ? [...code] : ([code] as string[])).reduce(
+    const src = ([...ensureArray(code)] as string[]).reduce(
       (result: string, elem: string, i: number) =>
         result + varNames[i - 1] + elem
     )

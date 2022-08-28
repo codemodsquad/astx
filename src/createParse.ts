@@ -1,6 +1,7 @@
 import { Backend } from './Backend'
 import createTemplate from './createTemplate'
 import { Expression, Statement, Node, NodePath } from './types'
+import ensureArray from './util/ensureArray'
 
 export default function createParse(
   backend: Backend
@@ -37,9 +38,9 @@ export default function createParse(
     ...quasis: any[]
   ): NodePath | NodePath[] {
     const ast = parse0(strings, ...quasis)
-    let result: NodePath | NodePath[] = Array.isArray(ast)
-      ? ast.map((n) => backend.makePath(n))
-      : [backend.makePath(ast)]
+    let result: NodePath | NodePath[] = ensureArray(ast).map((n) =>
+      backend.makePath(n)
+    )
     let extractNext = false
     let done = false
     backend.forEachNode(result, ['Node'], (path: NodePath) => {
