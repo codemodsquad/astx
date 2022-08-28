@@ -1,5 +1,4 @@
 import { Node, NodePath } from '../types'
-import { Match } from '../find'
 import __debug, { Debugger } from 'debug'
 import compileGenericNodeReplacement from './GenericNodeReplacement'
 import compileGenericArrayReplacement from './GenericArrayReplacement'
@@ -33,8 +32,14 @@ import { Backend } from '../Backend'
 
 const _debug = __debug('astx:compileReplacement')
 
+export interface ReplaceableMatch {
+  captures?: Record<string, Node>
+  arrayCaptures?: Record<string, Node[]>
+  stringCaptures?: Record<string, string>
+}
+
 export interface CompiledReplacement {
-  generate: (match: Match) => Node | Node[]
+  generate: (match: ReplaceableMatch) => Node | Node[]
 }
 
 export type RootCompileReplacementOptions = {

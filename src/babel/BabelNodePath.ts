@@ -34,16 +34,22 @@ export default class BabelNodePath<T = Node> implements NodePath<T> {
     return parentPath ? BabelNodePath.wrap(parentPath) : undefined
   }
 
-  insertBefore(nodes: Node | readonly Node[]): void {
+  insertBefore(nodes: T | Node | readonly T[] | readonly Node[]): void {
     this.original.insertBefore(nodes as any)
   }
 
   remove(): void {
     this.original.remove()
   }
-  replaceWith(replacement: Node | NodePath): void {
+  replaceWith(replacement: T | Node | NodePath): void {
     ;(this.original as any)._removeFromScope()
     this.original.replaceWith(replacement as any)
+  }
+  replaceWithMultiple(
+    replacement: T[] | Node[] | NodePath<T>[] | NodePath[]
+  ): void {
+    ;(this.original as any)._removeFromScope()
+    this.original.replaceWithMultiple(replacement as any)
   }
 
   get<K extends keyof T>(

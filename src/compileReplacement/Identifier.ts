@@ -1,9 +1,12 @@
 import { Node, Identifier, NodePath } from '../types'
-import { CompiledReplacement, CompileReplacementOptions } from './'
+import {
+  CompiledReplacement,
+  CompileReplacementOptions,
+  ReplaceableMatch,
+} from './'
 import compileCaptureReplacement from './Capture'
 import compileGenericNodeReplacement from './GenericNodeReplacement'
 import { unescapeIdentifier } from '../compileReplacement/Capture'
-import { Match } from '../find'
 
 export default function compileIdentifierReplacement(
   path: NodePath<Identifier>,
@@ -27,7 +30,7 @@ export default function compileIdentifierReplacement(
       )
       return {
         ...captureReplacement,
-        generate: (match: Match): Node | Node[] => {
+        generate: (match: ReplaceableMatch): Node | Node[] => {
           const generated = captureReplacement.generate(match)
           if (!Array.isArray(generated)) {
             ;(generated as any).typeAnnotation = typeAnnotationReplacement.generate(

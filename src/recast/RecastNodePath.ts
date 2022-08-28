@@ -42,7 +42,7 @@ export default class RecastNodePath<T = Node> implements NodePath<T> {
     return RecastNodePath.wrap(parentPath)
   }
 
-  insertBefore(nodes: Node | readonly Node[]): void {
+  insertBefore(nodes: T | Node | readonly T[] | readonly Node[]): void {
     if (Array.isArray(nodes)) {
       this.original.insertBefore(...nodes)
     } else {
@@ -53,12 +53,20 @@ export default class RecastNodePath<T = Node> implements NodePath<T> {
   remove(): void {
     this.original.prune()
   }
-  replaceWith(replacement: Node | NodePath): void {
+  replaceWith(replacement: T | Node | NodePath): void {
     this.original.replace(
       replacement instanceof RecastNodePath
         ? (replacement as any).node
         : (replacement as any)
     )
+  }
+  replaceWithMultiple(
+    replacement: T[] | Node[] | NodePath<T>[] | NodePath[]
+  ): void {
+    this.insertBefore(
+      replacement.map((r) => (r instanceof RecastNodePath ? r.node : r))
+    )
+    this.remove()
   }
 
   get<K extends keyof T>(

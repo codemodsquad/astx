@@ -1,7 +1,10 @@
 import { ImportDeclaration, NodePath, Node } from '../types'
-import { CompiledReplacement, CompileReplacementOptions } from '.'
+import {
+  CompiledReplacement,
+  CompileReplacementOptions,
+  ReplaceableMatch,
+} from '.'
 import compileGenericNodeReplacement from './GenericNodeReplacement'
-import { Match } from '../find'
 
 export default function compileImportDeclarationReplacement(
   path: NodePath<ImportDeclaration>,
@@ -9,7 +12,7 @@ export default function compileImportDeclarationReplacement(
 ): CompiledReplacement | void {
   const replacement = compileGenericNodeReplacement(path, compileOptions)
   return {
-    generate: (match: Match): Node | Node[] => {
+    generate: (match: ReplaceableMatch): Node | Node[] => {
       const result: ImportDeclaration = replacement.generate(match) as any
       if (result.specifiers) {
         // move ImportDefaultSpecifier to beginning if necessary

@@ -75,23 +75,10 @@ export default function babelBackend({
   ) as any
   return {
     parse: (code: string) => parser.parse(code, parserOptions),
-    template: {
-      expression: (code: string): Expression =>
-        template.expression(code, templateOptions)(),
-      statements: (code: string): Statement[] =>
-        template.statements(code, templateOptions)(),
-      smart: (code: string) => {
-        try {
-          return template.expression(code, templateOptions)()
-        } catch (error) {
-          return template.smart(code, {
-            ...parserOptions,
-            syntacticPlaceholders: true,
-            preserveComments: true,
-          })()
-        }
-      },
-    },
+    parseExpression: (code: string) =>
+      template.expression(code, templateOptions)(),
+    parseStatements: (code: string) =>
+      template.statements(code, templateOptions)(),
     generate: (node: Node): { code: string } => {
       const { type, typeAnnotation, astx } = node as any
       if (

@@ -2,8 +2,8 @@ import { Node, NodePath } from '../types'
 import compileReplacement, {
   CompiledReplacement,
   CompileReplacementOptions,
+  ReplaceableMatch,
 } from './index'
-import { Match } from '../find'
 import indentDebug from '../compileMatcher/indentDebug'
 
 export default function compileGenericNodeReplacement(
@@ -40,7 +40,7 @@ export default function compileGenericNodeReplacement(
   }
 
   return {
-    generate: (match: Match): Node | Node[] => {
+    generate: (match: ReplaceableMatch): Node | Node[] => {
       const result: any = {
         type: pattern.type,
       }

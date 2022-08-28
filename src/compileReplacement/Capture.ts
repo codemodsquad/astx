@@ -1,6 +1,9 @@
-import { CompileReplacementOptions, CompiledReplacement } from './'
+import {
+  CompileReplacementOptions,
+  CompiledReplacement,
+  ReplaceableMatch,
+} from './'
 import { Node, NodePath } from '../types'
-import { Match } from '../find'
 import {
   getArrayCaptureAs,
   getCaptureAs,
@@ -22,7 +25,7 @@ export function compileArrayCaptureReplacement(
   if (arrayCaptureAs) {
     const convertReplacement = createReplacementConverter(pattern)
     return {
-      generate: (match: Match): Node | Node[] => {
+      generate: (match: ReplaceableMatch): Node | Node[] => {
         const captures = match.arrayCaptures?.[arrayCaptureAs]
         if (captures) {
           return [
@@ -47,7 +50,7 @@ export default function compileCaptureReplacement(
   if (captureAs) {
     const convertReplacement = createReplacementConverter(pattern)
     return {
-      generate: (match: Match): Node | Node[] => {
+      generate: (match: ReplaceableMatch): Node | Node[] => {
         const capture = match.captures?.[captureAs]
         if (capture) {
           const clone = cloneNode(capture)

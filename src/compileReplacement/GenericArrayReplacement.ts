@@ -2,8 +2,8 @@ import { NodePath, Node } from '../types'
 import compileReplacement, {
   CompiledReplacement,
   CompileReplacementOptions,
+  ReplaceableMatch,
 } from './index'
-import { Match } from '../find'
 import indentDebug from '../compileMatcher/indentDebug'
 
 export default function compileGenericArrayReplacement(
@@ -21,7 +21,7 @@ export default function compileGenericArrayReplacement(
   )
 
   return {
-    generate: (match: Match): Node | Node[] => {
+    generate: (match: ReplaceableMatch): Node | Node[] => {
       const result: Node[] = []
       for (const elem of elemReplacements) {
         const replacement = elem.generate(match)

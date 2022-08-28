@@ -20,22 +20,10 @@ export default function recastBackend({
   const template = withParser(recast, parseOptions)
   return {
     parse: (code: string) => recast.parse(code, parseOptions),
+    parseStatements: (code: string) =>
+      template.statements([code]) as Statement[],
+    parseExpression: (code: string) => template.expression([code]),
     generate: (node: Node) => recast.print(node),
-    template: {
-      expression: (code: string) => template.expression([code]),
-      statements: (code: string) => template.statements([code]),
-      smart: (code: string) => {
-        try {
-          return template.expression([code])
-        } catch (error) {
-          let ast: t.ASTNode | t.ASTNode[] = template.statements([code])
-          if (Array.isArray(ast) && ast.length === 1) {
-            ast = ast[0]
-          }
-          return ast.type === 'ExpressionStatement' ? ast.expression : ast
-        }
-      },
-    },
     makePath: (node: Node) => JSCodeshiftNodePath.wrap(new t.NodePath(node)),
     sourceRange: (node: Node) => [(node as any).start, (node as any).end],
     getFieldNames: (nodeType: string) =>

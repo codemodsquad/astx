@@ -2,11 +2,8 @@ import { NodeType, NodePath, Statement, Expression } from './types'
 
 export type Backend<Node = any> = {
   parse: (code: string) => Node
-  template: {
-    smart: (code: string) => Node | Statement[]
-    expression: (code: string) => Expression
-    statements: (code: string) => Statement[]
-  }
+  parseExpression: (code: string) => Expression
+  parseStatements: (code: string) => Statement[]
   generate: (node: Node) => { code: string }
   makePath: (node: Node) => NodePath
   sourceRange: (

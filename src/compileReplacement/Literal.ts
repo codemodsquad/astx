@@ -1,7 +1,6 @@
 import { NodePath } from '../types'
 import { getCaptureAs } from '../compileMatcher/Capture'
-import { CompiledReplacement } from './'
-import { Match } from '../find'
+import { CompiledReplacement, ReplaceableMatch } from './'
 import { unescapeIdentifier } from './Capture'
 import cloneNode from '../util/cloneNode'
 import * as t from 'ast-types'
@@ -14,7 +13,7 @@ export default function compileLiteralReplacement(
     const captureAs = getCaptureAs(pattern.value)
     if (captureAs) {
       return {
-        generate: (match: Match): t.namedTypes.Literal => {
+        generate: (match: ReplaceableMatch): t.namedTypes.Literal => {
           const captured = match.stringCaptures?.[captureAs]
           return captured ? t.builders.literal(captured) : cloneNode(pattern)
         },

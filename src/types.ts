@@ -26,8 +26,11 @@ export interface NodePath<T = Node> {
   get(key: string | number): NodePath<any> | NodePath<any>[]
 
   remove(): void
-  replaceWith(replacement: Node | NodePath): unknown
-  insertBefore(nodes: Node | readonly Node[]): unknown
+  replaceWith(replacement: T | Node | NodePath): unknown
+  replaceWithMultiple(
+    replacement: T[] | Node[] | NodePath<T>[] | NodePath[]
+  ): unknown
+  insertBefore(nodes: T | Node | readonly T[] | readonly Node[]): unknown
 }
 export type Block = b.Block | t.namedTypes.Block
 export type Expression = b.Expression | t.namedTypes.Expression
@@ -90,6 +93,7 @@ export type ExpressionStatement =
   | b.ExpressionStatement
   | t.namedTypes.ExpressionStatement
 export type FlowType = b.FlowType | t.namedTypes.FlowType
+export type Function = b.Function | t.namedTypes.Function
 export type FunctionTypeParam =
   | b.FunctionTypeParam
   | t.namedTypes.FunctionTypeParam
@@ -144,3 +148,6 @@ export type TypeParameter = b.TypeParameter | t.namedTypes.TypeParameter
 export type VariableDeclarator =
   | b.VariableDeclarator
   | t.namedTypes.VariableDeclarator
+export type VariableDeclaration =
+  | b.VariableDeclaration
+  | t.namedTypes.VariableDeclaration

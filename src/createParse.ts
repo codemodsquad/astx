@@ -1,13 +1,9 @@
 import { Backend } from './Backend'
+import createTemplate from './createTemplate'
 import { Expression, Statement, Node, NodePath } from './types'
 
-type ParseBackend = Pick<
-  Backend,
-  'parse' | 'template' | 'forEachNode' | 'makePath'
->
-
 export default function createParse(
-  backend: ParseBackend
+  backend: Backend
 ): {
   parsePaths: (
     strings: TemplateStringsArray | string | string[],
@@ -18,29 +14,22 @@ export default function createParse(
     ...quasis: any[]
   ) => Node | Node[]
 } {
-  const {
-    template: { expression, statements },
-  } = backend
+  const { expression, statements } = createTemplate(backend)
 
   function parse0(
     strings: TemplateStringsArray | string | string[],
     ...quasis: any[]
   ): Expression | Statement | Statement[] {
-    if (typeof strings === 'string') strings = [strings]
-    if (strings.length > 1 || quasis.length)
-      throw new Error('...quasis not supported yet')
     try {
-      const result = statements(strings[0]) //, ...quasis)
-      if (result.length === 1) {
-        return result[0].type === 'ExpressionStatement'
-          ? result[0].expression
-          : result[0]
-      }
-      if (result.length) return result
+      const result = statements(strings, ...quasis)
+      if (result.length === 0) return expression(strings, ...quasis)
+      if (result.length > 1) return result
+      const node = result[0]
+      return node.type === 'ExpressionStatement' ? node.expression : node
     } catch (error) {
       // fallthrough
     }
-    return expression(strings[0]) //, ...quasis)
+    return expression(strings, ...quasis)
   }
 
   function parsePaths(
