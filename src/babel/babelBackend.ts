@@ -8,6 +8,7 @@ import * as defaultTypes from '@babel/types'
 import defaultGenerate from '@babel/generator'
 import * as defaultTraverse from '@babel/traverse'
 import shallowEqual from 'shallowequal'
+import BabelNodePath from './BabelNodePath'
 
 export default function babelBackend({
   parser = defaultParser,
@@ -67,6 +68,11 @@ export default function babelBackend({
     preserveComments: true,
   }
 
+  const isTypeFns = Object.fromEntries(
+    [...Object.entries(t)]
+      .filter(([key]) => /^is[A-Z]/.test(key))
+      .map(([key, value]) => [key.substring(2), value])
+  ) as any
   return {
     parse: (code: string) => parser.parse(code, parserOptions),
     template: {
@@ -106,17 +112,29 @@ export default function babelBackend({
       return generate(node as any)
     },
     makePath: (node: Node): NodePath => {
+      if (node.type === 'File') {
+        let program
+        traverse.default(node, {
+          Program(path: defaultTraverse.NodePath<defaultTypes.Program>) {
+            program = path
+            path.stop()
+          },
+        })
+        if (!program) throw new Error(`failed to get program node`)
+        return BabelNodePath.wrap(program)
+      }
       // This is a big, big hack.
       // Babel seems designed to only start traversal
       // at the root File node.  But this works for now...
-      const makePath = traverse.NodePath.get({
-        hub: null as any,
-        parent: node,
-        container: { root: node } as any,
-        key: 'root',
-        parentPath: null,
-      })
-      return makePath as any
+      return BabelNodePath.wrap(
+        traverse.NodePath.get({
+          hub: null as any,
+          parent: node,
+          container: { root: node } as any,
+          key: 'root',
+          parentPath: null,
+        })
+      )
     },
     sourceRange: (node: Node) => [node.start, node.end],
     getFieldNames,
@@ -130,30 +148,27 @@ export default function babelBackend({
       iteratee: (path: NodePath) => void
     ): void => {
       const visited = new Set()
-      function visitNode(path: NodePath) {
+      function visitNode(path: defaultTraverse.NodePath) {
         if (visited.has(path.node)) return
         visited.add(path.node)
-        iteratee(path)
+        iteratee(BabelNodePath.wrap(path))
       }
       const visitor: defaultTraverse.Visitor = { noScope: true } as any
       for (const nodeType of nodeTypes) {
         ;(visitor as any)[nodeType === 'Node' ? 'enter' : nodeType] = visitNode
       }
-      paths.forEach((path: NodePath) =>
-        (path as defaultTraverse.NodePath).traverse(visitor)
-      )
+      paths.forEach((path: NodePath) => {
+        for (const type of nodeTypes) {
+          if (isTypeFns[type](path.node)) {
+            if (visited.has(path.node)) return
+            visited.add(path.node)
+            iteratee(path)
+          }
+        }
+        ;(path as BabelNodePath).original.traverse(visitor)
+      })
     },
-    traverse: (
-      ast: Node,
-      { Node, ...rest }: { [n in NodeType]?: (path: NodePath) => void }
-    ) => {
-      traverse.default(ast, { ...rest, ...(Node && { enter: Node }) } as any)
-    },
-    isTypeFns: Object.fromEntries(
-      [...Object.entries(t)]
-        .filter(([key]) => /^is[A-Z]/.test(key))
-        .map(([key, value]) => [key.substring(2), value])
-    ) as any,
+    isTypeFns,
     hasNode: <T = any>(path: NodePath<T>): path is NodePath<NonNullable<T>> =>
       t.isNode(path.node),
   }

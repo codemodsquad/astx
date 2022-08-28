@@ -76,19 +76,19 @@ export function createMatch(
 }
 
 export default function find(
-  ast: Node,
+  root: NodePath,
   pattern: NodePath | NodePath[],
   options: FindOptions
 ): Match[] {
   const {
-    backend: { isStatement, traverse },
+    backend: { isStatement, forEachNode },
   } = options
   if (Array.isArray(pattern) && pattern.length === 1) pattern = pattern[0]
   if (Array.isArray(pattern)) {
     if (!isStatement(pattern[0].node)) {
       throw new Error(`pattern array must be an array of statements`)
     }
-    return findStatements(ast, pattern as NodePath<Statement>[], options)
+    return findStatements(root, pattern as NodePath<Statement>[], options)
   }
 
   const matcher = compileMatcher(pattern, options)
@@ -101,28 +101,21 @@ export default function find(
     ? [matcher.nodeType]
     : ['Node']
 
-  const visitor: { [n in NodeType]?: (path: NodePath) => void } = {}
-  const visited: Set<Node> = new Set()
-  function handler(path: NodePath) {
-    if (visited.has(path.node)) return
-    visited.add(path.node)
+  forEachNode([root], nodeTypes, (path: NodePath) => {
     const result = matcher.match(path, options?.matchSoFar ?? null)
     if (result) matches.push(createMatch(path, result))
-  }
-  for (const nodeType of nodeTypes) visitor[nodeType] = handler
-
-  traverse(ast, visitor)
+  })
 
   return matches
 }
 
 function findStatements(
-  ast: Node,
+  root: NodePath,
   pattern: NodePath<Statement>[],
   options: FindOptions
 ): Match[] {
   const {
-    backend: { traverse },
+    backend: { forEachNode },
   } = options
   const matchers: CompiledNodeMatcher[] = pattern.map((queryElem) =>
     compileMatcher(queryElem, options)
@@ -209,10 +202,8 @@ function findStatements(
 
   const blocks: NodePath<Block>[] = []
 
-  traverse(ast, {
-    Block(path: NodePath<Block>) {
-      blocks.push(path)
-    },
+  forEachNode([root], ['Block'], (path: NodePath) => {
+    blocks.push(path as any)
   })
   blocks.reverse()
 

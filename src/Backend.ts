@@ -22,10 +22,6 @@ export type Backend<Node = any> = {
     nodeTypes: NodeType[],
     iteratee: (path: NodePath) => void
   ) => void
-  traverse: (
-    node: Node,
-    visitor: { [n in NodeType]?: (path: NodePath<any>) => void }
-  ) => void
   isTypeFns: Record<string, (node: any) => boolean>
   hasNode: <T = Node>(path: NodePath<T>) => path is NodePath<NonNullable<T>>
 }

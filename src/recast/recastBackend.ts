@@ -57,21 +57,6 @@ export default function recastBackend({
       }
       const visitor: Visitor<any> = {}
       for (const nodeType of nodeTypes) {
-        ;(visitor as any)[`visit${nodeType}`] = visitNode
-      }
-
-      paths.forEach((path: NodePath) => visit(path.node, visitor))
-    },
-    traverse: (
-      ast: Node,
-      _visitor: { [n in NodeType]?: (path: NodePath<any>) => void }
-    ) => {
-      const visitor: Visitor<any> = {}
-      for (const nodeType in _visitor) {
-        const visitNode = function visitNode(this: any, path: ASTPath<Node>) {
-          ;(_visitor as any)[nodeType](JSCodeshiftNodePath.wrap(path))
-          this.traverse(path)
-        }
         if (nodeType === 'Block') {
           visitor.visitProgram = visitNode
           visitor.visitBlockStatement = visitNode
@@ -80,7 +65,8 @@ export default function recastBackend({
           ;(visitor as any)[`visit${nodeType}`] = visitNode
         }
       }
-      t.visit(ast, visitor)
+
+      paths.forEach((path: NodePath) => visit(path.node, visitor))
     },
     isTypeFns: Object.fromEntries(
       [...Object.entries(t.namedTypes)].map(([key, value]) => [

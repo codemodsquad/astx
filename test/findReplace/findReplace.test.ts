@@ -221,9 +221,10 @@ for (const parser in groups) {
             `${testcaseDir}/${key}.ts`,
             function () {
               const ast = backend.parse(input)
+              const root = backend.makePath(ast)
 
               if (expectMatchesSelf) {
-                const matches = find(ast, parsePaths(input), {
+                const matches = find(root, parsePaths(input), {
                   ...findOptions,
                   where,
                   backend,
@@ -234,7 +235,7 @@ for (const parser in groups) {
                 ).to.equal(1)
               }
               if (expectedFind) {
-                const matches = find(ast, parsePaths(_find), {
+                const matches = find(root, parsePaths(_find), {
                   ...findOptions,
                   where,
                   backend,
@@ -245,7 +246,7 @@ for (const parser in groups) {
               }
               if (expectedError) {
                 expect(() => {
-                  find(ast, parsePaths(_find), {
+                  find(root, parsePaths(_find), {
                     ...findOptions,
                     where,
                     backend,
@@ -275,7 +276,8 @@ for (const parser in groups) {
           `${testcaseDir}/${key}.ts`,
           function () {
             const ast = backend.parse(input)
-            const matches = find(ast, parsePaths(_find), {
+            const root = backend.makePath(ast)
+            const matches = find(root, parsePaths(_find), {
               ...findOptions,
               where,
               backend,
