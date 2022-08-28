@@ -11,10 +11,10 @@ import prettier from 'prettier'
 import prepareForBabelGenerate from '../../src/util/prepareForBabelGenerate'
 import { jsParser, tsParser } from 'babel-parse-wild-code'
 import { ParserOptions } from '@babel/parser'
-import recastBackend from '../../src/recast/recastBackend'
-import babelBackend from '../../src/babel/babelBackend'
+import RecastBackend from '../../src/recast/recastBackend'
+import BabelBackend from '../../src/babel/babelBackend'
 import generate from '@babel/generator'
-import { Backend } from '../../src/Backend'
+import { Backend } from '../../src/backend/Backend'
 import createParse from '../../src/createParse'
 
 const projRoot = path.resolve(__dirname, '..', '..')
@@ -175,10 +175,10 @@ for (const parser in groups) {
     ? tsParser.bindParserOpts(parserOpts)
     : jsParser.bindParserOpts(parserOpts)
   // const backend = jscodeshiftBackend(j)
-  const backend =
+  const backend: Backend =
     backendName === 'recast'
-      ? recastBackend({ parseOptions: { parser: babelParser } })
-      : babelBackend({
+      ? new RecastBackend({ parseOptions: { parser: babelParser } })
+      : new BabelBackend({
           parserOptions: babelParser.parserOpts,
         })
   const prettierOptions = {

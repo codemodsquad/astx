@@ -5,7 +5,7 @@ import compileMatcher, {
   MatchResult,
   mergeCaptures,
 } from './compileMatcher'
-import { Backend } from './Backend'
+import { Backend } from './backend/Backend'
 import ensureArray from './util/ensureArray'
 import { match } from 'assert'
 

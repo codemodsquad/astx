@@ -1,5 +1,5 @@
 import { Node, NodePath } from './types'
-import { Backend } from './Backend'
+import { Backend } from './backend/Backend'
 import find, { Match, convertWithCaptures, createMatch } from './find'
 import replace from './replace'
 import compileMatcher, { MatchResult } from './compileMatcher'

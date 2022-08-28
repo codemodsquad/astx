@@ -28,7 +28,7 @@ import TSTypeParameter from './TSTypeParameter'
 import TSTypeReference from './TSTypeReference'
 import TypeParameter from './TypeParameter'
 import VariableDeclarator from './VariableDeclarator'
-import { Backend } from '../Backend'
+import { Backend } from '../backend/Backend'
 
 const _debug = __debug('astx:compileReplacement')
 

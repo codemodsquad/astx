@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import { Backend } from './Backend'
+import { Backend } from './backend/Backend'
 import { Node, Expression, Statement } from './types'
 import compileReplacement from './compileReplacement'
 import convertToExpression from './convertReplacement/convertToExpression'

@@ -1,7 +1,7 @@
 import * as t from 'ast-types'
-import { ASTNode } from 'jscodeshift'
+type Node = t.ASTNode
 
-function addFieldNames(type: ASTNode['type'], ...fields: string[]): string[] {
+function addFieldNames(type: Node['type'], ...fields: string[]): string[] {
   const fieldNames = t.getFieldNames({ type })
   for (const field of fields) {
     if (!fieldNames.includes(field)) fieldNames.push(field)
@@ -20,7 +20,7 @@ const callExpression = addFieldNames(
 const newExpression = addFieldNames('NewExpression', 'typeParameters')
 const importSpecifier = addFieldNames('ImportSpecifier', 'importKind')
 
-export default function getFieldNames(node: ASTNode): string[] {
+export default function getFieldNames(node: Node): string[] {
   switch (node.type) {
     case 'ArrayPattern':
       return arrayPattern

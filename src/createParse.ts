@@ -1,4 +1,4 @@
-import { Backend } from './Backend'
+import { Backend } from './backend/Backend'
 import createTemplate from './createTemplate'
 import { Expression, Statement, Node, NodePath } from './types'
 import ensureArray from './util/ensureArray'

@@ -6,7 +6,7 @@ import {
 } from '.'
 import { Node, NodePath } from '../types'
 import convertToJSXIdentifierName from '../convertReplacement/convertToJSXIdentifierName'
-import { Backend } from '../Backend'
+import { Backend } from '../backend/Backend'
 
 export function unescapeIdentifier(identifier: string): string {
   return identifier.replace(/^\$_/, '$')

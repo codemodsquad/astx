@@ -2,7 +2,7 @@ import { Node } from './types'
 import { Match } from './find'
 import compileReplacement, { CompiledReplacement } from './compileReplacement'
 import createReplacementConverter, { bulkConvert } from './convertReplacement'
-import { Backend } from './Backend'
+import { Backend } from './backend/Backend'
 import pipeline from './util/pipeline'
 
 export type ReplaceOptions = {
