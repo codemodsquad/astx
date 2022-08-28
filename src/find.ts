@@ -7,7 +7,6 @@ import compileMatcher, {
 } from './compileMatcher'
 import { Backend } from './backend/Backend'
 import ensureArray from './util/ensureArray'
-import { match } from 'assert'
 
 export type Match = {
   type: 'node' | 'nodes'

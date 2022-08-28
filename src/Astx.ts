@@ -4,7 +4,7 @@ import find, { Match, convertWithCaptures, createMatch } from './find'
 import replace from './replace'
 import compileMatcher, { MatchResult } from './compileMatcher'
 import CodeFrameError from './util/CodeFrameError'
-import createParse from './createParse'
+import ensureArray from './util/ensureArray'
 
 export type ParseTag = (
   strings: string | string[] | TemplateStringsArray,
@@ -37,7 +37,6 @@ export default class Astx {
   private backend: Backend
   private _paths: NodePath<any>[]
   private _matches: Match[]
-  private _parseTag: ParseTag
   private _withCaptures: Match[]
 
   constructor(
@@ -58,7 +57,6 @@ export default class Astx {
           nodes: [path.node],
         }))
       : (paths as Match[])
-    this._parseTag = createParse(backend).parseNodes
     this._withCaptures = withCaptures
   }
 
@@ -206,35 +204,31 @@ export default class Astx {
       | TemplateStringsArray,
     ...rest: any[]
   ): Astx | ((options?: FindOptions) => Astx) {
+    const { backend } = this
+    const { parsePattern, makePath } = backend
     try {
       let paths: NodePath<any>[], options: FindOptions | undefined
       if (typeof arg0 === 'string') {
-        paths = this.backend(
-          parseFindOrReplace(this.backend, [arg0] as any) as Node | Node[]
-        ).paths()
+        paths = ensureArray(parsePattern(arg0))
         options = rest[0]
       } else if (isNode(arg0) || isNodeArray(arg0)) {
-        paths = this.backend(arg0).paths()
+        paths = ensureArray(arg0).map(makePath)
         options = rest[0]
-      } else if (isNodePath(arg0)) {
-        paths = [arg0]
-        options = rest[0]
-      } else if (isNodePathArray(arg0)) {
-        paths = arg0
+      } else if (isNodePath(arg0) || isNodePathArray(arg0)) {
+        paths = ensureArray(arg0)
         options = rest[0]
       } else {
-        const finalPaths = this.backend(
-          parseFindOrReplace(this.backend, arg0 as any, ...rest) as
-            | Node
-            | Node[]
-        ).paths()
+        const finalPaths = parsePattern(arg0 as any, ...rest)
         return (options?: FindOptions) =>
           this.closest(finalPaths, options) as any
       }
       if (paths.length !== 1) {
         throw new Error(`must be a single node`)
       }
-      const matcher = compileMatcher(paths[0], options)
+      const matcher = compileMatcher(paths[0], {
+        ...options,
+        backend,
+      })
       const matchSoFar = this._createInitialMatch()
 
       const matchedParents: Set<NodePath> = new Set()
@@ -253,7 +247,7 @@ export default class Astx {
         }
       })
 
-      return new Astx(this.backend, matches)
+      return new Astx(backend, matches)
     } catch (error) {
       if (error instanceof Error) {
         CodeFrameError.rethrow(error, {
@@ -266,7 +260,7 @@ export default class Astx {
   }
 
   find(
-    strings: TemplateStringsArray,
+    strings: string[] | TemplateStringsArray,
     ...quasis: any[]
   ): (options?: FindOptions) => Astx
   find(
@@ -280,34 +274,32 @@ export default class Astx {
       | Node[]
       | NodePath<any>
       | NodePath<any>[]
+      | string[]
       | TemplateStringsArray,
     ...rest: any[]
   ): Astx | ((options?: FindOptions) => Astx) {
+    const { backend } = this
+    const { parsePattern, makePath } = backend
     try {
       let pattern, options: FindOptions | undefined
       if (typeof arg0 === 'string') {
-        pattern = this.backend(
-          parseFindOrReplace(this.backend, [arg0] as any) as Node | Node[]
-        ).paths()
+        pattern = parsePattern(arg0)
         options = rest[0]
       } else if (isNode(arg0) || isNodeArray(arg0)) {
-        pattern = this.backend(arg0).paths()
+        pattern = ensureArray(arg0).map(makePath)
         options = rest[0]
       } else if (isNodePath(arg0) || isNodePathArray(arg0)) {
         pattern = arg0
         options = rest[0]
       } else {
-        const finalPaths = this.backend(
-          parseFindOrReplace(this.backend, arg0 as any, ...rest) as
-            | Node
-            | Node[]
-        ).paths()
+        const finalPaths = parsePattern(arg0 as any, ...rest)
         return (options?: FindOptions) => this.find(finalPaths, options) as any
       }
       return new Astx(
-        this.backend,
+        backend,
         find(this._paths, pattern, {
           ...options,
+          backend,
           matchSoFar: this._createInitialMatch(),
         })
       )
@@ -322,35 +314,43 @@ export default class Astx {
     }
   }
 
-  replace(strings: TemplateStringsArray, ...quasis: any[]): () => void
+  replace(
+    strings: string[] | TemplateStringsArray,
+    ...quasis: any[]
+  ): () => void
   replace(replacement: string | Node | Node[] | GetReplacement): void
   replace(
-    arg0: string | Node | Node[] | GetReplacement | TemplateStringsArray,
+    arg0:
+      | string
+      | Node
+      | Node[]
+      | GetReplacement
+      | string[]
+      | TemplateStringsArray,
     ...quasis: any[]
   ): void | (() => void) {
+    const { backend } = this
+    const { parsePatternToNodes } = backend
     try {
-      const { _matches, _parseTag, jscodeshift } = this
+      const { _matches } = this
       if (typeof arg0 === 'function') {
         replace(
           _matches,
-          (match: Match): Node => {
-            const result = arg0(match, _parseTag)
+          (match: Match): Node | Node[] => {
+            const result = arg0(match, parsePatternToNodes)
             return typeof result === 'string'
-              ? (parseFindOrReplace(jscodeshift, [result] as any) as any)
+              ? parsePatternToNodes(result)
               : result
-          }
+          },
+          { backend }
         )
       } else if (typeof arg0 === 'string') {
-        replace(_matches, parseFindOrReplace(jscodeshift, [arg0] as any) as any)
+        replace(_matches, parsePatternToNodes(arg0), { backend })
       } else if (isNode(arg0) || isNodeArray(arg0)) {
-        replace(_matches, arg0 as any)
+        replace(_matches, arg0, { backend })
       } else {
-        const parsed = parseFindOrReplace(
-          jscodeshift,
-          arg0 as any,
-          ...quasis
-        ) as any
-        return () => replace(_matches, parsed)
+        return () =>
+          replace(_matches, parsePatternToNodes(arg0, ...quasis), { backend })
       }
     } catch (error) {
       if (error instanceof Error) {

@@ -11,11 +11,10 @@ import prettier from 'prettier'
 import prepareForBabelGenerate from '../../src/util/prepareForBabelGenerate'
 import { jsParser, tsParser } from 'babel-parse-wild-code'
 import { ParserOptions } from '@babel/parser'
-import RecastBackend from '../../src/recast/recastBackend'
-import BabelBackend from '../../src/babel/babelBackend'
+import RecastBackend from '../../src/recast/RecastBackend'
+import BabelBackend from '../../src/babel/BabelBackend'
 import generate from '@babel/generator'
 import { Backend } from '../../src/backend/Backend'
-import createParse from '../../src/createParse'
 
 const projRoot = path.resolve(__dirname, '..', '..')
 const testcaseDir = path.relative(
@@ -178,9 +177,7 @@ for (const parser in groups) {
   const backend: Backend =
     backendName === 'recast'
       ? new RecastBackend({ parseOptions: { parser: babelParser } })
-      : new BabelBackend({
-          parserOptions: babelParser.parserOpts,
-        })
+      : new BabelBackend({ parserOptions: babelParser.parserOpts })
   const prettierOptions = {
     parser:
       parser === 'babel' || actualParser === 'babylon'
@@ -198,8 +195,6 @@ for (const parser in groups) {
 
   const reformat = (code: string) =>
     format(backend.generate(backend.parse(code)).code)
-
-  const { parsePaths, parseNodes } = createParse(backend)
 
   describe(`with parser: ${parser}`, function () {
     if (!parser.endsWith('-babel-generator')) {
@@ -224,7 +219,7 @@ for (const parser in groups) {
               const root = backend.makePath(ast)
 
               if (expectMatchesSelf) {
-                const matches = find(root, parsePaths(input), {
+                const matches = find(root, backend.parsePattern(input), {
                   ...findOptions,
                   where,
                   backend,
@@ -235,7 +230,7 @@ for (const parser in groups) {
                 ).to.equal(1)
               }
               if (expectedFind) {
-                const matches = find(root, parsePaths(_find), {
+                const matches = find(root, backend.parsePattern(_find), {
                   ...findOptions,
                   where,
                   backend,
@@ -246,7 +241,7 @@ for (const parser in groups) {
               }
               if (expectedError) {
                 expect(() => {
-                  find(root, parsePaths(_find), {
+                  find(root, backend.parsePattern(_find), {
                     ...findOptions,
                     where,
                     backend,
@@ -277,7 +272,7 @@ for (const parser in groups) {
           function () {
             const ast = backend.parse(input)
             const root = backend.makePath(ast)
-            const matches = find(root, parsePaths(_find), {
+            const matches = find(root, backend.parsePattern(_find), {
               ...findOptions,
               where,
               backend,
@@ -289,11 +284,14 @@ for (const parser in groups) {
                   replace(
                     matches,
                     typeof _replace === 'string'
-                      ? parseNodes(_replace)
+                      ? backend.parsePatternToNodes(_replace)
                       : (match): Node | Node[] => {
-                          const result = _replace(match, parseNodes)
+                          const result = _replace(
+                            match,
+                            backend.parsePatternToNodes
+                          )
                           return typeof result === 'string'
-                            ? parseNodes(result)
+                            ? backend.parsePatternToNodes(result)
                             : result
                         },
                     { backend }
@@ -304,11 +302,14 @@ for (const parser in groups) {
               replace(
                 matches,
                 typeof _replace === 'string'
-                  ? parseNodes(_replace)
+                  ? backend.parsePatternToNodes(_replace)
                   : (match): Node | Node[] => {
-                      const result = _replace(match, parseNodes)
+                      const result = _replace(
+                        match,
+                        backend.parsePatternToNodes
+                      )
                       return typeof result === 'string'
-                        ? parseNodes(result)
+                        ? backend.parsePatternToNodes(result)
                         : result
                     },
                 { backend }
