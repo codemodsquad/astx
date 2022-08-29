@@ -6,10 +6,9 @@ export default function compileTSTypeAnnotationMatcher(
   path: NodePath<TSTypeAnnotation>,
   compileOptions: CompileOptions
 ): CompiledMatcher | void {
-  const annotationMatcher = compileMatcher(
-    path.get('typeAnnotation'),
-    compileOptions
-  )
+  const typeAnnotation = path.get('typeAnnotation')
+  if (!compileOptions.backend.hasNode(typeAnnotation)) return
+  const annotationMatcher = compileMatcher(typeAnnotation, compileOptions)
 
   if (annotationMatcher.optional) {
     return {

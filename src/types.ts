@@ -75,7 +75,10 @@ export type JSXText = b.JSXText | k.JSXTextKind
 export type NumericLiteral = b.NumericLiteral | k.NumericLiteralKind
 export type ObjectExpression = b.ObjectExpression | k.ObjectExpressionKind
 export type ObjectMethod = b.ObjectMethod | k.ObjectMethodKind
-export type ObjectProperty = b.ObjectProperty | k.ObjectPropertyKind
+export type ObjectProperty =
+  | b.ObjectProperty
+  | k.ObjectPropertyKind
+  | k.PropertyKind
 export type ObjectTypeProperty = b.ObjectTypeProperty | k.ObjectTypePropertyKind
 export type RegExpLiteral = b.RegExpLiteral | k.RegExpLiteralKind
 export type StringLiteral = b.StringLiteral | k.StringLiteralKind

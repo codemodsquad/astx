@@ -12,11 +12,9 @@ import Path from 'path'
 import memoize from 'lodash/memoize'
 import { promisify } from 'util'
 import _resolve from 'resolve'
-import makeTemplate from './util/template'
 import { FindOptions, Match } from './find'
-import omitBlankLineChanges from '../util/omitBlankLineChanges'
+import omitBlankLineChanges from './util/omitBlankLineChanges'
 import generate from '@babel/generator'
-import prepareForBabelGenerate from '../util/prepareForBabelGenerate'
 import CodeFrameError from './util/CodeFrameError'
 const resolve = promisify(_resolve) as any
 

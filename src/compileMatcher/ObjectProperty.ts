@@ -1,14 +1,18 @@
-import { ObjectProperty, NodePath } from '../types'
-import compileMatcher, { CompiledMatcher, CompileOptions, MatchResult } from '.'
+import { ObjectProperty, NodePath, NodeType } from '../types'
+import compileMatcher, {
+  CompiledNodeMatcher,
+  CompileOptions,
+  MatchResult,
+} from '.'
 import compileCaptureMatcher from './Capture'
 import indentDebug from './indentDebug'
 
-const nodeTypes = ['Property', 'ObjectProperty']
+const nodeTypes: NodeType[] = ['Property', 'ObjectProperty']
 
 export default function compileObjectPropertyMatcher(
   path: NodePath<ObjectProperty>,
   compileOptions: CompileOptions
-): CompiledMatcher | void {
+): CompiledNodeMatcher | void {
   const { debug } = compileOptions
   const subCompileOptions = {
     ...compileOptions,
@@ -38,12 +42,13 @@ export default function compileObjectPropertyMatcher(
       type: 'node',
       pattern: path,
       nodeType: nodeTypes,
-      match: (path: NodePath, matchSoFar: MatchResult): MatchResult => {
-        const { node } = path
+      match: (_path: NodePath, matchSoFar: MatchResult): MatchResult => {
+        const { node } = _path
         if (!nodeTypes.includes(node.type)) {
           debug(`wrong node type`)
           return null
         }
+        const path: NodePath<ObjectProperty> = _path as NodePath<any>
         debug('key')
         matchSoFar = keyMatcher.match(path.get('key'), matchSoFar)
         if (!matchSoFar) return null
