@@ -147,7 +147,7 @@ export default function compileObjectExpressionMatcher(
           const matcher = remainingSimpleProperties.get(simpleKey)
 
           if (matcher) {
-            debug(`  ${simpleKey} (exact key)`)
+            debug('  %s (exact key)', simpleKey)
             const result = matcher.match(propertyPath, matchSoFar)
 
             if (!result) return null
@@ -161,7 +161,7 @@ export default function compileObjectExpressionMatcher(
         let matched = false
         let o = 0
         for (const otherMatcher of remainingOtherProperties) {
-          debug(`  (other property [${o++}])`)
+          debug('  (other property [%d])', o++)
           const result = otherMatcher.match(propertyPath, matchSoFar)
 
           if (!result) continue
@@ -174,26 +174,29 @@ export default function compileObjectExpressionMatcher(
         if (matched) continue
 
         if (capturedRestProperties) {
-          debug(`    captured in ${captureRestVariable}`)
+          debug('    captured in %s', captureRestVariable)
           capturedRestProperties.push(propertyPath)
         } else {
-          debug(`    not found in pattern`)
+          debug('    not found in pattern')
           return null
         }
       }
 
       if (remainingSimpleProperties.size) {
-        debug(
-          `  missing properties from pattern: %s`,
-          [...remainingSimpleProperties.keys()].join(', ')
-        )
+        if (debug.enabled) {
+          debug('  missing properties from pattern:')
+          for (const key of remainingSimpleProperties.keys()) {
+            debug('    %s', key)
+          }
+        }
 
         return null
       }
 
       if (remainingOtherProperties.size) {
         debug(
-          `  missing ${remainingOtherProperties.size} other properties from pattern`
+          `  missing %d other properties from pattern`,
+          remainingOtherProperties.size
         )
         return null
       }
