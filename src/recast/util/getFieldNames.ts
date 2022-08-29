@@ -32,6 +32,8 @@ export default function getFieldNames(node: Node): string[] {
       return newExpression
     case 'ImportSpecifier':
       return importSpecifier
+    case 'PropertyDefinition':
+      return getFieldNames({ type: 'Property' })
     default:
       return t.getFieldNames(node)
   }

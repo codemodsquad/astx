@@ -50,5 +50,9 @@ interface Foo {
 }
 `
 
-// currently not working
-// export const skip = true
+export const parsers = [
+  'babel',
+  'babel/tsx',
+  // 'recast/babel', recast bug...
+  'recast/babel/tsx',
+]

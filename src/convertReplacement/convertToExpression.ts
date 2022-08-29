@@ -10,7 +10,8 @@ export default function convertToExpression(value: Node): Expression | void {
       return { ...value, type: 'FunctionExpression' }
     case 'ExpressionStatement':
     case 'JSXExpressionContainer':
-      return value.expression
+      if (value.expression?.type !== 'JSXEmptyExpression')
+        return value.expression
   }
   if (t.isExpression(value)) return value
   const name = convertToIdentifierName(value)

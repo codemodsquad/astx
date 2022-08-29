@@ -180,7 +180,7 @@ export default class BabelBackend extends Backend<Node> {
             iteratee(path)
           }
         }
-        ;(path as BabelNodePath).original.traverse(visitor)
+        ;(path as BabelNodePath).wrapped.traverse(visitor)
       })
     }
     this.isTypeFns = isTypeFns

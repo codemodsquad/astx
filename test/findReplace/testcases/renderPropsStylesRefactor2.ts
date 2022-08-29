@@ -100,7 +100,7 @@ const Table = ({classes, children, striped, ...props}: Props): React.Node => (
 export default Table
 `
 
-export const parsers = ['babel', 'recast/babel-generator']
+export const parsers = ['babel']
 
 export const find = `
 import $createStyled from 'material-ui-render-props-styles'

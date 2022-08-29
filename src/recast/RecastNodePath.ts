@@ -1,16 +1,12 @@
 import { Node, NodePath } from '../types'
 import { NodePath as ASTPath } from 'ast-types/lib/node-path'
 import * as t from 'ast-types'
-import { AstPath } from 'prettier'
 
 export default class RecastNodePath<T = Node> implements NodePath<T> {
-  original: ASTPath<T>
+  wrapped: ASTPath<T>
 
-  constructor(original: ASTPath<T>) {
-    if (original.value instanceof RecastNodePath) {
-      throw new Error('TEST')
-    }
-    this.original = original
+  constructor(wrapped: ASTPath<T>) {
+    this.wrapped = wrapped
   }
 
   static _cache: WeakMap<ASTPath<any>, NodePath<any>> = new WeakMap()
@@ -24,27 +20,27 @@ export default class RecastNodePath<T = Node> implements NodePath<T> {
   }
 
   get node(): T {
-    return this.original.value as any
+    return this.wrapped.value as any
   }
 
   get container(): Node | Node[] {
-    const { parentPath } = this.original
+    const { parentPath } = this.wrapped
     if (parentPath && Array.isArray(parentPath.value)) return parentPath.value
     return this.isNode() ? (this as any).node : parentPath.value
   }
 
   get key(): string | number | undefined {
-    return this.original.name
+    return this.wrapped.name
   }
 
   get listKey(): string | number | undefined {
     return Array.isArray(this.container)
-      ? this.original.parentPath?.name
+      ? this.wrapped.parentPath?.name
       : undefined
   }
 
   get parentPath(): NodePath | undefined {
-    const { parentPath } = this.original
+    const { parentPath } = this.wrapped
     if (!parentPath) return undefined
     if (Array.isArray(parentPath.value)) {
       return RecastNodePath.wrap(parentPath.parentPath)
@@ -54,17 +50,17 @@ export default class RecastNodePath<T = Node> implements NodePath<T> {
 
   insertBefore(nodes: T | Node | readonly T[] | readonly Node[]): void {
     if (Array.isArray(nodes)) {
-      this.original.insertBefore(...nodes)
+      this.wrapped.insertBefore(...nodes)
     } else {
-      this.original.insertBefore(nodes)
+      this.wrapped.insertBefore(nodes)
     }
   }
 
   remove(): void {
-    this.original.prune()
+    this.wrapped.prune()
   }
   replaceWith(replacement: T | Node | NodePath): void {
-    this.original.replace(
+    this.wrapped.replace(
       replacement instanceof RecastNodePath
         ? (replacement as any).node
         : (replacement as any)
@@ -89,7 +85,7 @@ export default class RecastNodePath<T = Node> implements NodePath<T> {
     ? NodePath<T[K]>
     : never
   get(key: string | number): NodePath<any> | NodePath<any>[] {
-    const path = this.original.get(key)
+    const path = this.wrapped.get(key)
     if (Array.isArray(path.value)) {
       return path.filter(() => true).map(RecastNodePath.wrap)
     } else {

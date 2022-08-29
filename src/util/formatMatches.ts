@@ -1,5 +1,5 @@
 import chalk from 'chalk'
-import countLines from '../../util/countLines'
+import countLines from './countLines'
 import { Match } from '../find'
 
 const captureColors = [

@@ -1,4 +1,4 @@
-export const parsers = ['recast/tsx', 'babel/tsx', 'recast/tsx-babel-generator']
+export const parsers = ['babel/tsx', 'recast/babel/tsx']
 
 export const input = `
 import A, {B, C, D, E} from 'foo'

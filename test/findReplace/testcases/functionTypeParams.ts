@@ -1,12 +1,8 @@
 export const parsers = [
-  // recast bug
-  // 'recast/babel', 'babel',
-  // 'recast/flow',,
   'babel',
-  'recast/tsx',
   'babel/tsx',
-  'recast/babel-generator',
-  'recast/tsx-babel-generator',
+  'recast/babel',
+  'recast/babel/tsx',
 ]
 
 export const input = `

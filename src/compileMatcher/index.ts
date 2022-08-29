@@ -133,6 +133,7 @@ const nodeMatchers: Record<
   ObjectExpression,
   ObjectProperty,
   Property: ObjectProperty,
+  PropertyDefinition: ObjectProperty,
   ObjectTypeProperty,
   RegExpLiteral,
   StringLiteral,

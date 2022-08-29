@@ -7,9 +7,9 @@ import { NodePath as ASTPath } from 'ast-types/lib/node-path'
 import RecastNodePath from './RecastNodePath'
 import * as defaultRecast from 'recast'
 import * as t from 'ast-types'
-import withParser from './util/template'
+import * as k from 'ast-types/gen/kinds'
 
-type Node = t.ASTNode
+type Node = k.NodeKind
 
 export default class RecastBackend extends Backend<Node> {
   parse: (code: string) => Node
@@ -42,12 +42,36 @@ export default class RecastBackend extends Backend<Node> {
     parseOptions?: defaultRecast.Options
   } = {}) {
     super()
-    const template = withParser(recast, parseOptions)
     this.parse = (code: string) => recast.parse(code, parseOptions)
-    this.parseStatements = (code: string) =>
-      template.statements([code]) as Statement[]
-    this.parseExpression = (code: string) => template.expression([code])
-    this.generate = (node: Node) => recast.print(node)
+    this.parseStatements = (code: string): Statement[] => {
+      const ast: k.FileKind = recast.parse(code, parseOptions)
+      const errors =
+        ast.type === 'File' ? (ast.program as any).errors : (ast as any).errors
+      if (errors?.length) {
+        // Flow parser returns a bogus AST instead of throwing when the grammar is invalid,
+        // but it at least includes parse errors in this array
+        throw new Error(errors[0].message)
+      }
+      return ast.program.body
+    }
+    this.parseExpression = (code: string): Expression => {
+      // wrap code in `(...)` to force evaluation as expression
+      const statements = this.parseStatements(`(${code})`)
+      let expression: Expression
+      if (statements[0]?.type === 'ExpressionStatement') {
+        expression = statements[0].expression
+      } else {
+        throw new Error(`invalid expression: ${code}`)
+      }
+
+      // Remove added parens
+      if ((expression as any).extra) {
+        ;(expression as any).extra.parenthesized = false
+      }
+
+      return expression
+    }
+    this.generate = (node: Node): { code: string } => recast.print(node)
     this.makePath = (node: Node) => RecastNodePath.wrap(new t.NodePath(node))
     this.isPath = (thing: any): thing is NodePath =>
       thing instanceof RecastNodePath

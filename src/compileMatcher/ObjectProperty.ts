@@ -3,6 +3,8 @@ import compileMatcher, { CompiledMatcher, CompileOptions, MatchResult } from '.'
 import compileCaptureMatcher from './Capture'
 import indentDebug from './indentDebug'
 
+const nodeTypes = ['Property', 'PropertyDefinition', 'ObjectProperty']
+
 export default function compileObjectPropertyMatcher(
   path: NodePath<ObjectProperty>,
   compileOptions: CompileOptions
@@ -35,11 +37,11 @@ export default function compileObjectPropertyMatcher(
     return {
       type: 'node',
       pattern: path,
-      nodeType: ['Property', 'ObjectProperty'],
+      nodeType: nodeTypes,
       match: (path: NodePath, matchSoFar: MatchResult): MatchResult => {
         const { node } = path
-        if (node.type !== 'Property' && node.type !== 'ObjectProperty') {
-          debug(`node.type !== 'Property' && node.type !== 'ObjectProperty'`)
+        if (!nodeTypes.includes(node.type)) {
+          debug(`wrong node type`)
           return null
         }
         debug('key')

@@ -7,6 +7,7 @@ import BabelBackend from '../src/babel/BabelBackend'
 import prettier from 'prettier'
 import * as t from '@babel/types'
 import { tsParser } from 'babel-parse-wild-code'
+import { Backend } from '../src/backend/Backend'
 
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
@@ -14,7 +15,7 @@ describe(`Astx`, function () {
   for (const backend of [
     new RecastBackend({ parseOptions: { parser: tsParser } }),
     new BabelBackend(),
-  ]) {
+  ] as Backend<any>[]) {
     const prettierOptions = { parser: 'babel-ts' }
     const format = (code: string) =>
       prettier

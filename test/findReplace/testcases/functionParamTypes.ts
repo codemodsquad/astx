@@ -1,9 +1,4 @@
-export const parsers = [
-  'recast/babel',
-  'babel',
-  'recast/flow',
-  'recast/babel-generator',
-]
+export const parsers = ['babel', 'recast/babel', 'recast/flow']
 
 export const input = `
 type Foo = (a: number, b: string, c: [number, string], d: any, $e) => any

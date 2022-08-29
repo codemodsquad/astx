@@ -200,7 +200,7 @@ function findStatements(
   const blocks: NodePath<Block>[] = []
 
   forEachNode(ensureArray(paths), ['Block'], (path: NodePath) => {
-    blocks.push(path as any)
+    blocks.push(path as NodePath<Block>)
   })
   blocks.reverse()
 
@@ -209,7 +209,7 @@ function findStatements(
   const initialMatch = options?.matchSoFar ?? null
 
   for (const block of blocks) {
-    const body: NodePath<Statement>[] = block.get('body') as any
+    const body: NodePath<Statement>[] = block.get('body')
     const end = body.length - remainingElements(firstNonArrayCaptureIndex + 1)
     let sliceStart = 0
     for (let arrayIndex = 0; arrayIndex < end; arrayIndex++) {

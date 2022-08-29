@@ -1,12 +1,13 @@
 import * as b from '@babel/types'
 import * as t from 'ast-types'
+import * as k from 'ast-types/gen/kinds'
 
 export type NodeType =
   | keyof typeof t.namedTypes
   | b.Node['type']
   | keyof b.Aliases
 
-export type Node = b.Node | t.namedTypes.ASTNode
+export type Node = b.Node | k.NodeKind
 
 export interface NodePath<T = Node> {
   node: T
@@ -14,6 +15,7 @@ export interface NodePath<T = Node> {
   container?: Node | Node[]
   key?: string | number
   listKey?: string | number
+  wrapped: any
   get<K extends keyof T>(
     key: K
   ): T[K] extends Array<Node | null | undefined>
@@ -32,122 +34,66 @@ export interface NodePath<T = Node> {
   ): unknown
   insertBefore(nodes: T | Node | readonly T[] | readonly Node[]): unknown
 }
-export type Block = b.Block | t.namedTypes.Block
-export type Expression = b.Expression | t.namedTypes.Expression
-export type Statement =
-  | b.Statement
-  | t.namedTypes.BlockStatement
-  | t.namedTypes.BreakStatement
-  | t.namedTypes.ContinueStatement
-  | t.namedTypes.DebuggerStatement
-  | t.namedTypes.DoWhileStatement
-  | t.namedTypes.EmptyStatement
-  | t.namedTypes.ExpressionStatement
-  | t.namedTypes.ForInStatement
-  | t.namedTypes.ForStatement
-  | t.namedTypes.FunctionDeclaration
-  | t.namedTypes.IfStatement
-  | t.namedTypes.LabeledStatement
-  | t.namedTypes.ReturnStatement
-  | t.namedTypes.SwitchStatement
-  | t.namedTypes.ThrowStatement
-  | t.namedTypes.TryStatement
-  | t.namedTypes.VariableDeclaration
-  | t.namedTypes.WhileStatement
-  | t.namedTypes.WithStatement
-  | t.namedTypes.ClassDeclaration
-  | t.namedTypes.ExportAllDeclaration
-  | t.namedTypes.ExportDefaultDeclaration
-  | t.namedTypes.ExportNamedDeclaration
-  | t.namedTypes.ForOfStatement
-  | t.namedTypes.ImportDeclaration
-  | t.namedTypes.DeclareClass
-  | t.namedTypes.DeclareFunction
-  | t.namedTypes.DeclareInterface
-  | t.namedTypes.DeclareModule
-  | t.namedTypes.DeclareModuleExports
-  | t.namedTypes.DeclareTypeAlias
-  | t.namedTypes.DeclareOpaqueType
-  | t.namedTypes.DeclareVariable
-  | t.namedTypes.DeclareExportDeclaration
-  | t.namedTypes.DeclareExportAllDeclaration
-  | t.namedTypes.InterfaceDeclaration
-  | t.namedTypes.OpaqueType
-  | t.namedTypes.TypeAlias
-  | t.namedTypes.EnumDeclaration
-  | t.namedTypes.TSDeclareFunction
-  | t.namedTypes.TSInterfaceDeclaration
-  | t.namedTypes.TSTypeAliasDeclaration
-  | t.namedTypes.TSEnumDeclaration
-  | t.namedTypes.TSModuleDeclaration
-  | t.namedTypes.TSImportEqualsDeclaration
-  | t.namedTypes.TSExportAssignment
-  | t.namedTypes.TSNamespaceExportDeclaration
-
-export type BooleanLiteral = b.BooleanLiteral | t.namedTypes.BooleanLiteral
-export type CallExpression = b.CallExpression | t.namedTypes.CallExpression
-export type ClassDeclaration = b.ClassImplements | t.namedTypes.ClassImplements
-export type ClassImplements = b.ClassImplements | t.namedTypes.ClassImplements
-export type ClassProperty = b.ClassProperty | t.namedTypes.ClassProperty
+export type Block =
+  | b.Block
+  | k.BlockStatementKind
+  | k.ProgramKind
+  | k.TSModuleBlockKind
+export type Expression = b.Expression | k.ExpressionKind
+export type Statement = b.Statement | k.StatementKind
+export type BooleanLiteral = b.BooleanLiteral | k.BooleanLiteralKind
+export type CallExpression = b.CallExpression | k.CallExpressionKind
+export type ClassDeclaration = b.ClassImplements | k.ClassImplementsKind
+export type ClassImplements = b.ClassImplements | k.ClassImplementsKind
+export type ClassProperty = b.ClassProperty | k.ClassPropertyKind
 export type ExpressionStatement =
   | b.ExpressionStatement
-  | t.namedTypes.ExpressionStatement
-export type FlowType = b.FlowType | t.namedTypes.FlowType
-export type Function = b.Function | t.namedTypes.Function
-export type FunctionTypeParam =
-  | b.FunctionTypeParam
-  | t.namedTypes.FunctionTypeParam
+  | k.ExpressionStatementKind
+export type FlowType = b.FlowType | k.FlowTypeKind
+export type TSType = b.TSType | k.TSTypeKind
+export type Function = b.Function | k.FunctionKind
+export type FunctionTypeParam = b.FunctionTypeParam | k.FunctionTypeParamKind
 export type GenericTypeAnnotation =
   | b.GenericTypeAnnotation
-  | t.namedTypes.GenericTypeAnnotation
-export type Identifier = b.Identifier | t.namedTypes.Identifier
+  | k.GenericTypeAnnotationKind
+export type Identifier = b.Identifier | k.IdentifierKind
 export type ImportDefaultSpecifier =
   | b.ImportDefaultSpecifier
-  | t.namedTypes.ImportDefaultSpecifier
-export type ImportDeclaration =
-  | b.ImportDeclaration
-  | t.namedTypes.ImportDeclaration
+  | k.ImportDefaultSpecifierKind
+export type ImportDeclaration = b.ImportDeclaration | k.ImportDeclarationKind
 export type ImportNamespaceSpecifier =
   | b.ImportNamespaceSpecifier
-  | t.namedTypes.ImportNamespaceSpecifier
-export type ImportSpecifier = b.ImportSpecifier | t.namedTypes.ImportSpecifier
-export type JSXAttribute = b.JSXAttribute | t.namedTypes.JSXAttribute
-export type JSXElement = b.JSXElement | t.namedTypes.JSXElement
+  | k.ImportNamespaceSpecifierKind
+export type ImportSpecifier = b.ImportSpecifier | k.ImportSpecifierKind
+export type JSXAttribute = b.JSXAttribute | k.JSXAttributeKind
+export type JSXElement = b.JSXElement | k.JSXElementKind
 export type JSXExpressionContainer =
   | b.JSXExpressionContainer
-  | t.namedTypes.JSXExpressionContainer
-export type JSXIdentifier = b.JSXIdentifier | t.namedTypes.JSXIdentifier
-export type JSXText = b.JSXText | t.namedTypes.JSXText
-export type NumericLiteral = b.NumericLiteral | t.namedTypes.NumericLiteral
-export type ObjectExpression =
-  | b.ObjectExpression
-  | t.namedTypes.ObjectExpression
-export type ObjectMethod = b.ObjectMethod | t.namedTypes.ObjectMethod
-export type ObjectProperty = b.ObjectProperty | t.namedTypes.ObjectProperty
-export type ObjectTypeProperty =
-  | b.ObjectTypeProperty
-  | t.namedTypes.ObjectTypeProperty
-export type RegExpLiteral = b.RegExpLiteral | t.namedTypes.RegExpLiteral
-export type StringLiteral = b.StringLiteral | t.namedTypes.StringLiteral
-export type SpreadProperty = t.namedTypes.SpreadProperty
-export type SpreadElement = b.SpreadElement | t.namedTypes.SpreadElement
-export type TemplateLiteral = b.TemplateLiteral | t.namedTypes.TemplateLiteral
+  | k.JSXExpressionContainerKind
+export type JSXIdentifier = b.JSXIdentifier | k.JSXIdentifierKind
+export type JSXText = b.JSXText | k.JSXTextKind
+export type NumericLiteral = b.NumericLiteral | k.NumericLiteralKind
+export type ObjectExpression = b.ObjectExpression | k.ObjectExpressionKind
+export type ObjectMethod = b.ObjectMethod | k.ObjectMethodKind
+export type ObjectProperty = b.ObjectProperty | k.ObjectPropertyKind
+export type ObjectTypeProperty = b.ObjectTypeProperty | k.ObjectTypePropertyKind
+export type RegExpLiteral = b.RegExpLiteral | k.RegExpLiteralKind
+export type StringLiteral = b.StringLiteral | k.StringLiteralKind
+export type SpreadProperty = k.SpreadPropertyKind
+export type SpreadElement = b.SpreadElement | k.SpreadElementKind
+export type TemplateLiteral = b.TemplateLiteral | k.TemplateLiteralKind
 export type TSExpressionWithTypeArguments =
   | b.TSExpressionWithTypeArguments
-  | t.namedTypes.TSExpressionWithTypeArguments
+  | k.TSExpressionWithTypeArgumentsKind
 export type TSPropertySignature =
   | b.TSPropertySignature
-  | t.namedTypes.TSPropertySignature
-export type TSTypeAnnotation =
-  | b.TSTypeAnnotation
-  | t.namedTypes.TSTypeAnnotation
-export type TSTypeParameter = b.TSTypeParameter | t.namedTypes.TSTypeParameter
-export type TSTypeReference = b.TSTypeReference | t.namedTypes.TSTypeReference
-export type TypeAnnotation = b.TypeAnnotation | t.namedTypes.TypeAnnotation
-export type TypeParameter = b.TypeParameter | t.namedTypes.TypeParameter
-export type VariableDeclarator =
-  | b.VariableDeclarator
-  | t.namedTypes.VariableDeclarator
+  | k.TSPropertySignatureKind
+export type TSTypeAnnotation = b.TSTypeAnnotation | k.TSTypeAnnotationKind
+export type TSTypeParameter = b.TSTypeParameter | k.TSTypeParameterKind
+export type TSTypeReference = b.TSTypeReference | k.TSTypeReferenceKind
+export type TypeAnnotation = b.TypeAnnotation | k.TypeAnnotationKind
+export type TypeParameter = b.TypeParameter | k.TypeParameterKind
+export type VariableDeclarator = b.VariableDeclarator | k.VariableDeclaratorKind
 export type VariableDeclaration =
   | b.VariableDeclaration
-  | t.namedTypes.VariableDeclaration
+  | k.VariableDeclarationKind
