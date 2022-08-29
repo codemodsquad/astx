@@ -16,6 +16,7 @@ export default class BabelBackend extends Backend<Node> {
   parseStatements: (code: string) => Statement[]
   generate: (node: Node) => { code: string }
   makePath: (node: Node) => NodePath
+  isPath: (thing: any) => thing is NodePath
   sourceRange: (
     node: Node
   ) => [number | null | undefined, number | null | undefined]
@@ -148,6 +149,8 @@ export default class BabelBackend extends Backend<Node> {
         })
       )
     }
+    this.isPath = (thing: any): thing is NodePath =>
+      thing instanceof BabelNodePath
     this.sourceRange = (node: Node) => [node.start, node.end]
     this.getFieldNames = getFieldNames
     this.defaultFieldValue = defaultFieldValue

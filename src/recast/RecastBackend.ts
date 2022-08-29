@@ -4,10 +4,9 @@ import areASTsEqual, { areFieldValuesEqual } from './util/areASTsEqual'
 import getFieldNames from './util/getFieldNames'
 import { visit, Visitor } from 'ast-types'
 import { NodePath as ASTPath } from 'ast-types/lib/node-path'
-import JSCodeshiftNodePath from './RecastNodePath'
+import RecastNodePath from './RecastNodePath'
 import * as defaultRecast from 'recast'
 import * as t from 'ast-types'
-import RecastNodePath from './RecastNodePath'
 import withParser from './util/template'
 
 type Node = t.ASTNode
@@ -18,6 +17,7 @@ export default class RecastBackend extends Backend<Node> {
   parseStatements: (code: string) => Statement[]
   generate: (node: Node) => { code: string }
   makePath: (node: Node) => NodePath
+  isPath: (thing: any) => thing is NodePath
   sourceRange: (
     node: Node
   ) => [number | null | undefined, number | null | undefined]
@@ -40,7 +40,7 @@ export default class RecastBackend extends Backend<Node> {
   }: {
     recast?: typeof defaultRecast
     parseOptions?: defaultRecast.Options
-  }) {
+  } = {}) {
     super()
     const template = withParser(recast, parseOptions)
     this.parse = (code: string) => recast.parse(code, parseOptions)
@@ -48,9 +48,13 @@ export default class RecastBackend extends Backend<Node> {
       template.statements([code]) as Statement[]
     this.parseExpression = (code: string) => template.expression([code])
     this.generate = (node: Node) => recast.print(node)
-    this.makePath = (node: Node) =>
-      JSCodeshiftNodePath.wrap(new t.NodePath(node))
-    this.sourceRange = (node: Node) => [(node as any).start, (node as any).end]
+    this.makePath = (node: Node) => RecastNodePath.wrap(new t.NodePath(node))
+    this.isPath = (thing: any): thing is NodePath =>
+      thing instanceof RecastNodePath
+    this.sourceRange = (node: Node) =>
+      Array.isArray((node as any).range)
+        ? (node as any).range
+        : [(node as any).start, (node as any).end]
     this.getFieldNames = (nodeType: string) =>
       getFieldNames({ type: nodeType } as any)
     this.defaultFieldValue = (nodeType: string, field: string) =>

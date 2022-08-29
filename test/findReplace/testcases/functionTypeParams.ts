@@ -1,10 +1,11 @@
 export const parsers = [
   // recast bug
-  // 'recast/babylon', 'babel',
+  // 'recast/babel', 'babel',
   // 'recast/flow',,
+  'babel',
   'recast/tsx',
   'babel/tsx',
-  'recast/babylon-babel-generator',
+  'recast/babel-generator',
   'recast/tsx-babel-generator',
 ]
 

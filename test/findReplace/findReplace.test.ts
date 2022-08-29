@@ -15,6 +15,18 @@ import RecastBackend from '../../src/recast/RecastBackend'
 import BabelBackend from '../../src/babel/BabelBackend'
 import generate from '@babel/generator'
 import { Backend } from '../../src/backend/Backend'
+import flowParser from 'flow-parser'
+const flowParserOptions = {
+  enums: true,
+  esproposal_class_instance_fields: true,
+  esproposal_class_static_fields: true,
+  esproposal_decorators: true,
+  esproposal_export_star_as: true,
+  esproposal_optional_chaining: true,
+  esproposal_nullish_coalescing: true,
+  tokens: true,
+  types: true,
+}
 
 const projRoot = path.resolve(__dirname, '..', '..')
 const testcaseDir = path.relative(
@@ -52,7 +64,7 @@ type Fixture = {
   expectedError?: string
 }
 
-function extractMatchSource(
+export function extractMatchSource(
   matches: Match[],
   source: string,
   backend: Backend
@@ -63,12 +75,13 @@ function extractMatchSource(
     if (start == null || end == null)
       throw new Error(`failed to get node source range`)
     const { type, astx, typeAnnotation } = node as any
-    if (type === 'TSPropertySignature') {
+    if (type === 'TSPropertySignature' || type === 'TSMethodSignature') {
       if (astx?.excludeTypeAnnotationFromCapture && typeAnnotation) {
         return toSource((path as any).get('key'))
       }
-      return source.substring(start, end).replace(/,$/, '')
+      return source.substring(start, end).replace(/[,;]$/, '')
     }
+
     if (astx?.excludeTypeAnnotationFromCapture && typeAnnotation) {
       return source.substring(start, typeAnnotation.start)
     }
@@ -135,10 +148,10 @@ for (const key in testcases) {
     parsers = [
       'babel',
       'babel/tsx',
-      'recast/babylon',
+      'recast/babel',
       'recast/flow',
       'recast/tsx',
-      'recast/babylon-babel-generator',
+      'recast/babel-generator',
       'recast/tsx-babel-generator',
     ],
   } = testcase
@@ -146,7 +159,7 @@ for (const key in testcases) {
   parsers.sort()
 
   for (const parser of parsers) {
-    if (parser.endsWith('-babel-generator') && !testcase.expectedReplace)
+    if (parser.endsWith('babel-generator') && !testcase.expectedReplace)
       continue
     const group = groups[parser] || (groups[parser] = {})
     group[key] = testcases[key]
@@ -161,7 +174,7 @@ for (const parser in groups) {
 
   const backendName = parser.replace(/\/.+/, '')
   const actualParser =
-    parser.replace(/^.+?\//, '').replace('-babel-generator', '') || 'babylon'
+    parser.replace(/^.+?\//, '').replace(/-?babel-generator$/, '') || 'babel'
 
   const parserOpts: ParserOptions = {
     allowReturnOutsideFunction: true,
@@ -173,18 +186,22 @@ for (const parser in groups) {
   const babelParser = actualParser.startsWith('ts')
     ? tsParser.bindParserOpts(parserOpts)
     : jsParser.bindParserOpts(parserOpts)
-  // const backend = jscodeshiftBackend(j)
   const backend: Backend =
     backendName === 'recast'
-      ? new RecastBackend({ parseOptions: { parser: babelParser } })
+      ? new RecastBackend({
+          parseOptions: {
+            parser:
+              actualParser === 'flow'
+                ? {
+                    parse: (code: string) =>
+                      flowParser.parse(code, flowParserOptions),
+                  }
+                : babelParser,
+          },
+        })
       : new BabelBackend({ parserOptions: babelParser.parserOpts })
   const prettierOptions = {
-    parser:
-      parser === 'babel' || actualParser === 'babylon'
-        ? 'babel-flow'
-        : actualParser === 'tsx'
-        ? 'babel-ts'
-        : actualParser,
+    parser: actualParser.startsWith('ts') ? 'babel-ts' : 'babel-flow',
   }
 
   const format = (code: string) =>
@@ -196,139 +213,146 @@ for (const parser in groups) {
   const reformat = (code: string) =>
     format(backend.generate(backend.parse(code)).code)
 
-  describe(`with parser: ${parser}`, function () {
-    if (!parser.endsWith('-babel-generator')) {
-      describe('<find>', function () {
-        for (const key in findTestcases) {
+  ;(parser === 'recast/flow' ? describe.skip : describe)(
+    `with parser: ${parser}`,
+    function () {
+      if (!parser.endsWith('-babel-generator')) {
+        describe('<find>', function () {
+          for (const key in findTestcases) {
+            const {
+              input,
+              find: _find,
+              findOptions,
+              where,
+              expectMatchesSelf,
+              expectedFind,
+              expectedError,
+              only,
+              skip,
+            }: Fixture = findTestcases[key]
+
+            ;(skip ? it.skip : only ? it.only : it)(
+              `${testcaseDir}/${key}.ts`,
+              function () {
+                const ast = backend.parse(input)
+                const root = backend.makePath(ast)
+
+                if (expectMatchesSelf) {
+                  const matches = find(root, backend.parsePattern(input), {
+                    ...findOptions,
+                    where,
+                    backend,
+                  })
+                  expect(
+                    matches.length,
+                    `expected input to match itself: ${input}`
+                  ).to.equal(1)
+                }
+                if (expectedFind) {
+                  const matches = find(root, backend.parsePattern(_find), {
+                    ...findOptions,
+                    where,
+                    backend,
+                  })
+                  expect(
+                    extractMatchSource(matches, input, backend)
+                  ).to.deep.equal(expectedFind)
+                }
+                if (expectedError) {
+                  expect(() => {
+                    find(root, backend.parsePattern(_find), {
+                      ...findOptions,
+                      where,
+                      backend,
+                    })
+                  }).to.throw(expectedError)
+                }
+              }
+            )
+          }
+        })
+      }
+      describe(`<replace>`, function () {
+        for (const key in replaceTestcases) {
           const {
             input,
             find: _find,
+            replace: _replace,
             findOptions,
             where,
-            expectMatchesSelf,
-            expectedFind,
+            expectedReplace,
             expectedError,
             only,
             skip,
-          }: Fixture = findTestcases[key]
+          }: Fixture = replaceTestcases[key]
 
           ;(skip ? it.skip : only ? it.only : it)(
             `${testcaseDir}/${key}.ts`,
             function () {
               const ast = backend.parse(input)
               const root = backend.makePath(ast)
+              const matches = find(root, backend.parsePattern(_find), {
+                ...findOptions,
+                where,
+                backend,
+              })
 
-              if (expectMatchesSelf) {
-                const matches = find(root, backend.parsePattern(input), {
-                  ...findOptions,
-                  where,
-                  backend,
-                })
-                expect(
-                  matches.length,
-                  `expected input to match itself: ${input}`
-                ).to.equal(1)
-              }
-              if (expectedFind) {
-                const matches = find(root, backend.parsePattern(_find), {
-                  ...findOptions,
-                  where,
-                  backend,
-                })
-                expect(
-                  extractMatchSource(matches, input, backend)
-                ).to.deep.equal(expectedFind)
-              }
               if (expectedError) {
                 expect(() => {
-                  find(root, backend.parsePattern(_find), {
-                    ...findOptions,
-                    where,
-                    backend,
-                  })
+                  if (_replace)
+                    replace(
+                      matches,
+                      typeof _replace === 'string'
+                        ? backend.parsePatternToNodes(_replace)
+                        : (match): Node | Node[] => {
+                            const result = _replace(
+                              match,
+                              backend.parsePatternToNodes
+                            )
+                            return typeof result === 'string'
+                              ? backend.parsePatternToNodes(result)
+                              : result
+                          },
+                      { backend }
+                    )
                 }).to.throw(expectedError)
+              }
+              if (expectedReplace) {
+                replace(
+                  matches,
+                  typeof _replace === 'string'
+                    ? backend.parsePatternToNodes(_replace)
+                    : (match): Node | Node[] => {
+                        const result = _replace(
+                          match,
+                          backend.parsePatternToNodes
+                        )
+                        return typeof result === 'string'
+                          ? backend.parsePatternToNodes(result)
+                          : result
+                      },
+                  { backend }
+                )
+                if (parser.endsWith('-babel-generator')) {
+                  prepareForBabelGenerate(ast)
+                  const expectedAst = backend.parse(expectedReplace)
+                  prepareForBabelGenerate(expectedAst)
+                  expect(
+                    format(generate(ast, { concise: true }).code)
+                  ).to.equal(
+                    format(generate(expectedAst, { concise: true }).code)
+                  )
+                } else {
+                  const actual = backend.generate(ast).code
+                  expect(format(actual)).to.deep.equal(
+                    reformat(expectedReplace)
+                  )
+                }
               }
             }
           )
         }
       })
     }
-    describe(`<replace>`, function () {
-      for (const key in replaceTestcases) {
-        const {
-          input,
-          find: _find,
-          replace: _replace,
-          findOptions,
-          where,
-          expectedReplace,
-          expectedError,
-          only,
-          skip,
-        }: Fixture = replaceTestcases[key]
-
-        ;(skip ? it.skip : only ? it.only : it)(
-          `${testcaseDir}/${key}.ts`,
-          function () {
-            const ast = backend.parse(input)
-            const root = backend.makePath(ast)
-            const matches = find(root, backend.parsePattern(_find), {
-              ...findOptions,
-              where,
-              backend,
-            })
-
-            if (expectedError) {
-              expect(() => {
-                if (_replace)
-                  replace(
-                    matches,
-                    typeof _replace === 'string'
-                      ? backend.parsePatternToNodes(_replace)
-                      : (match): Node | Node[] => {
-                          const result = _replace(
-                            match,
-                            backend.parsePatternToNodes
-                          )
-                          return typeof result === 'string'
-                            ? backend.parsePatternToNodes(result)
-                            : result
-                        },
-                    { backend }
-                  )
-              }).to.throw(expectedError)
-            }
-            if (expectedReplace) {
-              replace(
-                matches,
-                typeof _replace === 'string'
-                  ? backend.parsePatternToNodes(_replace)
-                  : (match): Node | Node[] => {
-                      const result = _replace(
-                        match,
-                        backend.parsePatternToNodes
-                      )
-                      return typeof result === 'string'
-                        ? backend.parsePatternToNodes(result)
-                        : result
-                    },
-                { backend }
-              )
-              if (parser.endsWith('-babel-generator')) {
-                prepareForBabelGenerate(ast)
-                const expectedAst = backend.parse(expectedReplace)
-                prepareForBabelGenerate(expectedAst)
-                expect(format(generate(ast, { concise: true }).code)).to.equal(
-                  format(generate(expectedAst, { concise: true }).code)
-                )
-              } else {
-                const actual = backend.generate(ast).code
-                expect(format(actual)).to.deep.equal(reformat(expectedReplace))
-              }
-            }
-          }
-        )
-      }
-    })
-  })
+  )
 }

@@ -5,6 +5,7 @@ import replace from './replace'
 import compileMatcher, { MatchResult } from './compileMatcher'
 import CodeFrameError from './util/CodeFrameError'
 import ensureArray from './util/ensureArray'
+import { once } from 'lodash'
 
 export type ParseTag = (
   strings: string | string[] | TemplateStringsArray,
@@ -22,11 +23,17 @@ function isNode(x: unknown): x is Node {
 function isNodeArray(x: unknown): x is Node[] {
   return Array.isArray(x) && !Array.isArray((x as any).raw)
 }
-function isNodePath(x: unknown): x is NodePath {
-  return x instanceof Object && typeof (x as any).insertAt === 'function'
+function isNodePath(
+  x: unknown,
+  { isPath }: { isPath: (thing: any) => thing is NodePath }
+): x is NodePath {
+  return isPath(x)
 }
-function isNodePathArray(x: unknown): x is NodePath[] {
-  return Array.isArray(x) && !Array.isArray((x as any).raw) && isNodePath(x[0])
+function isNodePathArray(
+  x: unknown,
+  opts: { isPath: (thing: any) => thing is NodePath }
+): x is NodePath[] {
+  return Array.isArray(x) && isNodePath(x[0], opts)
 }
 
 export type FindOptions = {
@@ -34,10 +41,10 @@ export type FindOptions = {
 }
 
 export default class Astx {
-  private backend: Backend
-  private _paths: NodePath<any>[]
-  private _matches: Match[]
-  private _withCaptures: Match[]
+  private readonly backend: Backend
+  private readonly _paths: NodePath<any>[]
+  private readonly _matches: Match[]
+  private readonly _withCaptures: Match[]
 
   constructor(
     backend: Backend,
@@ -45,10 +52,10 @@ export default class Astx {
     { withCaptures = [] }: { withCaptures?: Match[] } = {}
   ) {
     this.backend = backend
-    this._paths = isNodePath(paths[0])
+    this._paths = isNodePath(paths[0], this.backend)
       ? (paths as NodePath[])
       : (paths as Match[]).map((m) => m.paths).flat()
-    this._matches = isNodePath(paths[0])
+    this._matches = isNodePath(paths[0], this.backend)
       ? (paths as NodePath[]).map((path) => ({
           type: 'node',
           path,
@@ -84,9 +91,7 @@ export default class Astx {
     return this._paths
   }
 
-  nodes(): Node[] {
-    return this._paths.map((p) => p.node)
-  }
+  nodes: () => Node[] = once((): Node[] => this._paths.map((p) => p.node))
 
   filter(
     iteratee: (match: Match, index: number, matches: Match[]) => boolean
@@ -99,10 +104,7 @@ export default class Astx {
   }
 
   on(root: NodePath<any> | NodePath<any>[] | Match | Match[]): Astx {
-    return new Astx(
-      this.backend,
-      Array.isArray(root) ? root : ([root] as NodePath<any>[] | Match[])
-    )
+    return new Astx(this.backend, ensureArray(root) as NodePath[] | Match[])
   }
 
   withCaptures(
@@ -211,11 +213,14 @@ export default class Astx {
       if (typeof arg0 === 'string') {
         paths = ensureArray(parsePattern(arg0))
         options = rest[0]
+      } else if (
+        isNodePath(arg0, this.backend) ||
+        isNodePathArray(arg0, this.backend)
+      ) {
+        paths = ensureArray(arg0)
+        options = rest[0]
       } else if (isNode(arg0) || isNodeArray(arg0)) {
         paths = ensureArray(arg0).map(makePath)
-        options = rest[0]
-      } else if (isNodePath(arg0) || isNodePathArray(arg0)) {
-        paths = ensureArray(arg0)
         options = rest[0]
       } else {
         const finalPaths = parsePattern(arg0 as any, ...rest)
@@ -234,16 +239,14 @@ export default class Astx {
       const matchedParents: Set<NodePath> = new Set()
       const matches: Match[] = []
       this._paths.forEach((path) => {
-        let parent = path.parent
-        while (parent) {
-          if (matchedParents.has(parent)) return
-          const match = matcher.match(parent, matchSoFar)
+        for (let p = path.parentPath; p; p = p.parentPath) {
+          if (matchedParents.has(p)) return
+          const match = matcher.match(p, matchSoFar)
           if (match) {
-            matchedParents.add(parent)
-            matches.push(createMatch(parent, match))
+            matchedParents.add(p)
+            matches.push(createMatch(p, match))
             return
           }
-          parent = parent.parent
         }
       })
 
@@ -285,11 +288,14 @@ export default class Astx {
       if (typeof arg0 === 'string') {
         pattern = parsePattern(arg0)
         options = rest[0]
+      } else if (
+        isNodePath(arg0, this.backend) ||
+        isNodePathArray(arg0, this.backend)
+      ) {
+        pattern = arg0
+        options = rest[0]
       } else if (isNode(arg0) || isNodeArray(arg0)) {
         pattern = ensureArray(arg0).map(makePath)
-        options = rest[0]
-      } else if (isNodePath(arg0) || isNodePathArray(arg0)) {
-        pattern = arg0
         options = rest[0]
       } else {
         const finalPaths = parsePattern(arg0 as any, ...rest)

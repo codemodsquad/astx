@@ -1,35 +1,48 @@
 import { describe, it } from 'mocha'
 import { expect } from 'chai'
-import JscodeshiftAstx from '../src/Astx'
-import j, { ASTPath as JscodeshiftASTPath } from 'jscodeshift'
-import { formatMatches as _formatMatches } from './findReplace/findReplace.test'
+import Astx from '../src/Astx'
+import { extractMatchSource as _extractMatchSource } from './findReplace/findReplace.test'
+import RecastBackend from '../src/recast/RecastBackend'
+import BabelBackend from '../src/babel/BabelBackend'
+import prettier from 'prettier'
+import * as t from '@babel/types'
+import { tsParser } from 'babel-parse-wild-code'
 
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
 describe(`Astx`, function () {
-  for (const { engine, createAstx, backend } of [
-    // {
-    //   engine: 'jscodeshift',
-    //   backend: jscodeshiftBackend(j),
-    //   createAstx: (code: string | JscodeshiftASTPath<any>[]) =>
-    //     new JscodeshiftAstx(j, j(code).paths()),
-    // },
+  for (const backend of [
+    new RecastBackend({ parseOptions: { parser: tsParser } }),
+    new BabelBackend(),
   ]) {
-    const formatMatches = (astx: JscodeshiftAstx) =>
-      _formatMatches(astx.matches(), backend)
-    const toSource = (astx: JscodeshiftAstx) =>
-      backend.generate(astx.nodes()[0]).code
-    describe(engine, function () {
+    const prettierOptions = { parser: 'babel-ts' }
+    const format = (code: string) =>
+      prettier
+        .format(code, prettierOptions)
+        .trim()
+        .replace(/\n{2,}/gm, '\n')
+    const reformat = (code: string) =>
+      format(backend.generate(backend.parse(code)).code)
+
+    const toSource = (astx: Astx) => backend.generate(astx.nodes()[0]).code
+    let source
+    const createAstx = (src: string): Astx => {
+      source = src
+      return new Astx(backend, [backend.makePath(backend.parse(src))])
+    }
+    const extractMatchSource = (astx: Astx) =>
+      _extractMatchSource(astx.matches(), source, backend)
+    describe(backend.constructor.name, function () {
       it(`.find tagged template works`, function () {
         expect(
-          formatMatches(
-            createAstx(`foo + bar`).find`${j.identifier('foo')} + $a`()
+          extractMatchSource(
+            createAstx(`foo + bar`).find`${t.identifier('foo')} + $a`()
           )
         ).to.deep.equal([{ node: 'foo + bar', captures: { $a: 'bar' } }])
       })
       it(`cascading .find`, function () {
         expect(
-          formatMatches(
+          extractMatchSource(
             createAstx(`function foo() { foo(); bar() }`)
               .find`function $fn() { $$body }`().find`$fn()`()
           )
@@ -46,7 +59,7 @@ describe(`Astx`, function () {
 
         const fnMatches = astx.find`function $fn() { $$body }`()
         expect(
-          formatMatches(astx.withCaptures(fnMatches).find`$fn()`())
+          extractMatchSource(astx.withCaptures(fnMatches).find`$fn()`())
         ).to.deep.equal([
           {
             node: 'foo()',
@@ -105,14 +118,14 @@ describe(`Astx`, function () {
       })
       it(`.captures()`, function () {
         expect(
-          formatMatches(
+          extractMatchSource(
             createAstx(`foo + bar; baz + qux`).find`$a + $b`().captures('$a')
           )
         ).to.deep.equal([{ node: 'foo' }, { node: 'baz' }])
       })
       it(`.arrayCaptures() works`, function () {
         expect(
-          formatMatches(
+          extractMatchSource(
             createAstx(`const a = [1, 2, 3, 4]; const b = [1, 4, 5, 6]`)
               .find`[1, $$a]`().arrayCaptures('$$a')
           )
@@ -123,7 +136,7 @@ describe(`Astx`, function () {
       })
       it(`.closest tagged template works`, function () {
         expect(
-          formatMatches(
+          extractMatchSource(
             createAstx(`foo + bar; baz + qux`).find(`$Or(foo, bar, baz, qux)`)
               .closest`$a + $b`()
           )
@@ -134,12 +147,12 @@ describe(`Astx`, function () {
       })
       it(`.find node argument works`, function () {
         expect(
-          formatMatches(createAstx(`foo + bar`).find(j.identifier('foo')))
+          extractMatchSource(createAstx(`foo + bar`).find(t.identifier('foo')))
         ).to.deep.equal([{ node: 'foo' }])
       })
       it(`.find tagged template plus options works`, function () {
         expect(
-          formatMatches(
+          extractMatchSource(
             createAstx(`1 + 2; 3 + 4`).find`$a + $b`({
               where: {
                 $b: (path: any) => path.node.value < 4,
@@ -150,7 +163,7 @@ describe(`Astx`, function () {
       })
       it(`.find tagged template plus options works`, function () {
         expect(
-          formatMatches(
+          extractMatchSource(
             createAstx(`1 + 2; 3 + 4`).find`$a + $b`({
               where: {
                 $b: (path: any) => path.node.value < 4,
@@ -162,41 +175,41 @@ describe(`Astx`, function () {
       it(`.replace tagged template works`, function () {
         const astx = createAstx(`1 + 2; 3 + 4`)
         astx.find`$a + $b`().replace`$b + $a`()
-        expect(toSource(astx)).to.equal(`2 + 1; 4 + 3;`)
+        expect(reformat(toSource(astx))).to.equal(reformat(`2 + 1; 4 + 3;`))
       })
       it(`.replace tagged template after find options works`, function () {
         const astx = createAstx(`1 + 2; 3 + 4`)
         astx.find`$a + $b`({
           where: { $b: (path: any) => path.node.value < 4 },
         }).replace`$b + $a`()
-        expect(toSource(astx)).to.equal(`2 + 1; 3 + 4`)
+        expect(reformat(toSource(astx))).to.equal(reformat(`2 + 1; 3 + 4`))
       })
       it(`.replace tagged template interpolation works`, function () {
         const astx = createAstx(`1 + 2; 3 + 4`)
-        astx.find`$a + $b`().replace`$b + ${j.identifier('foo')}`()
-        expect(toSource(astx)).to.equal(`2 + foo; 4 + foo;`)
+        astx.find`$a + $b`().replace`$b + ${t.identifier('foo')}`()
+        expect(reformat(toSource(astx))).to.equal(reformat(`2 + foo; 4 + foo;`))
       })
       it(`.replace function returning parse tagged template literal works`, function () {
         const astx = createAstx(`1 + FOO; 3 + BAR`)
         astx.find`$a + $b`().replace(
           (match, parse) =>
-            parse`${j.identifier(
-              (match.captures.$b as any).name.toLowerCase()
+            parse`${t.identifier(
+              (match.captures?.$b as any).name.toLowerCase()
             )} + $a`
         )
-        expect(toSource(astx)).to.equal(`foo + 1; bar + 3;`)
+        expect(reformat(toSource(astx))).to.equal(reformat(`foo + 1; bar + 3;`))
       })
       it(`.replace function returning string works`, function () {
         const astx = createAstx(`1 + FOO; 3 + BAR`)
         astx.find`$a + $b`().replace(
-          (match) => `${(match.captures.$b as any).name.toLowerCase()} + $a`
+          (match) => `${(match.captures?.$b as any).name.toLowerCase()} + $a`
         )
-        expect(toSource(astx)).to.equal(`foo + 1; bar + 3;`)
+        expect(reformat(toSource(astx))).to.equal(reformat(`foo + 1; bar + 3;`))
       })
       it(`.replace called with string works`, function () {
         const astx = createAstx(`1 + 2; 3 + 4`)
         astx.find('$a + $b').replace('$b + $a')
-        expect(toSource(astx)).to.equal(`2 + 1; 4 + 3;`)
+        expect(reformat(toSource(astx))).to.equal(reformat(`2 + 1; 4 + 3;`))
       })
     })
   }

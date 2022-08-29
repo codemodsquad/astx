@@ -1,9 +1,9 @@
 export const parsers = [
-  'recast/babylon',
+  'recast/babel',
   'babel',
   'recast/tsx',
   'babel/tsx',
-  'recast/babylon-babel-generator',
+  'recast/babel-generator',
   'recast/tsx-babel-generator',
 ]
 

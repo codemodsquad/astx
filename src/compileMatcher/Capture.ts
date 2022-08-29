@@ -13,19 +13,19 @@ export function unescapeIdentifier(identifier: string): string {
 }
 
 export function getCaptureAs(identifier: string): string | undefined {
-  return /^\$[a-z0-9]+/i.exec(identifier)?.[0]
+  return /^\$[a-z0-9]+.*/i.exec(identifier)?.[0]
 }
 
 export function getArrayCaptureAs(identifier: string): string | undefined {
-  return /^\${2}[a-z0-9]+/i.exec(identifier)?.[0]
+  return /^\${2}[a-z0-9]+.*/i.exec(identifier)?.[0]
 }
 
 export function getRestCaptureAs(identifier: string): string | undefined {
-  return /^\${3}[a-z0-9]+/i.exec(identifier)?.[0]
+  return /^\${3}[a-z0-9]+.*/i.exec(identifier)?.[0]
 }
 
 export function getAnyCaptureAs(identifier: string): string | undefined {
-  return /^\${1,3}[a-z0-9]+/i.exec(identifier)?.[0]
+  return /^\${1,3}[a-z0-9]+.*/i.exec(identifier)?.[0]
 }
 
 export function compileArrayCaptureMatcher(

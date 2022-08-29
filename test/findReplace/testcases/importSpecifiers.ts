@@ -1,10 +1,3 @@
-export const parsers = [
-  'recast/babylon',
-  'babel',
-  'recast/flow',
-  'recast/babylon-babel-generator',
-]
-
 export const input = `
 import A, {B, C, D, E} from 'foo'
 `

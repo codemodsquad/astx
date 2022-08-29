@@ -1,8 +1,8 @@
 export const parsers = [
-  'recast/babylon',
+  'recast/babel',
   'babel',
   'recast/flow',
-  'recast/babylon-babel-generator',
+  'recast/babel-generator',
 ]
 
 export const input = `

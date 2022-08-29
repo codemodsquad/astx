@@ -31,6 +31,7 @@ export abstract class Backend<Node = any> {
 
   abstract generate: (node: Node) => { code: string }
   abstract makePath: (node: Node) => NodePath
+  abstract isPath: (thing: any) => thing is NodePath
   abstract sourceRange: (
     node: Node
   ) => [number | null | undefined, number | null | undefined]

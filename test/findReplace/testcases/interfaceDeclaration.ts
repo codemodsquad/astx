@@ -51,4 +51,4 @@ interface Foo {
 `
 
 // currently not working
-export const skip = true
+// export const skip = true

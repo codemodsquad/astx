@@ -1,16 +1,26 @@
 import { Node, NodePath } from '../types'
 import { NodePath as ASTPath } from 'ast-types/lib/node-path'
 import * as t from 'ast-types'
+import { AstPath } from 'prettier'
 
 export default class RecastNodePath<T = Node> implements NodePath<T> {
   original: ASTPath<T>
 
   constructor(original: ASTPath<T>) {
+    if (original.value instanceof RecastNodePath) {
+      throw new Error('TEST')
+    }
     this.original = original
   }
 
+  static _cache: WeakMap<ASTPath<any>, NodePath<any>> = new WeakMap()
+
   static wrap<T = Node>(original: ASTPath<T>): NodePath<T> {
-    return new RecastNodePath(original) as any
+    let path: NodePath<any> = RecastNodePath._cache.get(original) as any
+    if (path) return path
+    path = new RecastNodePath(original) as any
+    RecastNodePath._cache.set(original, path)
+    return path
   }
 
   get node(): T {

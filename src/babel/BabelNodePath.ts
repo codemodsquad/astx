@@ -9,8 +9,14 @@ export default class BabelNodePath<T = Node> implements NodePath<T> {
     this.original = original
   }
 
+  static _cache: WeakMap<_NodePath<any>, NodePath<any>> = new WeakMap()
+
   static wrap<T = Node>(original: _NodePath<T>): NodePath<T> {
-    return new BabelNodePath(original) as any
+    let path: NodePath<any> = BabelNodePath._cache.get(original) as any
+    if (path) return path
+    path = new BabelNodePath(original) as any
+    BabelNodePath._cache.set(original, path)
+    return path
   }
 
   get node(): T {
