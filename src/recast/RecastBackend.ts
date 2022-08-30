@@ -1,17 +1,25 @@
 import { NodeType, NodePath, Statement, Expression } from '../types'
 import { Backend } from '../backend/Backend'
-import areASTsEqual, { areFieldValuesEqual } from './util/areASTsEqual'
-import getFieldNames from './util/getFieldNames'
+import shallowEqual from 'shallowequal'
 import { visit, Visitor } from 'ast-types'
 import { NodePath as ASTPath } from 'ast-types/lib/node-path'
 import RecastNodePath from './RecastNodePath'
 import * as defaultRecast from 'recast'
 import * as t from 'ast-types'
+import fork from 'ast-types/fork'
+import esProposalsDef from 'ast-types/def/es-proposals'
+import jsxDef from 'ast-types/def/jsx'
+import flowDef from 'ast-types/def/flow'
+import esprimaDef from 'ast-types/def/esprima'
+import babelDef from 'ast-types/def/babel'
+import typescriptDef from 'ast-types/def/typescript'
 import * as k from 'ast-types/gen/kinds'
+import addMissingFields from './util/addMissingFIelds'
 
 type Node = k.NodeKind
 
 export default class RecastBackend extends Backend<Node> {
+  t: typeof t
   parse: (code: string) => Node
   parseExpression: (code: string) => Expression
   parseStatements: (code: string) => Statement[]
@@ -21,8 +29,6 @@ export default class RecastBackend extends Backend<Node> {
   sourceRange: (
     node: Node
   ) => [number | null | undefined, number | null | undefined]
-  getFieldNames: (nodeType: string) => string[]
-  defaultFieldValue: (nodeType: string, field: string) => any
   areASTsEqual: (a: Node, b: Node) => boolean
   areFieldValuesEqual: (a: any, b: any) => boolean
   isStatement: (node: any) => node is Statement
@@ -42,6 +48,17 @@ export default class RecastBackend extends Backend<Node> {
     parseOptions?: defaultRecast.Options
   } = {}) {
     super()
+    this.t = fork([
+      // Feel free to add to or remove from this list of extension modules to
+      // configure the precise type hierarchy that you need.
+      esProposalsDef,
+      jsxDef,
+      flowDef,
+      esprimaDef,
+      babelDef,
+      typescriptDef,
+      addMissingFields,
+    ])
     this.parse = (code: string) => recast.parse(code, parseOptions)
     this.parseStatements = (code: string): Statement[] => {
       const ast: k.FileKind = recast.parse(code, parseOptions)
@@ -79,12 +96,23 @@ export default class RecastBackend extends Backend<Node> {
       Array.isArray((node as any).range)
         ? (node as any).range
         : [(node as any).start, (node as any).end]
-    this.getFieldNames = (nodeType: string) =>
-      getFieldNames({ type: nodeType } as any)
-    this.defaultFieldValue = (nodeType: string, field: string) =>
-      t.getFieldValue({ type: nodeType } as any, field)
-    this.areASTsEqual = areASTsEqual
-    this.areFieldValuesEqual = areFieldValuesEqual
+    this.areASTsEqual = t.astNodesAreEquivalent
+    this.areFieldValuesEqual = function areFieldValuesEqual(
+      a: any,
+      b: any
+    ): boolean {
+      if (Array.isArray(a)) {
+        if (!Array.isArray(b) || b.length !== a.length) return false
+        return a.every((value, index) => areFieldValuesEqual(value, b[index]))
+      } else if (t.namedTypes.Node.check(a)) {
+        return (
+          t.namedTypes.Node.check(b) &&
+          t.astNodesAreEquivalent(a as any, b as any)
+        )
+      } else {
+        return shallowEqual(a, b)
+      }
+    }
     this.isStatement = (node: any): node is Statement =>
       t.namedTypes.Statement.check(node)
     this.forEachNode = (

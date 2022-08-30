@@ -42,13 +42,7 @@ export default function compileGenericNodeMatcher(
   }
 ): CompiledMatcher {
   const {
-    backend: {
-      getFieldNames,
-      defaultFieldValue,
-      areFieldValuesEqual,
-      isTypeFns,
-      hasNode,
-    },
+    backend: { t, areFieldValuesEqual, isTypeFns, hasNode },
   } = compileOptions
 
   const pattern: Node = path.node
@@ -70,15 +64,15 @@ export default function compileGenericNodeMatcher(
   const { debug } = compileOptions
 
   const keyMatchers: Record<string, CompiledMatcher> = Object.fromEntries(
-    getFieldNames(pattern.type)
+    t
+      .getFieldNames(pattern)
       .filter((key: string) => key !== 'type')
       .map((key: string): [string, CompiledMatcher] => {
         const custom = options?.keyMatchers?.[key]
 
         if (custom) return [key, custom]
 
-        const value =
-          (pattern as any)[key] ?? defaultFieldValue(pattern.type, key)
+        const value = t.getFieldValue(pattern, key)
         const fieldPath = path.get(key)
 
         if (Array.isArray(fieldPath)) {
@@ -107,7 +101,7 @@ export default function compileGenericNodeMatcher(
                 const { parentPath } = path
                 if (!parentPath) return null
                 const nodeValue =
-                  path.node ?? defaultFieldValue(parentPath.node.type, key)
+                  path.node ?? t.getFieldValue(parentPath.node, key)
 
                 if (areFieldValuesEqual(value, nodeValue)) {
                   debug('    %s === %s', value, nodeValue)
@@ -129,7 +123,7 @@ export default function compileGenericNodeMatcher(
                 const { parentPath } = path
                 if (!parentPath) return null
                 const nodeValue =
-                  path.node ?? defaultFieldValue(parentPath.node.type, key)
+                  path.node ?? t.getFieldValue(parentPath.node, key)
 
                 if (value === nodeValue) {
                   debug('    %s === %s', value, nodeValue)

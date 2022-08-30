@@ -12,7 +12,7 @@ export default function compileGenericNodeReplacement(
 ): CompiledReplacement {
   const pattern = path.node
   const {
-    backend: { getFieldNames, defaultFieldValue, hasNode },
+    backend: { t, hasNode },
   } = compileOptions
 
   const { debug } = compileOptions
@@ -20,10 +20,10 @@ export default function compileGenericNodeReplacement(
   const propertyValues: [string, any][] = []
   const childReplacements: [string, CompiledReplacement][] = []
 
-  for (const key of getFieldNames(pattern.type)) {
+  for (const key of t.getFieldNames(pattern)) {
     if (key === 'type' || key === 'extra') continue
 
-    const value = (pattern as any)[key] ?? defaultFieldValue(pattern.type, key)
+    const value = (pattern as any)[key] ?? t.getFieldValue(pattern, key)
     const fieldPath = path.get(key)
 
     if (Array.isArray(fieldPath) || hasNode(fieldPath)) {

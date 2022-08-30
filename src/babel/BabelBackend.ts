@@ -9,8 +9,11 @@ import defaultGenerate from '@babel/generator'
 import * as defaultTraverse from '@babel/traverse'
 import shallowEqual from 'shallowequal'
 import BabelNodePath from './BabelNodePath'
+import * as AstTypes from 'ast-types'
+import babelAstTypes from './babelAstTypes'
 
 export default class BabelBackend extends Backend<Node> {
+  t: typeof AstTypes
   parse: (code: string) => Node
   parseExpression: (code: string) => Expression
   parseStatements: (code: string) => Statement[]
@@ -20,8 +23,6 @@ export default class BabelBackend extends Backend<Node> {
   sourceRange: (
     node: Node
   ) => [number | null | undefined, number | null | undefined]
-  getFieldNames: (nodeType: string) => string[]
-  defaultFieldValue: (nodeType: string, field: string) => any
   areASTsEqual: (a: Node, b: Node) => boolean
   areFieldValuesEqual: (a: any, b: any) => boolean
   isStatement: (node: any) => node is Statement
@@ -38,7 +39,7 @@ export default class BabelBackend extends Backend<Node> {
     parserOptions,
     template = defaultTemplate,
     generate = defaultGenerate,
-    types: t = defaultTypes,
+    types = defaultTypes,
     traverse = defaultTraverse,
   }: {
     parser?: typeof defaultParser
@@ -50,40 +51,18 @@ export default class BabelBackend extends Backend<Node> {
   } = {}) {
     super()
 
-    function getFieldNames(nodeType: string): string[] {
-      return Object.keys(t.NODE_FIELDS[nodeType])
-    }
-
-    function defaultFieldValue(nodeType: string, field: string): any {
-      return (t.NODE_FIELDS[nodeType] as any)?.[field]?.default
-    }
-
-    function getFieldValue(node: any, field: string): any {
-      const value = node[field]
-      return value ?? defaultFieldValue(node.type, field)
-    }
-
-    function areASTsEqual(a: Node, b: Node): boolean {
-      if (a.type === 'File')
-        return b.type === 'File' && areFieldValuesEqual(a.program, b.program)
-      if (a.type !== b.type) return false
-      const nodeFields = getFieldNames(a.type)
-      for (const name of nodeFields) {
-        if (
-          !areFieldValuesEqual(getFieldValue(a, name), getFieldValue(b, name))
-        )
-          return false
-      }
-      return true
-    }
+    const t = babelAstTypes(types)
 
     // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
     function areFieldValuesEqual(a: any, b: any): boolean {
       if (Array.isArray(a)) {
         if (!Array.isArray(b) || b.length !== a.length) return false
         return a.every((value, index) => areFieldValuesEqual(value, b[index]))
-      } else if (t.isNode(a)) {
-        return t.isNode(b) && areASTsEqual(a as any, b as any)
+      } else if (t.namedTypes.Node.check(a)) {
+        return (
+          t.namedTypes.Node.check(b) &&
+          t.astNodesAreEquivalent(a as any, b as any)
+        )
       } else {
         return shallowEqual(a, b)
       }
@@ -96,10 +75,11 @@ export default class BabelBackend extends Backend<Node> {
     }
 
     const isTypeFns = Object.fromEntries(
-      [...Object.entries(t)]
+      [...Object.entries(types)]
         .filter(([key]) => /^is[A-Z]/.test(key))
         .map(([key, value]) => [key.substring(2), value])
     ) as any
+    this.t = t
     this.parse = (code: string) => parser.parse(code, parserOptions)
     this.parseExpression = (code: string) =>
       template.expression(code, templateOptions)()
@@ -134,11 +114,10 @@ export default class BabelBackend extends Backend<Node> {
     this.isPath = (thing: any): thing is NodePath =>
       thing instanceof BabelNodePath
     this.sourceRange = (node: Node) => [node.start, node.end]
-    this.getFieldNames = getFieldNames
-    this.defaultFieldValue = defaultFieldValue
-    this.areASTsEqual = areASTsEqual
+    this.areASTsEqual = t.astNodesAreEquivalent
     this.areFieldValuesEqual = areFieldValuesEqual
-    this.isStatement = (node: any): node is Statement => t.isStatement(node)
+    this.isStatement = (node: any): node is Statement =>
+      t.namedTypes.Statement.check(node)
     this.forEachNode = (
       paths: NodePath[],
       nodeTypes: NodeType[],
@@ -168,6 +147,6 @@ export default class BabelBackend extends Backend<Node> {
     this.isTypeFns = isTypeFns
     this.hasNode = <T = any>(
       path: NodePath<T>
-    ): path is NodePath<NonNullable<T>> => t.isNode(path.node)
+    ): path is NodePath<NonNullable<T>> => t.namedTypes.Node.check(path.node)
   }
 }
