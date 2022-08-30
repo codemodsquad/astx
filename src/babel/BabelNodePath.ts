@@ -1,6 +1,5 @@
 import { Node, NodePath } from '../types'
 import { NodePath as _NodePath } from '@babel/traverse'
-import * as t from '@babel/types'
 
 export default class BabelNodePath<T = Node> implements NodePath<T> {
   wrapped: _NodePath<T>
@@ -69,12 +68,5 @@ export default class BabelNodePath<T = Node> implements NodePath<T> {
     : never
   get(key: string | number): NodePath<any> | NodePath<any>[] {
     return this.wrapped.get(key as any) as any
-  }
-
-  hasNode(): this is NodePath<NonNullable<T>> {
-    return this.node != null
-  }
-  isNode(): this is NodePath<Node> {
-    return t.isNode(this.wrapped.node)
   }
 }

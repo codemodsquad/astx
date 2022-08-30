@@ -105,25 +105,7 @@ export default class BabelBackend extends Backend<Node> {
       template.expression(code, templateOptions)()
     this.parseStatements = (code: string) =>
       template.statements(code, templateOptions)()
-    this.generate = (node: Node): { code: string } => {
-      const { type, typeAnnotation, astx } = node as any
-      if (
-        typeAnnotation != null &&
-        type !== 'TSPropertySignature' &&
-        !astx?.excludeTypeAnnotationFromCapture
-      ) {
-        return {
-          code: generate(node as any).code + generate(typeAnnotation).code,
-        }
-      }
-      if (astx?.excludeTypeAnnotationFromCapture) {
-        switch (node.type) {
-          case 'TSPropertySignature':
-            return generate(node.key as any)
-        }
-      }
-      return generate(node as any)
-    }
+    this.generate = generate
     this.makePath = (node: Node): NodePath => {
       if (node.type === 'File') {
         let program

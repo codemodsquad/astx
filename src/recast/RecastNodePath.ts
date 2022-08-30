@@ -1,6 +1,5 @@
 import { Node, NodePath } from '../types'
 import { NodePath as ASTPath } from 'ast-types/lib/node-path'
-import * as t from 'ast-types'
 
 export default class RecastNodePath<T = Node> implements NodePath<T> {
   wrapped: ASTPath<T>
@@ -91,12 +90,5 @@ export default class RecastNodePath<T = Node> implements NodePath<T> {
     } else {
       return RecastNodePath.wrap(path) as any
     }
-  }
-
-  hasNode(): this is NodePath<NonNullable<T>> {
-    return this.node != null
-  }
-  isNode(): this is NodePath<Node> {
-    return t.namedTypes.Node.check(this.node)
   }
 }

@@ -53,7 +53,11 @@ export function statement(
   template: TemplateStringsArray | string[] | string,
   ...nodes: any[]
 ): Statement {
-  return this.template.statements(template, ...nodes)[0]
+  const result = this.template.statements(template, ...nodes)
+  if (result.length !== 1) {
+    throw new Error(`code is not a statement`)
+  }
+  return result[0]
 }
 
 export function expression(
