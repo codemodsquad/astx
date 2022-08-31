@@ -11,18 +11,19 @@ export default function addMissingFields(fork: Fork): void {
     def('TSTypeAnnotation'),
     null
   )
-  const TypeParamDecl = or(
-    def('TypeParameterDeclaration'),
-    def('TSTypeParameterDeclaration'),
+  const TypeParamInst = or(
+    def('TypeParameterInstantiation'),
+    def('TSTypeParameterInstantiation'),
     null
   )
 
   def('ArrayPattern').field('typeAnnotation', TypeAnnotation, () => null)
   def('CallExpression')
-    .field('typeAnnotation', TypeAnnotation, () => null)
-    .field('typeArguments', TypeParamDecl, () => null)
-    .field('typeParameters', TypeParamDecl, () => null)
-  def('NewExpression').field('typeParameters', TypeParamDecl, () => null)
+    .field('typeParameters', TypeParamInst, () => null)
+    .field('typeArguments', TypeParamInst, () => null)
+  def('NewExpression')
+    .field('typeParameters', TypeParamInst, () => null)
+    .field('typeArguments', TypeParamInst, () => null)
   def('ImportSpecifier').field(
     'importKind',
     or('value', 'type', 'typeof', null),
