@@ -92,6 +92,7 @@ export interface CompiledMatcher {
   captureAs?: string
   arrayCaptureAs?: string
   restCaptureAs?: string
+  flag?: '$Ordered' | '$Unordered'
   match: (path: NodePath, matchSoFar: MatchResult) => MatchResult
   nodeType?: NodeType | NodeType[]
 }

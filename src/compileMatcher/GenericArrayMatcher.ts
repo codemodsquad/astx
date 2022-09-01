@@ -8,12 +8,57 @@ import compileMatcher, {
 } from '.'
 import indentDebug from './indentDebug'
 
+const defaultUnorderedFields: { [k in string]?: { [k in string]?: true } } = {}
+for (const [type, field] of [
+  ['ClassBody', 'body'],
+  ['ClassDeclaration', 'implements'],
+  ['DeclareClass', 'implements'],
+  ['DeclareExportDeclaration', 'specifiers'],
+  ['DeclareInterface', 'extends'],
+  ['EnumDeclaration', 'body'],
+  ['ExportNamedDeclaration', 'specifiers'],
+  ['ImportDeclaration', 'specifiers'],
+  ['InterfaceDeclaration', 'extends'],
+  ['IntersectionTypeAnnotation', 'types'],
+  ['JSXOpeningElement', 'attributes'],
+  ['ObjectExpression', 'properties'],
+  ['ObjectPattern', 'properties'],
+  ['ObjectTypeAnnotation', 'properties'],
+  ['TSEnumDeclaration', 'members'],
+  ['TSInterfaceBody', 'body'],
+  ['TSInterfaceDeclaration', 'extends'],
+  ['TSIntersectionType', 'types'],
+  ['TSTypeLiteral', 'members'],
+  ['TSUnionType', 'types'],
+  ['UnionTypeAnnotation', 'types'],
+]) {
+  const forType =
+    defaultUnorderedFields[type] || (defaultUnorderedFields[type] = {})
+  forType[field] = true
+}
+
+function getDefaultUnordered(
+  path: NodePath<Node, Node[]> | NodePath<Node, Node>[]
+): boolean {
+  if (Array.isArray(path)) {
+    const parent = path[0]?.parentPath
+    if (!parent) return false
+    return getDefaultUnordered(parent)
+  }
+  if (!path.node || !path.name) return false
+  return Boolean(defaultUnorderedFields[path.node.type]?.[path.name])
+}
+
 export default function compileGenericArrayMatcher(
   path: NodePath<Node, Node[]> | NodePath<Node, Node>[],
   compileOptions: CompileOptions,
   {
+    defaultUnordered = getDefaultUnordered(path),
     skipElement = () => false,
-  }: { skipElement?: (path: NodePath) => boolean } = {}
+  }: {
+    defaultUnordered?: boolean
+    skipElement?: (path: NodePath) => boolean
+  } = {}
 ): CompiledMatcher {
   const paths = Array.isArray(path) ? path : path.filter(() => true)
   const pattern: Node[] = path.map((p: NodePath) => p.node)
@@ -22,10 +67,41 @@ export default function compileGenericArrayMatcher(
     ...compileOptions,
     debug: indentDebug(debug, 2),
   }
-  const matchers: CompiledMatcher[] = pattern.map((value, i) =>
+  let matchers: CompiledMatcher[] = pattern.map((value, i) =>
     compileMatcher(paths[i], elemOptions)
   )
 
+  assertArrayMatchersValid(matchers)
+
+  const unordered =
+    matchers.some((m) => m.restCaptureAs || m.captureAs === '$Unordered') ||
+    (defaultUnordered &&
+      !matchers.some((m) => m.captureAs === '$Ordered' || m.arrayCaptureAs))
+
+  matchers = matchers.filter(
+    (m) => m.captureAs !== '$Ordered' && m.captureAs !== '$Unordered'
+  )
+
+  if (unordered) {
+    return compileUnorderedArrayMatcher(paths, compileOptions, {
+      matchers,
+    })
+  }
+
+  if (matchers.some((m) => m.captureAs || m.arrayCaptureAs)) {
+    return compileOrderedArrayMatcher(paths, compileOptions, {
+      matchers,
+      skipElement,
+    })
+  }
+
+  return compileExactArrayMatcher(paths, compileOptions, {
+    matchers,
+    skipElement,
+  })
+}
+
+function assertArrayMatchersValid(matchers: CompiledMatcher[]) {
   const otherMatchers: CompiledMatcher[] = []
   let arrayMatcherCount = 0
   let restMatcher
@@ -56,6 +132,20 @@ export default function compileGenericArrayMatcher(
       otherMatchers.push(matchers[i])
     }
   }
+}
+
+function compileOrderedArrayMatcher(
+  paths: NodePath<Node, Node>[],
+  compileOptions: CompileOptions,
+  {
+    matchers,
+    skipElement = () => false,
+  }: {
+    matchers: CompiledMatcher[]
+    skipElement?: (path: NodePath) => boolean
+  }
+): CompiledMatcher {
+  const { debug } = compileOptions
 
   function remainingElements(matcherIndex: number): number {
     let count = 0
@@ -63,41 +153,6 @@ export default function compileGenericArrayMatcher(
       if (!matchers[i].arrayCaptureAs) count++
     }
     return count
-  }
-
-  if (restMatcher) {
-    const { restCaptureAs } = restMatcher
-    if (!restCaptureAs)
-      throw new Error(`unexpected: restMatcher.restCaptureAs == null`)
-    return {
-      pattern: paths,
-      match: (path: NodePath, result: MatchResult): MatchResult => {
-        debug('Array')
-
-        if (!Array.isArray(path.value)) return null
-
-        const paths = (path as NodePath<Node, Node[]>).filter(() => true)
-
-        for (const m of otherMatchers) {
-          let i
-          let found = false
-          for (i = 0; i < paths.length; i++) {
-            const match = m.match(paths[i], result)
-            if (!match) continue
-            result = match
-            paths.splice(i, 1)
-            found = true
-            break
-          }
-          if (!found) {
-            return null
-          }
-        }
-        return mergeCaptures(result, {
-          arrayCaptures: { [restCaptureAs]: paths },
-        })
-      },
-    }
   }
 
   function matchElem(
@@ -175,52 +230,122 @@ export default function compileGenericArrayMatcher(
     return null
   }
 
-  if (matchers.some((m) => m.captureAs || m.arrayCaptureAs)) {
-    return {
-      pattern: paths,
-      match: (path: NodePath, matchSoFar: MatchResult): MatchResult => {
-        debug('Array')
-
-        if (!Array.isArray(path.value)) return null
-        const paths = (path as NodePath<Node, Node[]>).filter(() => true)
-
-        let result = matchElem(paths, 0, 0, 0, matchSoFar)
-        if (!result) return result
-
-        // make sure all * captures are present in results
-        // (if there are more than one adjacent *, all captured paths will be in the
-        // last one and the rest will be empty)
-        for (const matcher of matchers) {
-          const { arrayCaptureAs } = matcher
-          if (!arrayCaptureAs) continue
-          if (!result?.arrayCaptures?.[arrayCaptureAs])
-            result = mergeCaptures(result, {
-              arrayCaptures: { [arrayCaptureAs]: [] },
-            })
-        }
-        return result
-      },
-    }
-  }
-
   return {
     pattern: paths,
     match: (path: NodePath, matchSoFar: MatchResult): MatchResult => {
-      debug('Array')
+      debug('Array (ordered)')
 
       if (!Array.isArray(path.value)) return null
+      const paths = (path as NodePath<Node, Node[]>).filter(() => true)
+
+      let result = matchElem(paths, 0, 0, 0, matchSoFar)
+      if (!result) return result
+
+      // make sure all * captures are present in results
+      // (if there are more than one adjacent *, all captured paths will be in the
+      // last one and the rest will be empty)
+      for (const matcher of matchers) {
+        const { arrayCaptureAs } = matcher
+        if (!arrayCaptureAs) continue
+        if (!result?.arrayCaptures?.[arrayCaptureAs])
+          result = mergeCaptures(result, {
+            arrayCaptures: { [arrayCaptureAs]: [] },
+          })
+      }
+      return result
+    },
+  }
+}
+
+function compileUnorderedArrayMatcher(
+  paths: NodePath<Node, Node>[],
+  compileOptions: CompileOptions,
+  {
+    matchers,
+    skipElement = () => false,
+  }: {
+    matchers: CompiledMatcher[]
+    skipElement?: (path: NodePath) => boolean
+  }
+): CompiledMatcher {
+  const { debug } = compileOptions
+
+  const restMatcher = matchers.find((m) => m.restCaptureAs)
+  matchers = matchers.filter((m) => !m.restCaptureAs)
+  const restCaptureAs = restMatcher?.restCaptureAs
+
+  return {
+    pattern: paths,
+    match: (path: NodePath, result: MatchResult): MatchResult => {
+      debug('Array (unordered)')
+
+      if (!Array.isArray(path.value)) return null
+
+      const paths = (path as NodePath<Node, Node[]>).filter(() => true)
+
+      for (const m of matchers) {
+        let i
+        let found = false
+        for (i = 0; i < paths.length; i++) {
+          if (skipElement(paths[i])) {
+            i++
+            continue
+          }
+          const match = m.match(paths[i], result)
+          if (!match) continue
+          result = match
+          paths.splice(i, 1)
+          found = true
+          break
+        }
+        if (!found) {
+          return null
+        }
+      }
+      if (restCaptureAs) {
+        return mergeCaptures(result, {
+          arrayCaptures: { [restCaptureAs]: paths },
+        })
+      } else {
+        if (paths.length) {
+          return null
+        }
+        return result || {}
+      }
+    },
+  }
+}
+
+function compileExactArrayMatcher(
+  paths: NodePath<Node, Node>[],
+  compileOptions: CompileOptions,
+  {
+    matchers,
+    skipElement = () => false,
+  }: {
+    matchers: CompiledMatcher[]
+    skipElement?: (path: NodePath) => boolean
+  }
+): CompiledMatcher {
+  const { debug } = compileOptions
+  return {
+    pattern: paths,
+    match: (path: NodePath, matchSoFar: MatchResult): MatchResult => {
+      debug('Array (exact)')
+
+      if (!Array.isArray(path.value)) return null
+
+      const paths = path.filter((p) => !skipElement(p))
 
       let m = 0,
         i = 0
       while (i < paths.length || m < matchers.length) {
         debug('  [%d]', i)
-        const elemPath = path.get(i)
-        if (skipElement(elemPath)) {
-          i++
-          continue
+        if (i >= paths.length || m >= matchers.length) {
+          debug('    length mismatch')
+          return null
         }
-        if (m >= matchers.length) return null
-        matchSoFar = matchers[m].match(elemPath, matchSoFar)
+        matchSoFar = matchers[m].match(paths[i], matchSoFar)
         if (!matchSoFar) return null
         m++
         i++

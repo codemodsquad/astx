@@ -1,0 +1,7 @@
+export const input = `
+[1, 2, 3, 4, 5]
+`
+
+export const find = `[$Unordered, 1, 2, 3, 4]`
+
+export const expectedFind = []
