@@ -1,4 +1,4 @@
-import { ASTPath } from 'jscodeshift'
+import { NodePath } from '../../../src/types'
 
 export const input = `
 const foo = require('foo')
@@ -8,7 +8,7 @@ const {glom, qlx} = require('foo')
 `
 export const find = `const $1 = require('$a')`
 export const where = {
-  $1: (path: ASTPath): boolean => path.node.type === 'Identifier',
+  $1: (path: NodePath): boolean => path.node.type === 'Identifier',
 }
 
 export const expectedFind = [

@@ -1,4 +1,4 @@
-import { ASTPath } from 'jscodeshift'
+import { NodePath } from '../../../src/types'
 
 export const input = `
 1 + 2
@@ -9,8 +9,8 @@ const foo = bar
 export const find = `$a + $b`
 
 export const where = {
-  $b: (path: ASTPath<any>): boolean =>
-    typeof path.node.value === 'number' && path.node.value < 4,
+  $b: (path: NodePath): boolean =>
+    typeof path.value.value === 'number' && path.value.value < 4,
 }
 
 export const expectedFind = [
