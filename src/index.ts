@@ -18,3 +18,5 @@ export {
   Transform,
   TransformResult,
 } from './runTransformOnFile'
+export { default as CodeFrameError } from './util/CodeFrameError'
+export { default as CompilePathError } from './util/CompilePathError'
