@@ -24,7 +24,6 @@ type Options = {
   find?: string
   replace?: string
   filesAndDirectories?: string[]
-  babelGenerator?: boolean
   yes?: boolean
 }
 
@@ -59,10 +58,6 @@ const transform: CommandModule<Options> = {
         alias: 'r',
         describe: 'replace pattern',
         type: 'string',
-      })
-      .option('babel-generator', {
-        describe: 'use @babel/generator to generate output',
-        type: 'boolean',
       })
       .option('yes', {
         alias: 'y',
