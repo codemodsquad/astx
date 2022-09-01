@@ -9,18 +9,20 @@ jobs:
       - run:
           name: Setup NPM Token
           command: |
-            yarn config set registry "https://registry.npmjs.org/"
-            echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > .npmrc
-            echo "registry=https://registry.npmjs.org/" >> .npmrc
+            echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > ~/.npmrc
+            echo "registry=https://registry.npmjs.org/" >> ~/.npmrc
+      - run:
+          name: Install pnpm
+          command: sudo npm install --global pnpm
       - run:
           name: Install Dependencies
-          command: yarn install --frozen-lockfile
+          command: pnpm install --frozen-lockfile
       - run:
           name: build
-          command: yarn run prepublishOnly
+          command: pnpm prepublishOnly
       - run:
           name: upload test coverage
-          command: yarn codecov
+          command: pnpm codecov
       - run:
           name: release
-          command: yarn run semantic-release
+          command: pnpm semantic-release
