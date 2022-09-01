@@ -12,8 +12,6 @@ specifiers:
   '@babel/preset-typescript': ^7.18.6
   '@babel/register': ^7.12.10
   '@babel/runtime': ^7.18.9
-  '@babel/template': ^7.18.10
-  '@babel/traverse': ^7.18.13
   '@babel/types': ^7.18.13
   '@commitlint/cli': ^11.0.0
   '@commitlint/config-conventional': ^11.0.0
@@ -23,8 +21,6 @@ specifiers:
   '@types/babel__code-frame': ^7.0.3
   '@types/babel__generator': ^7.6.3
   '@types/babel__parser': ^7.1.1
-  '@types/babel__template': ^7.4.1
-  '@types/babel__traverse': ^7.14.2
   '@types/chai': ^4.2.14
   '@types/debug': ^4.1.5
   '@types/diff': ^5.0.0
@@ -56,7 +52,6 @@ specifiers:
   eslint: ^7.18.0
   eslint-config-prettier: ^7.2.0
   flow-bin: ^0.144.0
-  flow-parser: 0.156.0
   fs-extra: ^9.0.1
   glob-gitignore: ^1.0.14
   husky: ^4.3.8
@@ -84,8 +79,6 @@ dependencies:
   '@babel/generator': 7.18.13
   '@babel/parser': 7.18.13
   '@babel/runtime': 7.18.9
-  '@babel/template': 7.18.10
-  '@babel/traverse': 7.18.13
   '@babel/types': 7.18.13
   ast-types: 0.14.2
   babel-parse-wild-code: 1.2.0
@@ -119,8 +112,6 @@ devDependencies:
   '@types/babel__code-frame': 7.0.3
   '@types/babel__generator': 7.6.4
   '@types/babel__parser': 7.1.1
-  '@types/babel__template': 7.4.1
-  '@types/babel__traverse': 7.18.0
   '@types/chai': 4.3.3
   '@types/debug': 4.1.7
   '@types/diff': 5.0.2
@@ -146,7 +137,6 @@ devDependencies:
   eslint: 7.32.0
   eslint-config-prettier: 7.2.0_eslint@7.32.0
   flow-bin: 0.144.0
-  flow-parser: 0.156.0
   husky: 4.3.8
   istanbul: 0.4.5
   lint-staged: 10.5.4
@@ -1850,19 +1840,6 @@ packages:
     deprecated: Deprecated
     dependencies:
       '@babel/parser': 7.18.13
-    dev: true
-
-  /@types/babel__template/7.4.1:
-    resolution: {integrity: sha512-azBFKemX6kMg5Io+/rdGT0dkGreboUVR0Cdm3fz9QJWpaQGJRQXl7C+6hOTCZcMll7KFyEQpgbYI2lHdsS4U7g==}
-    dependencies:
-      '@babel/parser': 7.18.13
-      '@babel/types': 7.18.13
-    dev: true
-
-  /@types/babel__traverse/7.18.0:
-    resolution: {integrity: sha512-v4Vwdko+pgymgS+A2UIaJru93zQd85vIGWObM5ekZNdXCKtDYqATlEYnWgfo86Q6I1Lh0oXnksDnMU1cwmlPDw==}
-    dependencies:
-      '@babel/types': 7.18.13
     dev: true
 
   /@types/chai/4.3.3:
@@ -3788,11 +3765,6 @@ packages:
     resolution: {integrity: sha512-+TeTukkfRjimaNhOHt8iQ/M33Fg8Afrm+iBHS19XzAz2fH4GwgroKCrAxDHnZoAUnmRv6jm/XngFxADlcqwYkw==}
     engines: {node: '>=0.10.0'}
     hasBin: true
-    dev: true
-
-  /flow-parser/0.156.0:
-    resolution: {integrity: sha512-OCE3oIixhOttaV4ahIGtxf9XfaDdxujiTnXuHu+0dvDVVDiSDJlQpgCWdDKqP0OHfFnxQKrjMamArDAXtrBtZw==}
-    engines: {node: '>=0.4.0'}
     dev: true
 
   /flow-parser/0.185.2:

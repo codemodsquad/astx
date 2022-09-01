@@ -13,18 +13,6 @@ import { ParserOptions } from '@babel/parser'
 import RecastBackend from '../../src/recast/RecastBackend'
 import BabelBackend from '../../src/babel/BabelBackend'
 import { Backend } from '../../src/backend/Backend'
-import flowParser from 'flow-parser'
-const flowParserOptions = {
-  enums: true,
-  esproposal_class_instance_fields: true,
-  esproposal_class_static_fields: true,
-  esproposal_decorators: true,
-  esproposal_export_star_as: true,
-  esproposal_optional_chaining: true,
-  esproposal_nullish_coalescing: true,
-  tokens: true,
-  types: true,
-}
 
 const projRoot = path.resolve(__dirname, '..', '..')
 const testcaseDir = path.relative(
@@ -143,13 +131,7 @@ const groups = {}
 for (const key in testcases) {
   const testcase = testcases[key]
   const {
-    parsers = [
-      'babel',
-      'babel/tsx',
-      'recast/babel',
-      'recast/babel/tsx',
-      'recast/flow',
-    ],
+    parsers = ['babel', 'babel/tsx', 'recast/babel', 'recast/babel/tsx'],
   } = testcase
 
   parsers.sort()
@@ -184,13 +166,7 @@ for (const parser in groups) {
     backendName === 'recast'
       ? new RecastBackend({
           parseOptions: {
-            parser:
-              actualParser === 'flow'
-                ? {
-                    parse: (code: string) =>
-                      flowParser.parse(code, flowParserOptions),
-                  }
-                : babelParser,
+            parser: babelParser,
           },
         })
       : new BabelBackend({ parserOptions: babelParser.parserOpts })

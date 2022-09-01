@@ -1,4 +1,4 @@
-export const parsers = ['babel', 'recast/babel', 'recast/flow']
+export const parsers = ['babel', 'recast/babel']
 
 export const input = `
 type Foo<W, X, Y, Z: {foo: 1}> = [W, X, Y, Z]

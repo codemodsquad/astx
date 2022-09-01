@@ -49,150 +49,134 @@ export type TransformResult = {
   matches?: Match[]
 }
 
-const getPrettier = memoize(
-  async (path: string): Promise<any> => {
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const prettier = require(await resolve('prettier', {
-        basedir: path,
-      }))
-      if (
-        typeof prettier.format === 'function' &&
-        typeof prettier.resolveConfig === 'function'
-      )
-        return prettier
-    } catch (error) {
-      // ignore
-    }
-    return null
-  }
-)
-
-const getBabelGenerator = memoize(
-  async (path: string): Promise<any> => {
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const babelGenerator = require(await resolve('@babel/generator', {
-        basedir: path,
-      }))
-      if (typeof babelGenerator.default === 'function')
-        return babelGenerator.default
-    } catch (error) {
-      // ignore
-    }
-    return generate
-  }
-)
-
-export const runTransformOnFile = (
-  transform: Transform,
-  { useBabelGenerator = true }: { useBabelGenerator?: boolean } = {}
-) => async (file: string): Promise<TransformResult> => {
+const getPrettier = memoize(async (path: string): Promise<any> => {
   try {
-    const source = await fs.readFile(file, 'utf8')
-    const parser =
-      transform.parser ||
-      (await getParserAsync(file, {
-        allowReturnOutsideFunction: true,
-        allowSuperOutsideMethod: true,
-        allowUndeclaredExports: true,
-        tokens: true,
-        plugins: ['topLevelAwait'],
-      }))
-    const j = jscodeshift.withParser(parser)
-    const template = makeTemplate(j)
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const prettier = require(await resolve('prettier', {
+      basedir: path,
+    }))
+    if (
+      typeof prettier.format === 'function' &&
+      typeof prettier.resolveConfig === 'function'
+    )
+      return prettier
+  } catch (error) {
+    // ignore
+  }
+  return null
+})
 
-    let transformed
-    const reports: any[] = []
+const getBabelGenerator = memoize(async (path: string): Promise<any> => {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const babelGenerator = require(await resolve('@babel/generator', {
+      basedir: path,
+    }))
+    if (typeof babelGenerator.default === 'function')
+      return babelGenerator.default
+  } catch (error) {
+    // ignore
+  }
+  return generate
+})
 
-    let matches: Match[] | undefined
+export const runTransformOnFile =
+  (transform: Transform) =>
+  async (file: string): Promise<TransformResult> => {
+    try {
+      const source = await fs.readFile(file, 'utf8')
+      const parser =
+        transform.parser ||
+        (await getParserAsync(file, {
+          allowReturnOutsideFunction: true,
+          allowSuperOutsideMethod: true,
+          allowUndeclaredExports: true,
+          tokens: true,
+          plugins: ['topLevelAwait'],
+        }))
+      const j = jscodeshift.withParser(parser)
+      const template = makeTemplate(j)
 
-    let transformFn = transform.astx
+      let transformed
+      const reports: any[] = []
 
-    if (typeof transformFn !== 'function' && transform.find) {
-      transformFn = ({ astx }): any => {
-        const result = astx.find(
-          transform.find as string | ASTNode | ASTNode[],
-          {
-            where: transform.where,
-          }
-        )
-        if (transform.replace) result.replace(transform.replace as any)
-        matches = result.matches()
-        if (!result.size()) return null
-      }
-    }
-    if (typeof transformFn === 'function') {
-      let root
-      try {
-        root = j(source)
-      } catch (error) {
-        if (error instanceof Error) {
-          CodeFrameError.rethrow(error, { filename: file, source })
+      let matches: Match[] | undefined
+
+      let transformFn = transform.astx
+
+      if (typeof transformFn !== 'function' && transform.find) {
+        transformFn = ({ astx }): any => {
+          const result = astx.find(
+            transform.find as string | ASTNode | ASTNode[],
+            {
+              where: transform.where,
+            }
+          )
+          if (transform.replace) result.replace(transform.replace as any)
+          matches = result.matches()
+          if (!result.size()) return null
         }
-        throw error
       }
-      const options = {
-        source,
-        path: file,
-        j,
-        jscodeshift: j,
-        report: (msg: any) => {
-          reports.push(msg)
-        },
-        ...template,
-        astx: new Astx(j, root.paths()),
-      }
-      const [_result, prettier, babelGenerator] = await Promise.all([
-        transformFn(options),
-        getPrettier(Path.dirname(file)),
-        useBabelGenerator ? getBabelGenerator(Path.dirname(file)) : null,
-      ])
-      transformed = _result
-      if (transformed === undefined) {
-        if (useBabelGenerator) {
-          if (babelGenerator) {
-            const ast = root.get().node
-            prepareForBabelGenerate(ast)
-            transformed = babelGenerator(ast, { concise: true }).code
-          } else {
-            throw new Error(
-              `unable to resolve @babel/generator in this directory`
-            )
+      if (typeof transformFn === 'function') {
+        let root
+        try {
+          root = j(source)
+        } catch (error) {
+          if (error instanceof Error) {
+            CodeFrameError.rethrow(error, { filename: file, source })
           }
-        } else transformed = root.toSource()
+          throw error
+        }
+        const options = {
+          source,
+          path: file,
+          j,
+          jscodeshift: j,
+          report: (msg: any) => {
+            reports.push(msg)
+          },
+          ...template,
+          astx: new Astx(j, root.paths()),
+        }
+        const [_result, prettier] = await Promise.all([
+          transformFn(options),
+          getPrettier(Path.dirname(file)),
+        ])
+        transformed = _result
+        if (transformed === undefined) {
+          transformed = root.toSource()
+        }
+        if (transformed === null) transformed = undefined
+        if (
+          prettier &&
+          typeof transformed === 'string' &&
+          transformed !== source
+        ) {
+          const config = (await prettier.resolveConfig(file)) || {}
+          if (/\.tsx?$/.test(file)) config.parser = 'typescript'
+          transformed = prettier.format(transformed, config)
+        }
+        if (transformed != null)
+          transformed = omitBlankLineChanges(source, transformed)
+      } else {
+        return {
+          file,
+          error: new Error(
+            'transform file must export either astx or find/replace'
+          ),
+        }
       }
-      if (transformed === null) transformed = undefined
-      if (
-        prettier &&
-        typeof transformed === 'string' &&
-        transformed !== source
-      ) {
-        const config = (await prettier.resolveConfig(file)) || {}
-        if (/\.tsx?$/.test(file)) config.parser = 'typescript'
-        transformed = prettier.format(transformed, config)
-      }
-      if (transformed != null)
-        transformed = omitBlankLineChanges(source, transformed)
-    } else {
       return {
         file,
-        error: new Error(
-          'transform file must export either astx or find/replace'
-        ),
+        source,
+        transformed,
+        reports,
+        matches,
+      }
+    } catch (error) {
+      return {
+        file,
+        error: error instanceof Error ? error : new Error(String(error)),
       }
     }
-    return {
-      file,
-      source,
-      transformed,
-      reports,
-      matches,
-    }
-  } catch (error) {
-    return {
-      file,
-      error: error instanceof Error ? error : new Error(String(error)),
-    }
   }
-}
