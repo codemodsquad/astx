@@ -27,28 +27,28 @@ These are docs for the version 2 beta branch.
 - [Prior art and philosophy](#prior-art-and-philosophy)
 - [API](#api)
   - [class Astx](#class-astx)
-    - [`constructor(jscodeshift: JSCodeshift, paths: ASTPath<any>[] | Match[], options?: { withCaptures?: Match[] })`](#constructorjscodeshift-jscodeshift-paths-astpathany--match-options--withcaptures-match-)
+    - [`constructor(backend: Backend, paths: NodePath<any>[] | Match[], options?: { withCaptures?: Match[] })`](#constructorbackend-backend-paths-nodepathany--match-options--withcaptures-match-)
     - [`.find(...)` (`Astx`)](#find-astx)
     - [`.closest(...)` (`Astx`)](#closest-astx)
     - [`FindOptions`](#findoptions)
-      - [`FindOptions.where` (`{ [captureName: string]: (path: ASTPath<any>) => boolean }`)](#findoptionswhere--capturename-string-path-astpathany--boolean-)
+      - [`FindOptions.where` (`{ [captureName: string]: (path: NodePath<any>) => boolean }`)](#findoptionswhere--capturename-string-path-nodepathany--boolean-)
       - [`FindOptions.withCaptures` (`Match | Match[]`)](#findoptionswithcaptures-match--match)
     - [`.find(...).replace(...)` (`void`)](#findreplace-void)
     - [`.size()` (`number`)](#size-number)
     - [`.length` (`number`)](#length-number)
     - [`.matches()` (`Match[]`)](#matches-match)
     - [`.match()` (`Match`)](#match-match)
-    - [`.paths()` (`ASTPath[]`)](#paths-astpath)
-    - [`.nodes()` (`ASTNode[]`)](#nodes-astnode)
+    - [`.paths()` (`NodePath[]`)](#paths-nodepath)
+    - [`.nodes()` (`Node[]`)](#nodes-node)
     - [`.filter(iteratee)` (`Astx`)](#filteriteratee-astx)
     - [`.at(index)` (`Astx`)](#atindex-astx)
     - [`.withCaptures(matches)` (`Astx`)](#withcapturesmatches-astx)
     - [`.captures(name)` (`Astx`)](#capturesname-astx)
-    - [`.captureNode(name)` (`ASTNode | null`)](#capturenodename-astnode--null)
-    - [`.capturePath(name)` (`ASTPath<any> | null`)](#capturepathname-astpathany--null)
+    - [`.captureNode(name)` (`Node | null`)](#capturenodename-node--null)
+    - [`.capturePath(name)` (`NodePath<any> | null`)](#capturepathname-nodepathany--null)
     - [`.arrayCaptures(name)` (`Astx`)](#arraycapturesname-astx)
-    - [`.arrayCaptureNodes(name)` (`ASTNode[] | null`)](#arraycapturenodesname-astnode--null)
-    - [`.arrayCapturePaths(name)` (`ASTPath<any>[] | null`)](#arraycapturepathsname-astpathany--null)
+    - [`.arrayCaptureNodes(name)` (`Node[] | null`)](#arraycapturenodesname-node--null)
+    - [`.arrayCapturePaths(name)` (`NodePath<any>[] | null`)](#arraycapturepathsname-nodepathany--null)
     - [`.stringCapture(name)` (`string | null`)](#stringcapturename-string--null)
   - [Match](#match)
     - [`.type`](#type)
@@ -213,23 +213,19 @@ Paste your code into [AST Explorer](https://astexplorer.net/) if you need to lea
 
 # API
 
-Note: the identifier `j` in all code examples is an instance of `jscodeshift`, as per convention.
+Note: the identifier `t` in all code examples refers to `import * as t from '@babel/types'`.
 
 ## class Astx
 
 ```ts
-import { Astx } from 'astx/jscodeshift'
-import j from 'jscodeshift'
-
-const astx = new Astx(j, j('your code here').paths())
+import { Astx } from 'astx'
 ```
 
-### `constructor(jscodeshift: JSCodeshift, paths: ASTPath<any>[] | Match[], options?: { withCaptures?: Match[] })`
+### `constructor(backend: Backend, paths: NodePath<any>[] | Match[], options?: { withCaptures?: Match[] })`
 
-`jscodeshift` must be configured with your desired parser for methods to work correctly.
-For instance, if you're using TypeScript, it could be `require('jscodeshift').withParser('ts')`.
+`backend` is the parser/generator implementation being used.
 
-`paths` specifies the `ASTPath`s or `Match`es you want `Astx` methods
+`paths` specifies the `NodePath`s or `Match`es you want `Astx` methods
 to search/operate on.
 
 ### `.find(...)` (`Astx`)
@@ -245,13 +241,13 @@ For example if you do `astx.find('foo($$args)').find('$a + $b')`, the second `fi
 You can call `.find` as a method or tagged template literal:
 
 - `` .find`pattern`(options?: FindOptions) ``
-- `.find(pattern: string | ASTNode | ASTNode[] | ASTPath | ASTPath[], options?: FindOptions)`
+- `.find(pattern: string | string[] | Node | Node[] | NodePath | NodePath[], options?: FindOptions)`
 
-If you give the pattern as a string, it must be a valid expression or statement(s) as parsed by the `jscodeshift` instance. Otherwise it should be valid
+If you give the pattern as a string, it must be a valid expression or statement(s). Otherwise it should be valid
 AST node(s) you already parsed or constructed.
-You can interpolate AST nodes in the tagged template literal; it uses `jscodeshift.template.expression` or `jscodeshift.template.statement` under the hood.
+You can interpolate AST nodes or arrays of AST nodes in the tagged template literal.
 
-For example you could do `` astx.find`${j.identifier('foo')} + 3`() ``.
+For example you could do `` astx.find`${t.identifier('foo')} + 3`() ``.
 
 Or you could match multiple statements by doing
 
@@ -273,7 +269,7 @@ Like `.find()`, but searches up the AST ancestors instead of down into descendan
 
 An object with the following optional properties:
 
-#### `FindOptions.where` (`{ [captureName: string]: (path: ASTPath<any>) => boolean }`)
+#### `FindOptions.where` (`{ [captureName: string]: (path: NodePath<any>) => boolean }`)
 
 Where conditions for node captures. For example if your find pattern is `$a()`, you could have
 `{ where: { $a: path => /foo|bar/.test(path.node.name) } }`, which would only match zero-argument calls
@@ -290,14 +286,13 @@ Finds and replaces matches for the given pattern within `root`.
 There are several different ways you can call `.replace`. You can call `.find` in any way described above.
 
 - `` .find(...).replace`replacement`() ``
-- `.find(...).replace(replacement: string | ASTNode | ASTNode[])`
-- `.find(...).replace(replacement: (match: Match<any>, parse: ParseTag) => string)`
-- `.find(...).replace(replacement: (match: Match<any>, parse: ParseTag) => ASTNode | ASTNode[])`
+- `.find(...).replace(replacement: string | string | Node | Node[])`
+- `.find(...).replace(replacement: (match: Match<any>, parse: ParsePattern) => string)`
+- `.find(...).replace(replacement: (match: Match<any>, parse: ParsePattern) => Node | Node[])`
 
-If you give the replacement as a string, it must be a valid expression or statement as parsed by the `jscodeshift` instance.
+If you give the replacement as a string, it must be a valid expression or statement.
 You can give the replacement as AST node(s) you already parsed or constructed.
-Or you can give a replacement function, which will be called with each match and must return a string or `ASTNode | ASTNode[]` (you can use the `parse` tagged template string function provided as the second argument to parse code into a string
-via `jscodeshift.template.expression` or `jscodeshift.template.statement`).
+Or you can give a replacement function, which will be called with each match and must return a string or `Node | Node[]` (you can use the `parse` tagged template string function provided as the second argument to parse code into a string.
 For example, you could uppercase the function names in all zero-argument function calls (`foo(); bar()` becomes `FOO(); BAR()`) with this:
 
 ```
@@ -324,13 +319,13 @@ Gets the first match from the `.find()` or `.closest()` call that returned this 
 
 Throws an error if there were no matches.
 
-### `.paths()` (`ASTPath[]`)
+### `.paths()` (`NodePath[]`)
 
 Returns the paths that `.find()` and `.closest()` will search within.
 If this instance was returned by `.find()` or `.closest()`, these are
 the paths of nodes that matched the search pattern.
 
-### `.nodes()` (`ASTNode[]`)
+### `.nodes()` (`Node[]`)
 
 Returns the nodes that `.find()` and `.closest()` will search within.
 If this instance was returned by `.find()` or `.closest()`, these are
@@ -357,11 +352,11 @@ Filters down to nodes captured with the given `name`. For example,
 but `astx.find('foo($arg)').captures('$arg')` will have just the
 first arguments as matches/paths.
 
-### `.captureNode(name)` (`ASTNode | null`)
+### `.captureNode(name)` (`Node | null`)
 
 Gets the first node that was captured with the given `name`.
 
-### `.capturePath(name)` (`ASTPath<any> | null`)
+### `.capturePath(name)` (`NodePath<any> | null`)
 
 Gets the path of the first node that was captured with the given `name`.
 
@@ -372,11 +367,11 @@ Filters down to arrays of nodes captured with the given `name`. For example,
 but `astx.find('foo($$arg)').captures('$$arg')` will have just the
 arguments as matches/paths.
 
-### `.arrayCaptureNodes(name)` (`ASTNode[] | null`)
+### `.arrayCaptureNodes(name)` (`Node[] | null`)
 
 Gets the first array of nodes that was captured with the given `name`.
 
-### `.arrayCapturePaths(name)` (`ASTPath<any>[] | null`)
+### `.arrayCapturePaths(name)` (`NodePath<any>[] | null`)
 
 Gets the paths of the first array of nodes that was captured with the given `name`.
 
@@ -387,7 +382,7 @@ Gets the first string value that was captured with the given `name`.
 ## Match
 
 ```ts
-import { type Match } from 'astx/jscodeshift'
+import { type Match } from 'astx'
 ```
 
 ### `.type`
@@ -396,35 +391,35 @@ The type of match: `'node'` or `'nodes'`.
 
 ### `.path`
 
-The `ASTPath` of the matched node. If `type` is `'nodes'`, this will be `paths[0]`.
+The `NodePath` of the matched node. If `type` is `'nodes'`, this will be `paths[0]`.
 
 ### `.node`
 
-The matched `ASTNode`. If `type` is `'nodes'`, this will be `nodes[0]`.
+The matched `Node`. If `type` is `'nodes'`, this will be `nodes[0]`.
 
 ### `.paths`
 
-The `ASTPaths` of the matched nodes.
+The `NodePaths` of the matched nodes.
 
 ### `.nodes`
 
-The matched `ASTNode`s.
+The matched `Node`s.
 
 ### `.captures`
 
-The `ASTNode`s captured from placeholders in the match pattern. For example if the pattern was `foo($bar)`, `.captures.$bar` will be the `ASTNode` of the first argument.
+The `Node`s captured from placeholders in the match pattern. For example if the pattern was `foo($bar)`, `.captures.$bar` will be the `Node` of the first argument.
 
 ### `.pathCaptures`
 
-The `ASTPath`s captured from placeholders in the match pattern. For example if the pattern was `foo($bar)`, `.pathCaptures.$bar` will be the `ASTPath` of the first argument.
+The `NodePath`s captured from placeholders in the match pattern. For example if the pattern was `foo($bar)`, `.pathCaptures.$bar` will be the `NodePath` of the first argument.
 
 ### `.arrayCaptures`
 
-The `ASTNode[]`s captured from array placeholders in the match pattern. For example if the pattern was `foo({ ...$bar })`, `.arrayCaptures.$bar` will be the `ASTNode[]`s of the object properties.
+The `Node[]`s captured from array placeholders in the match pattern. For example if the pattern was `foo({ ...$bar })`, `.arrayCaptures.$bar` will be the `Node[]`s of the object properties.
 
 ### `.arrayPathCaptures`
 
-The `ASTPath[]`s captured from array placeholders in the match pattern. For example if the pattern was `foo({ ...$bar })`, `.pathArrayCaptures.$bar` will be the `ASTPath[]`s of the object properties.
+The `NodePath[]`s captured from array placeholders in the match pattern. For example if the pattern was `foo({ ...$bar })`, `.pathArrayCaptures.$bar` will be the `NodePath[]`s of the object properties.
 
 ### `.stringCaptures`
 
@@ -587,7 +582,7 @@ foo(1, 1, { foo: 1 }, { bar: 1 }) // no match
 
 # Transform files
 
-Like `jscodeshift`, you can put code to perform a transform in a `.js` file (defaults to `astx.js` in the working directory, unless you use the `-t` CLI option).
+Like `jscodeshift`, you can put code to perform a transform in a `.js` file (defaults to `astx.js` in the working directory, unless you specify a different file with the `-t` CLI option).
 
 The transform file API is a bit different from `jscodeshift` though. You can have the following exports:
 
@@ -598,7 +593,7 @@ A code string or AST node of the pattern to find in the files being transformed.
 ## `exports.where` (optional)
 
 Where conditions for capture variables in `exports.find`.
-See [`FindOptions.where` (`{ [captureName: string]: (path: ASTPath<any>) => boolean }`)](#findoptionswhere--capturename-string-path-astpathany--boolean-) for more information.
+See [`FindOptions.where` (`{ [captureName: string]: (path: NodePath<any>) => boolean }`)](#findoptionswhere--capturename-string-path-NodePathany--boolean-) for more information.
 
 ## `exports.replace` (optional)
 
@@ -610,13 +605,7 @@ is multiple statements or not.
 
 ## `exports.parser` (optional)
 
-The parser name to use, or a `Parser` implementation:
-
-```ts
-interface Parser {
-  parse(source: string, options?: any): types.ASTNode
-}
-```
+The parser name to use, or a parser/generator [`Backend`](src/backend/Backend.ts) implementation.
 
 ## `exports.astx` (optional)
 
@@ -625,11 +614,10 @@ A function to perform an arbitrary transform using the `Astx` API. It gets calle
 - `source` (`string`) - The source code of the file being transformed
 - `path` (`string`) - The path to the file being transformed
 - `astx` (`Astx`) - the `Astx` API instance
-- `jscodeshift` (`JSCodeshift`) - the JSCodeshift instance
-- `j` (`JSCodeshift`) - shorthand for the same JSCodeshift instance
-- `expression` - tagged template literal for parsing code as an expression, like `jscodeshift.template.expression`
-- `statement` - tagged template literal for parsing code as a statement, like `jscodeshift.template.statement`
-- `statements` - tagged template literal for parsing code as an array of statements, like `jscodeshift.template.statements`
+- `t` (`AstTypes`) - `ast-types` definitions for the chosen parser
+- `expression` - tagged template literal for parsing code as an expression
+- `statement` - tagged template literal for parsing code as a statement
+- `statements` - tagged template literal for parsing code as an array of statements
 - `report` (`(message: any) => void`)
 
 Unlike `jscodeshift`, your transform function can be async, and it doesn't have to return the transformed code,
@@ -642,10 +630,9 @@ Astx includes a CLI for performing transforms. The CLI will process the given fi
 changed, and prompt you to confirm you want to write the changes.
 
 It will parse with babel by default using the version installed in your project and your project's babel config, if any.
-You can pass other parsers with the `--parser` option, just like `jscodeshift` (except you must use `--parser tsx` syntax
-rather than `jscodeshift`'s `--parser=tsx` syntax).
+You can pass other parsers with the `--parser` option.
 
-Also unlike `jscodeshift`, if `prettier` is installed in your project, it will format the transformed code with `prettier`.
+Unlike `jscodeshift`, if `prettier` is installed in your project, it will format the transformed code with `prettier`.
 
 ```
 Usage:

@@ -7,14 +7,14 @@ import CodeFrameError from './util/CodeFrameError'
 import ensureArray from './util/ensureArray'
 import { once } from 'lodash'
 
-export type ParseTag = (
+export type ParsePattern = (
   strings: string | string[] | TemplateStringsArray,
   ...quasis: any[]
 ) => Node | Node[]
 
 export type GetReplacement = (
   match: Match,
-  parse: ParseTag
+  parse: ParsePattern
 ) => string | Node | Node[]
 
 function isNode(x: unknown): x is Node {

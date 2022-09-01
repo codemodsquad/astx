@@ -61,7 +61,7 @@ const getPrettier = memoize(async (path: string): Promise<any> => {
   return null
 })
 
-export const runTransformOnFile =
+const runTransformOnFile =
   ({
     transform,
     getBackend,
@@ -177,3 +177,5 @@ export const runTransformOnFile =
       }
     }
   }
+
+export default runTransformOnFile

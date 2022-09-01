@@ -1,5 +1,4 @@
-import {
-  runTransformOnFile,
+import runTransformOnFile, {
   Transform,
   TransformResult,
 } from './runTransformOnFile'
