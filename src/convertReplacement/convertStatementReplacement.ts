@@ -6,7 +6,7 @@ import convertToExpression from './convertToExpression'
 export default function convertStatementReplacement(value: Node): Node {
   switch (value.type) {
     case 'ClassExpression':
-      return ({ ...value, type: 'ClassDeclaration' } as any) as ClassDeclaration
+      return { ...value, type: 'ClassDeclaration' } as any as ClassDeclaration
     case 'FunctionExpression':
       return {
         ...value,

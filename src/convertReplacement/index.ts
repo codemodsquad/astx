@@ -18,15 +18,13 @@ function identity<T>(x: T): T {
   return x
 }
 
-const nodeConverters: Record<
-  string,
-  (path: NodePath) => ReplacementConverter
-> = {
-  TypeParameter,
-  TSTypeParameter,
-  ImportSpecifier: convertImportSpecifierReplacement,
-  ImportDefaultSpecifier: convertImportSpecifierReplacement,
-}
+const nodeConverters: Record<string, (path: NodePath) => ReplacementConverter> =
+  {
+    TypeParameter,
+    TSTypeParameter,
+    ImportSpecifier: convertImportSpecifierReplacement,
+    ImportDefaultSpecifier: convertImportSpecifierReplacement,
+  }
 
 export default function createReplacementConverter(
   path: NodePath<any>
