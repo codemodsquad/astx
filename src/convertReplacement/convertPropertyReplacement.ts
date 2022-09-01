@@ -5,10 +5,8 @@ import convertToExpression from './convertToExpression'
 
 export default function convertPropertyReplacement(node: Node): Node {
   switch (node.type) {
-    case 'SpreadProperty':
     case 'SpreadElement':
     case 'ObjectProperty':
-    case 'Property':
       return node
     case 'ObjectTypeSpreadProperty': {
       const expr = convertToExpression(node)

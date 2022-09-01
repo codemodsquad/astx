@@ -4,7 +4,6 @@ import {
   ObjectMethod,
   ObjectProperty,
   SpreadElement,
-  SpreadProperty,
 } from '../types'
 import t from 'ast-types'
 import compileGenericNodeMatcher from './GenericNodeMatcher'
@@ -20,16 +19,10 @@ import { getAnyCaptureAs, getArrayCaptureAs } from './Capture'
 import CompilePathError from '../util/CompilePathError'
 
 function getSimpleKey(
-  property:
-    | ObjectProperty
-    | t.namedTypes.Property
-    | ObjectMethod
-    | SpreadProperty
-    | SpreadElement
+  property: ObjectProperty | ObjectMethod | SpreadElement
 ): string | undefined {
   switch (property.type) {
     case 'ObjectProperty':
-    case 'Property':
     case 'ObjectMethod':
       switch (property.key.type) {
         case 'Identifier':
@@ -50,11 +43,9 @@ function getCaptureRestVariable(
     | ObjectProperty
     | t.namedTypes.Property
     | ObjectMethod
-    | SpreadProperty
     | SpreadElement
 ): string | undefined {
-  if (property.type !== 'SpreadElement' && property.type !== 'SpreadProperty')
-    return undefined
+  if (property.type !== 'SpreadElement') return undefined
   const { argument } = property
   if (argument.type !== 'Identifier') return undefined
   return getArrayCaptureAs(argument.name)

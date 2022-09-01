@@ -14,12 +14,10 @@ import ImportSpecifier from './ImportSpecifier'
 import JSXAttribute from './JSXAttribute'
 import JSXExpressionContainer from './JSXExpressionContainer'
 import JSXIdentifier from './JSXIdentifier'
-import Literal from './Literal'
 import ObjectProperty from './ObjectProperty'
 import ObjectTypeProperty from './ObjectTypeProperty'
 import Property from './Property'
 import SpreadElement from './SpreadElement'
-import SpreadProperty from './SpreadProperty'
 import StringLiteral from './StringLiteral'
 import TemplateLiteral from './TemplateLiteral'
 import TSExpressionWithTypeArguments from './TSExpressionWithTypeArguments'
@@ -71,12 +69,10 @@ const nodeCompilers: Record<
   JSXAttribute,
   JSXExpressionContainer,
   JSXIdentifier,
-  Literal,
   ObjectProperty,
   ObjectTypeProperty,
   Property,
   SpreadElement,
-  SpreadProperty,
   StringLiteral,
   TemplateLiteral,
   TSExpressionWithTypeArguments,

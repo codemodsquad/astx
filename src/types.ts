@@ -100,7 +100,6 @@ export type ObjectProperty =
 export type ObjectTypeProperty = b.ObjectTypeProperty | k.ObjectTypePropertyKind
 export type RegExpLiteral = b.RegExpLiteral | k.RegExpLiteralKind
 export type StringLiteral = b.StringLiteral | k.StringLiteralKind
-export type SpreadProperty = k.SpreadPropertyKind
 export type SpreadElement = b.SpreadElement | k.SpreadElementKind
 export type TemplateLiteral = b.TemplateLiteral | k.TemplateLiteralKind
 export type TSExpressionWithTypeArguments =

@@ -3,7 +3,7 @@ import compileMatcher, { CompiledMatcher, CompileOptions, MatchResult } from '.'
 import compileCaptureMatcher from './Capture'
 import indentDebug from './indentDebug'
 
-const nodeTypes: NodeType[] = ['Property', 'ObjectProperty']
+const nodeTypes: NodeType[] = ['ObjectProperty']
 
 export default function compileObjectPropertyMatcher(
   path: NodePath<ObjectProperty, ObjectProperty>,

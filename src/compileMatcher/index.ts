@@ -18,7 +18,6 @@ import JSXElement from './JSXElement'
 import JSXExpressionContainer from './JSXExpressionContainer'
 import JSXIdentifier from './JSXIdentifier'
 import JSXText from './JSXText'
-import Literal from './Literal'
 import NumericLiteral from './NumericLiteral'
 import ObjectExpression from './ObjectExpression'
 import ObjectProperty from './ObjectProperty'
@@ -118,12 +117,9 @@ const nodeMatchers: Record<
   JSXExpressionContainer,
   JSXIdentifier,
   JSXText,
-  Literal,
   NumericLiteral,
   ObjectExpression,
   ObjectProperty,
-  Property: ObjectProperty,
-  PropertyDefinition: ObjectProperty,
   ObjectTypeProperty,
   RegExpLiteral,
   StringLiteral,

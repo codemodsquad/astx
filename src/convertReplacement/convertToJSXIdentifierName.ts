@@ -7,7 +7,6 @@ function isValidJSXIdentifier(s: string) {
 export default function convertToJSXIdentifierName(node: Node): string | void {
   switch (node.type) {
     case 'ObjectProperty':
-    case 'Property':
       if (node.shorthand) return convertToJSXIdentifierName(node.key)
       break
     case 'TSPropertySignature':
@@ -15,7 +14,6 @@ export default function convertToJSXIdentifierName(node: Node): string | void {
       break
     case 'ObjectTypeSpreadProperty':
     case 'SpreadElement':
-    case 'SpreadProperty':
       return convertToJSXIdentifierName(node.argument)
     case 'ExpressionStatement':
       return convertToJSXIdentifierName(node.expression)
