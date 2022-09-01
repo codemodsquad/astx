@@ -41,7 +41,7 @@ const transform: CommandModule<Options> = {
         describe: `path to the transform file. Can be either a local path or url. Defaults to ./astx.js if --find isn't given`,
       })
       .options('parser', {
-        describe: 'parser to use',
+        describe: 'parser to use (options: babel, recast/babel)',
         type: 'string',
         default: 'babel',
       })

@@ -630,7 +630,8 @@ Astx includes a CLI for performing transforms. The CLI will process the given fi
 changed, and prompt you to confirm you want to write the changes.
 
 It will parse with babel by default using the version installed in your project and your project's babel config, if any.
-You can pass other parsers with the `--parser` option.
+You can pass `--parser recast/babel` if you want to use [`recast`](https://github.com/benjamn/recast) to try to preserve
+formatting in the output, but I sometimes see syntax errors in its output.
 
 Unlike `jscodeshift`, if `prettier` is installed in your project, it will format the transformed code with `prettier`.
 
@@ -660,17 +661,16 @@ astx [<files ...>] [<directories ...>]
   Applies the default transform file (astx.js in working directory)
   to the given files and directories
 
-
 Options:
-      --help             Show help                                     [boolean]
-      --version          Show version number                           [boolean]
-  -t, --transform        path to the transform file. Can be either a local path
-                         or url. Defaults to ./astx.js if --find isn't given
-      --parser           parser to use                                  [string]
-  -f, --find             search pattern                                 [string]
-  -r, --replace          replace pattern                                [string]
-      --babel-generator  use @babel/generator to generate output       [boolean]
-  -y, --yes              don't ask for confirmation before writing changes
+      --help           Show help                                       [boolean]
+      --version        Show version number                             [boolean]
+  -t, --transform      path to the transform file. Can be either a local path or
+                       url. Defaults to ./astx.js if --find isn't given
+      --parser         parser to use (options: babel, recast/babel)
+                                                     [string] [default: "babel"]
+      --parserOptions  options for parser                               [string]
+  -f, --find           search pattern                                   [string]
+  -r, --replace        replace pattern                                  [string]
+  -y, --yes            don't ask for confirmation before writing changes
                                                                        [boolean]
-
 ```
