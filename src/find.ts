@@ -1,12 +1,13 @@
 import { NodeType, NodePath, Node, Statement, Block } from './types'
 import mapValues from 'lodash/mapValues'
 import compileMatcher, {
-  CompiledNodeMatcher,
+  CompiledMatcher,
   MatchResult,
   mergeCaptures,
 } from './compileMatcher'
 import { Backend } from './backend/Backend'
 import ensureArray from './util/ensureArray'
+import forEachNode from './util/forEachNode'
 
 export type Match = {
   type: 'node' | 'nodes'
@@ -81,15 +82,18 @@ export default function find(
   pattern: NodePath | NodePath[],
   options: FindOptions
 ): Match[] {
-  const {
-    backend: { isStatement, forEachNode },
-  } = options
+  const t = options.backend.t
+  const n = t.namedTypes
   if (Array.isArray(pattern) && pattern.length === 1) pattern = pattern[0]
   if (Array.isArray(pattern)) {
-    if (!isStatement(pattern[0].node)) {
+    if (!n.Statement.check(pattern[0].value)) {
       throw new Error(`pattern array must be an array of statements`)
     }
-    return findStatements(paths, pattern as NodePath<Statement>[], options)
+    return findStatements(
+      paths,
+      pattern as NodePath<Statement, Statement>[],
+      options
+    )
   }
 
   const matcher = compileMatcher(pattern, options)
@@ -98,7 +102,7 @@ export default function find(
 
   const nodeTypes: NodeType[] = ensureArray(matcher.nodeType || 'Node')
 
-  forEachNode(ensureArray(paths), nodeTypes, (path: NodePath) => {
+  forEachNode(t, ensureArray(paths), nodeTypes, (path: NodePath) => {
     const result = matcher.match(path, options?.matchSoFar ?? null)
     if (result) matches.push(createMatch(path, result))
   })
@@ -108,13 +112,12 @@ export default function find(
 
 function findStatements(
   paths: NodePath | NodePath[],
-  pattern: NodePath<Statement>[],
+  pattern: NodePath<Statement, Statement>[],
   options: FindOptions
 ): Match[] {
-  const {
-    backend: { forEachNode },
-  } = options
-  const matchers: CompiledNodeMatcher[] = pattern.map((queryElem) =>
+  const t = options.backend.t
+
+  const matchers: CompiledMatcher[] = pattern.map((queryElem) =>
     compileMatcher(queryElem, options)
   )
 
@@ -199,7 +202,7 @@ function findStatements(
 
   const blocks: NodePath<Block>[] = []
 
-  forEachNode(ensureArray(paths), ['Block'], (path: NodePath) => {
+  forEachNode(t, ensureArray(paths), ['Block'], (path: NodePath) => {
     blocks.push(path as NodePath<Block>)
   })
   blocks.reverse()
@@ -209,7 +212,7 @@ function findStatements(
   const initialMatch = options?.matchSoFar ?? null
 
   for (const block of blocks) {
-    const body: NodePath<Statement>[] = block.get('body')
+    const body: NodePath<Statement>[] = block.get('body').filter(() => true)
     const end = body.length - remainingElements(firstNonArrayCaptureIndex + 1)
     let sliceStart = 0
     for (let arrayIndex = 0; arrayIndex < end; arrayIndex++) {

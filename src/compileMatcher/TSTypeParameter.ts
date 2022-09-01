@@ -1,19 +1,18 @@
 import { TSTypeParameter, NodePath } from '../types'
 import { CompiledMatcher, CompileOptions } from '.'
 import compileCaptureMatcher from './Capture'
-import * as j from 'jscodeshift'
 
 export default function compileTSTypeParameterMatcher(
-  path: NodePath<TSTypeParameter>,
+  path: NodePath<TSTypeParameter, TSTypeParameter>,
   compileOptions: CompileOptions
 ): CompiledMatcher | void {
-  const pattern: TSTypeParameter = path.node
+  const pattern: TSTypeParameter = path.value
 
   if (
     pattern.constraint == null &&
-    (pattern as j.TSTypeParameter).typeAnnotation == null &&
+    pattern.typeAnnotation == null &&
     pattern.default == null &&
-    !(pattern as j.TSTypeParameter).optional
+    !pattern.optional
   ) {
     const captureMatcher = compileCaptureMatcher(
       path,

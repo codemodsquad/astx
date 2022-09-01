@@ -3,12 +3,13 @@ import { CompiledMatcher, CompileOptions } from '.'
 import compileSpecialMatcher from './SpecialMatcher'
 
 export default function compileCallExpressionMatcher(
-  path: NodePath<CallExpression>,
+  path: NodePath<CallExpression, CallExpression>,
   compileOptions: CompileOptions
 ): CompiledMatcher | void {
-  const { callee } = path.node
+  const { callee } = path.value
+  const n = compileOptions.backend.t.namedTypes
 
-  if (callee.type === 'Identifier') {
+  if (n.Identifier.check(callee)) {
     const special = compileSpecialMatcher(
       path,
       callee.name,

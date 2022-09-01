@@ -4,20 +4,21 @@ import compileGenericNodeMatcher from './GenericNodeMatcher'
 import compileGenericArrayMatcher from './GenericArrayMatcher'
 import normalizeJSXTextValue from '../util/normalizeJSXTextValue'
 
-function shouldSkipChild(path: NodePath): boolean {
-  return (
-    path.node.type === 'JSXText' &&
-    normalizeJSXTextValue(path.node.value) === ''
-  )
-}
-
 export default function compileJSXElementMatcher(
-  path: NodePath<JSXElement>,
+  path: NodePath<JSXElement, JSXElement>,
   compileOptions: CompileOptions
 ): CompiledMatcher | void {
   const children = path.get('children')
+  const n = compileOptions.backend.t.namedTypes
 
-  if (Array.isArray(children) && children.length) {
+  function shouldSkipChild(path: NodePath): boolean {
+    return (
+      n.JSXText.check(path.value) &&
+      normalizeJSXTextValue(path.value.value) === ''
+    )
+  }
+
+  if (Array.isArray(children.value) && children.value.length) {
     return compileGenericNodeMatcher(path, compileOptions, {
       keyMatchers: {
         children: compileGenericArrayMatcher(

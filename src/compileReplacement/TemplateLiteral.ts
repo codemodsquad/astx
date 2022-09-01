@@ -12,7 +12,7 @@ function generateValue(cooked: string): { raw: string; cooked: string } {
 export default function compileTemplateLiteralReplacement(
   path: NodePath<TemplateLiteral>
 ): CompiledReplacement | void {
-  const pattern = path.node
+  const pattern = path.value
   if (pattern.quasis.length === 1) {
     const [quasi] = pattern.quasis
     if (quasi.value.cooked) {

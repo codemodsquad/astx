@@ -3,12 +3,13 @@ import { CompiledMatcher, CompileOptions } from '.'
 import compileCaptureMatcher from './Capture'
 
 export default function compileClassPropertyMatcher(
-  path: NodePath<ClassProperty>,
+  path: NodePath<ClassProperty, ClassProperty>,
   compileOptions: CompileOptions
 ): CompiledMatcher | void {
-  const pattern: ClassProperty = path.node
+  const pattern: ClassProperty = path.value
+  const n = compileOptions.backend.t.namedTypes
 
-  if (pattern.key.type === 'Identifier') {
+  if (n.Identifier.check(pattern.key)) {
     if (
       !pattern.computed &&
       !pattern.static &&

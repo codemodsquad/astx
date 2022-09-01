@@ -88,16 +88,16 @@ const nodeCompilers: Record<
 }
 
 export default function compileReplacement(
-  pattern: NodePath | NodePath[],
+  pattern: NodePath | NodePath<Node, Node[]> | NodePath[],
   rootCompileReplacementOptions: RootCompileReplacementOptions
 ): CompiledReplacement {
   const { debug = _debug } = rootCompileReplacementOptions
   const compileOptions = { ...rootCompileReplacementOptions, debug }
-  if (Array.isArray(pattern)) {
-    return compileGenericArrayReplacement(pattern as any, compileOptions) as any
+  if (Array.isArray(pattern) || Array.isArray(pattern.value)) {
+    return compileGenericArrayReplacement(pattern, compileOptions) as any
   }
-  if (nodeCompilers[pattern.node.type]) {
-    const replacement = nodeCompilers[pattern.node.type](
+  if (nodeCompilers[pattern.value.type]) {
+    const replacement = nodeCompilers[pattern.value.type](
       pattern,
       compileOptions
     )

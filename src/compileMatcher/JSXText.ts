@@ -3,20 +3,21 @@ import { CompileOptions, convertPredicateMatcher, CompiledMatcher } from '.'
 import normalizeJSXTextValue from '../util/normalizeJSXTextValue'
 
 export default function matchJSXText(
-  path: NodePath<JSXText>,
+  path: NodePath<JSXText, JSXText>,
   compileOptions: CompileOptions
 ): CompiledMatcher {
-  const pattern: JSXText = path.node
+  const pattern: JSXText = path.value
   const normalizedValue = normalizeJSXTextValue(pattern.value)
+  const n = compileOptions.backend.t.namedTypes
 
   return convertPredicateMatcher(
     path,
     {
       match: (path: NodePath): boolean => {
-        const { node } = path
+        const { value: node } = path
 
         return (
-          node?.type === 'JSXText' &&
+          n.JSXText.check(node) &&
           normalizedValue === normalizeJSXTextValue(node.value)
         )
       },

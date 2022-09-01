@@ -29,7 +29,7 @@ describe(`Astx`, function () {
     let source
     const createAstx = (src: string): Astx => {
       source = src
-      return new Astx(backend, [backend.makePath(backend.parse(src))])
+      return new Astx(backend, [new backend.t.NodePath(backend.parse(src))])
     }
     const extractMatchSource = (astx: Astx) =>
       _extractMatchSource(astx.matches(), source, backend)

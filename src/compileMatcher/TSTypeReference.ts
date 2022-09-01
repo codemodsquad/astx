@@ -4,13 +4,13 @@ import compileCaptureMatcher from './Capture'
 import compileSpecialMatcher from './SpecialMatcher'
 
 export default function compileTSTypeReferenceMatcher(
-  path: NodePath<TSTypeReference>,
+  path: NodePath<TSTypeReference, TSTypeReference>,
   compileOptions: CompileOptions
 ): CompiledMatcher | void {
-  const { typeName, typeParameters }: TSTypeReference = path.node
-  const { hasNode } = compileOptions.backend
+  const { typeName, typeParameters }: TSTypeReference = path.value
+  const n = compileOptions.backend.t.namedTypes
 
-  if (typeName.type === 'Identifier') {
+  if (n.Identifier.check(typeName)) {
     if (typeParameters == null) {
       const captureMatcher = compileCaptureMatcher(
         path,
@@ -21,7 +21,7 @@ export default function compileTSTypeReferenceMatcher(
       if (captureMatcher) return captureMatcher
     } else {
       const typeParametersPath = path.get('typeParameters')
-      if (hasNode(typeParametersPath)) {
+      if (typeParametersPath.value) {
         const special = compileSpecialMatcher(
           path,
           typeName.name,

@@ -1,16 +1,16 @@
-import { GenericTypeAnnotation, NodePath } from '../types'
+import { GenericTypeAnnotation, NodePath, pathIs } from '../types'
 import { CompiledMatcher, CompileOptions } from '.'
 import compileCaptureMatcher from './Capture'
 import compileSpecialMatcher from './SpecialMatcher'
 
 export default function compileGenericTypeAnnotationMatcher(
-  path: NodePath<GenericTypeAnnotation>,
+  path: NodePath<GenericTypeAnnotation, GenericTypeAnnotation>,
   compileOptions: CompileOptions
 ): CompiledMatcher | void {
-  const { id, typeParameters }: GenericTypeAnnotation = path.node
-  const { hasNode } = compileOptions.backend
+  const { id, typeParameters }: GenericTypeAnnotation = path.value
+  const n = compileOptions.backend.t.namedTypes
 
-  if (id.type === 'Identifier') {
+  if (n.Identifier.check(id)) {
     if (typeParameters == null) {
       const captureMatcher = compileCaptureMatcher(
         path,
@@ -21,7 +21,7 @@ export default function compileGenericTypeAnnotationMatcher(
       if (captureMatcher) return captureMatcher
     } else {
       const typeParametersPath = path.get('typeParameters')
-      if (hasNode(typeParametersPath)) {
+      if (pathIs(typeParametersPath, n.TypeParameterInstantiation)) {
         const special = compileSpecialMatcher(
           path,
           id.name,

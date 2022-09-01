@@ -3,10 +3,10 @@ import { CompiledMatcher, CompileOptions } from '.'
 import compileCaptureMatcher from './Capture'
 
 export default function compileTypeParameterMatcher(
-  path: NodePath<TypeParameter>,
+  path: NodePath<TypeParameter, TypeParameter>,
   compileOptions: CompileOptions
 ): CompiledMatcher | void {
-  const pattern: TypeParameter = path.node
+  const pattern: TypeParameter = path.value
 
   if (pattern.variance == null && pattern.bound == null) {
     const captureMatcher = compileCaptureMatcher(

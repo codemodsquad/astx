@@ -2,7 +2,6 @@ import { NodePath, Node } from '../types'
 import CompilePathError from '../util/CompilePathError'
 import compileMatcher, {
   CompiledMatcher,
-  CompiledNodeMatcher,
   CompileOptions,
   MatchResult,
   mergeCaptures,
@@ -10,23 +9,24 @@ import compileMatcher, {
 import indentDebug from './indentDebug'
 
 export default function compileGenericArrayMatcher(
-  paths: NodePath[],
+  path: NodePath<Node, Node[]> | NodePath<Node, Node>[],
   compileOptions: CompileOptions,
   {
     skipElement = () => false,
   }: { skipElement?: (path: NodePath) => boolean } = {}
 ): CompiledMatcher {
-  const pattern: Node[] = paths.map((p: NodePath) => p.node)
+  const paths = Array.isArray(path) ? path : path.filter(() => true)
+  const pattern: Node[] = path.map((p: NodePath) => p.node)
   const { debug } = compileOptions
   const elemOptions = {
     ...compileOptions,
     debug: indentDebug(debug, 2),
   }
-  const matchers: CompiledNodeMatcher[] = pattern.map((value, i) =>
+  const matchers: CompiledMatcher[] = pattern.map((value, i) =>
     compileMatcher(paths[i], elemOptions)
   )
 
-  const otherMatchers: CompiledNodeMatcher[] = []
+  const otherMatchers: CompiledMatcher[] = []
   let arrayMatcherCount = 0
   let restMatcher
   for (let i = 0; i < matchers.length; i++) {
@@ -70,12 +70,13 @@ export default function compileGenericArrayMatcher(
     if (!restCaptureAs)
       throw new Error(`unexpected: restMatcher.restCaptureAs == null`)
     return {
-      type: 'array',
       pattern: paths,
-      match: (paths: NodePath[], result: MatchResult): MatchResult => {
+      match: (path: NodePath, result: MatchResult): MatchResult => {
         debug('Array')
 
-        paths = [...paths]
+        if (!Array.isArray(path.value)) return null
+
+        const paths = (path as NodePath<Node, Node[]>).filter(() => true)
 
         for (const m of otherMatchers) {
           let i
@@ -176,12 +177,14 @@ export default function compileGenericArrayMatcher(
 
   if (matchers.some((m) => m.captureAs || m.arrayCaptureAs)) {
     return {
-      type: 'array',
       pattern: paths,
-      match: (path: NodePath[], matchSoFar: MatchResult): MatchResult => {
+      match: (path: NodePath, matchSoFar: MatchResult): MatchResult => {
         debug('Array')
 
-        let result = matchElem(path, 0, 0, 0, matchSoFar)
+        if (!Array.isArray(path.value)) return null
+        const paths = (path as NodePath<Node, Node[]>).filter(() => true)
+
+        let result = matchElem(paths, 0, 0, 0, matchSoFar)
         if (!result) return result
 
         // make sure all * captures are present in results
@@ -201,15 +204,17 @@ export default function compileGenericArrayMatcher(
   }
 
   return {
-    type: 'array',
     pattern: paths,
-    match: (paths: NodePath[], matchSoFar: MatchResult): MatchResult => {
+    match: (path: NodePath, matchSoFar: MatchResult): MatchResult => {
       debug('Array')
+
+      if (!Array.isArray(path.value)) return null
+
       let m = 0,
         i = 0
       while (i < paths.length || m < matchers.length) {
         debug('  [%d]', i)
-        const elemPath = paths[i]
+        const elemPath = path.get(i)
         if (skipElement(elemPath)) {
           i++
           continue

@@ -9,11 +9,10 @@ import compileGenericNodeReplacement from './GenericNodeReplacement'
 import { unescapeIdentifier } from '../compileReplacement/Capture'
 
 export default function compileIdentifierReplacement(
-  path: NodePath<Identifier>,
+  path: NodePath<Identifier, Identifier>,
   compileOptions: CompileReplacementOptions
 ): CompiledReplacement | void {
-  const pattern = path.node
-  const { hasNode } = compileOptions.backend
+  const pattern = path.value
 
   const typeAnnotation = path.get('typeAnnotation')
 
@@ -23,7 +22,7 @@ export default function compileIdentifierReplacement(
     compileOptions
   )
   if (captureReplacement) {
-    if (typeAnnotation && hasNode(typeAnnotation)) {
+    if (typeAnnotation.value != null) {
       const typeAnnotationReplacement = compileGenericNodeReplacement(
         typeAnnotation,
         compileOptions
@@ -33,9 +32,8 @@ export default function compileIdentifierReplacement(
         generate: (match: ReplaceableMatch): Node | Node[] => {
           const generated = captureReplacement.generate(match)
           if (!Array.isArray(generated)) {
-            ;(generated as any).typeAnnotation = typeAnnotationReplacement.generate(
-              match
-            )
+            ;(generated as any).typeAnnotation =
+              typeAnnotationReplacement.generate(match)
           }
           return generated
         },

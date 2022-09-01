@@ -3,10 +3,10 @@ import { CompiledReplacement, CompileReplacementOptions } from '.'
 import compileCaptureReplacement from './Capture'
 
 export default function compileImportDefaultSpecifierReplacement(
-  path: NodePath<ImportDefaultSpecifier>,
+  path: NodePath<ImportDefaultSpecifier, ImportDefaultSpecifier>,
   compileOptions: CompileReplacementOptions
 ): CompiledReplacement | void {
-  const pattern = path.node
+  const pattern = path.value
   const { local } = pattern
   if (local != null) {
     const { importKind } = (path.parentPath as NodePath<ImportDeclaration>).node

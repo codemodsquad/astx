@@ -3,13 +3,14 @@ import { CompiledMatcher, CompileOptions } from '.'
 import compileCaptureMatcher from './Capture'
 
 export default function compileFunctionTypeParamMatcher(
-  path: NodePath<FunctionTypeParam>,
+  path: NodePath<FunctionTypeParam, FunctionTypeParam>,
   compileOptions: CompileOptions
 ): CompiledMatcher | void {
-  const pattern: FunctionTypeParam = path.node
+  const pattern: FunctionTypeParam = path.value
+  const n = compileOptions.backend.t.namedTypes
   if (
-    pattern.typeAnnotation?.type === 'GenericTypeAnnotation' &&
-    pattern.typeAnnotation.id.type === 'Identifier'
+    n.GenericTypeAnnotation.check(pattern.typeAnnotation) &&
+    n.Identifier.check(pattern.typeAnnotation.id)
   ) {
     if (pattern.typeAnnotation.typeParameters == null) {
       const captureMatcher = compileCaptureMatcher(

@@ -3,7 +3,7 @@ import { CompiledMatcher, CompileOptions } from '.'
 import compileMatcher, { MatchResult } from '.'
 
 export default function compileOptionalMatcher(
-  path: NodePath<any>,
+  path: NodePath,
   subpath: NodePath<any>,
   compileOptions: CompileOptions
 ): CompiledMatcher | void {
@@ -15,7 +15,7 @@ export default function compileOptionalMatcher(
     optional: true,
 
     match: (path: NodePath, matchSoFar: MatchResult): MatchResult => {
-      if (path.node == null) return matchSoFar || {}
+      if (path.value == null) return matchSoFar || {}
 
       return matcher.match(path, matchSoFar)
     },

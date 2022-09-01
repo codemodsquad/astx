@@ -7,9 +7,10 @@ import {
 import compileGenericNodeReplacement from './GenericNodeReplacement'
 
 export default function compileImportDeclarationReplacement(
-  path: NodePath<ImportDeclaration>,
+  path: NodePath<ImportDeclaration, ImportDeclaration>,
   compileOptions: CompileReplacementOptions
 ): CompiledReplacement | void {
+  const n = compileOptions.backend.t.namedTypes
   const replacement = compileGenericNodeReplacement(path, compileOptions)
   return {
     generate: (match: ReplaceableMatch): Node | Node[] => {
@@ -17,8 +18,8 @@ export default function compileImportDeclarationReplacement(
       if (result.specifiers) {
         // move ImportDefaultSpecifier to beginning if necessary
         // because @babel/generator craps out otherwise
-        const defaultIndex = result.specifiers.findIndex(
-          (s) => s.type === 'ImportDefaultSpecifier'
+        const defaultIndex = result.specifiers.findIndex((s) =>
+          n.ImportDefaultSpecifier.check(s)
         )
         if (defaultIndex > 0) {
           result.specifiers.unshift(

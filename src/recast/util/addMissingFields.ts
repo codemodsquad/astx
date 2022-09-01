@@ -29,4 +29,8 @@ export default function addMissingFields(fork: Fork): void {
     or('value', 'type', 'typeof', null),
     () => null
   )
+
+  def('Program').bases('Block')
+  def('BlockStatement').bases('Block')
+  def('TSModuleBlock').bases('Block')
 }

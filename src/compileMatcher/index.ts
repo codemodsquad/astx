@@ -1,4 +1,4 @@
-import { NodePath, NodeType } from '../types'
+import { NodeType, NodePath, Node } from '../types'
 import * as t from 'ast-types'
 import __debug, { Debugger } from 'debug'
 import { Backend } from '../backend/Backend'
@@ -87,9 +87,8 @@ export type PredicateMatcher = {
   nodeType?: keyof typeof t.namedTypes | (keyof typeof t.namedTypes)[]
 }
 
-export interface CompiledNodeMatcher {
-  type: 'node'
-  pattern: NodePath
+export interface CompiledMatcher {
+  pattern: NodePath<Node, Node> | NodePath<Node, Node>[]
   optional?: true
   captureAs?: string
   arrayCaptureAs?: string
@@ -98,19 +97,10 @@ export interface CompiledNodeMatcher {
   nodeType?: NodeType | NodeType[]
 }
 
-export interface CompiledArrayMatcher {
-  type: 'array'
-  pattern: NodePath[]
-  match: (path: NodePath[], matchSoFar: MatchResult) => MatchResult
-  nodeType?: NodeType | NodeType[]
-}
-
-export type CompiledMatcher = CompiledNodeMatcher | CompiledArrayMatcher
-
 const nodeMatchers: Record<
   string,
   (
-    path: NodePath<any>,
+    path: NodePath<any, any>,
     options: CompileOptions
   ) => CompiledMatcher | undefined | void
 > = {
@@ -154,11 +144,10 @@ export function convertPredicateMatcher(
   { debug }: CompileOptions
 ): CompiledMatcher {
   return {
-    type: 'node',
     pattern,
     nodeType: matcher.nodeType,
     match: (path: NodePath, matchSoFar: MatchResult): MatchResult => {
-      debug('%s (specific)', pattern.node.type)
+      debug('%s (specific)', pattern.value.type)
       const result = matcher.match(path, matchSoFar)
       if (result) {
         if (result === true) debug('  matched')
@@ -174,21 +163,13 @@ export function convertPredicateMatcher(
 export default function compileMatcher(
   path: NodePath,
   rootCompileOptions: RootCompileOptions
-): CompiledNodeMatcher
-export default function compileMatcher(
-  paths: NodePath[],
-  rootCompileOptions: RootCompileOptions
-): CompiledArrayMatcher
-export default function compileMatcher(
-  path: NodePath | NodePath[],
-  rootCompileOptions: RootCompileOptions
 ): CompiledMatcher {
   const { debug = _debug } = rootCompileOptions
   const compileOptions = { ...rootCompileOptions, debug }
-  if (Array.isArray(path)) {
+  if (Array.isArray(path.value)) {
     return compileGenericArrayMatcher(path, compileOptions)
-  } else if (nodeMatchers[path.node.type]) {
-    const matcher = nodeMatchers[path.node.type](path, compileOptions)
+  } else if (nodeMatchers[path.value.type]) {
+    const matcher = nodeMatchers[path.value.type](path, compileOptions)
     if (matcher) return matcher
   }
   return compileGenericNodeMatcher(path, compileOptions)

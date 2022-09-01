@@ -3,11 +3,12 @@ import { CompiledReplacement, CompileReplacementOptions } from '.'
 import compileCaptureReplacement from './Capture'
 
 export default function compileExpressionStatementReplacement(
-  path: NodePath<ExpressionStatement>,
+  path: NodePath<ExpressionStatement, ExpressionStatement>,
   compileOptions: CompileReplacementOptions
 ): CompiledReplacement | void {
-  const pattern = path.node
-  if (pattern.expression.type === 'Identifier') {
+  const pattern = path.value
+  const n = compileOptions.backend.t.namedTypes
+  if (n.Identifier.check(pattern.expression)) {
     const captureReplacement = compileCaptureReplacement(
       path,
       pattern.expression.name,

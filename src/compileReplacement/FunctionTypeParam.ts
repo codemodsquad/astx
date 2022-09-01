@@ -3,14 +3,15 @@ import { CompiledReplacement, CompileReplacementOptions } from '.'
 import compileCaptureReplacement from './Capture'
 
 export default function compileFunctionTypeParamReplacement(
-  path: NodePath<FunctionTypeParam>,
+  path: NodePath<FunctionTypeParam, FunctionTypeParam>,
   compileOptions: CompileReplacementOptions
 ): CompiledReplacement | void {
-  const pattern = path.node
+  const pattern = path.value
+  const n = compileOptions.backend.t.namedTypes
 
   if (
-    pattern.typeAnnotation?.type === 'GenericTypeAnnotation' &&
-    pattern.typeAnnotation.id.type === 'Identifier'
+    n.GenericTypeAnnotation.check(pattern.typeAnnotation) &&
+    n.Identifier.check(pattern.typeAnnotation.id)
   ) {
     if (pattern.typeAnnotation.typeParameters == null) {
       const captureReplacement = compileCaptureReplacement(

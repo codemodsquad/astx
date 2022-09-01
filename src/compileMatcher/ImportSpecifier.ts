@@ -4,10 +4,10 @@ import compileCaptureMatcher from './Capture'
 import convertToJSXIdentifierName from '../convertReplacement/convertToJSXIdentifierName'
 
 export default function compileImportSpecifierMatcher(
-  path: NodePath<ImportSpecifier>,
+  path: NodePath<ImportSpecifier, ImportSpecifier>,
   compileOptions: CompileOptions
 ): CompiledMatcher | void {
-  const pattern: ImportSpecifier = path.node
+  const pattern: ImportSpecifier = path.value
 
   const { importKind } = pattern as any
   const importedName = convertToJSXIdentifierName(pattern.imported)

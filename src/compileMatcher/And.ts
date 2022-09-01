@@ -1,11 +1,11 @@
-import { NodePath } from '../types'
+import { Node, NodePath } from '../types'
 import compileMatcher, { CompiledMatcher, CompileOptions, MatchResult } from '.'
 import { NodeType } from '../types'
 import indentDebug from './indentDebug'
 
 export default function compileAndMatcher(
   path: NodePath,
-  paths: NodePath[],
+  paths: NodePath<Node, Node[]>,
   compileOptions: CompileOptions
 ): CompiledMatcher | void {
   const { debug } = compileOptions
@@ -20,7 +20,6 @@ export default function compileAndMatcher(
     else if (m.nodeType) nodeType.add(m.nodeType)
   }
   return {
-    type: 'node',
     pattern: path,
     nodeType: nodeType.size ? [...nodeType] : undefined,
     optional: true,

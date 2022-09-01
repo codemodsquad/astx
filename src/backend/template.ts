@@ -40,7 +40,7 @@ export function statements(
   if (!nodes.length || nodes.every((n) => typeof n === 'string'))
     return this.parseStatements(src)
   const result = compileReplacement(
-    this.parseStatements(src).map(this.makePath),
+    this.parseStatements(src).map((n) => new this.t.NodePath(n)),
     {
       backend: this,
     }
@@ -87,9 +87,12 @@ export function expression(
   )
   if (!nodes.length || nodes.every((n) => typeof n === 'string'))
     return this.parseExpression(src)
-  const result = compileReplacement(this.makePath(this.parseExpression(src)), {
-    backend: this,
-  }).generate({ captures, arrayCaptures })
+  const result = compileReplacement(
+    new this.t.NodePath(this.parseExpression(src)),
+    {
+      backend: this,
+    }
+  ).generate({ captures, arrayCaptures })
   let expression
   if (Array.isArray(result)) {
     if (result.length !== 1) {

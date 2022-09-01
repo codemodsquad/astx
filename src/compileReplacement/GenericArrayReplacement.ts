@@ -7,10 +7,11 @@ import compileReplacement, {
 import indentDebug from '../compileMatcher/indentDebug'
 
 export default function compileGenericArrayReplacement(
-  paths: NodePath[],
+  path: NodePath<Node, Node>[] | NodePath<Node, Node[]>,
   compileOptions: CompileReplacementOptions
 ): CompiledReplacement {
   const { debug } = compileOptions
+  const paths = path.filter(() => true)
 
   const elemOptions = {
     ...compileOptions,

@@ -3,10 +3,11 @@ import { CompileOptions, convertPredicateMatcher, CompiledMatcher } from '.'
 import { compileStringCaptureMatcher, unescapeIdentifier } from './Capture'
 
 export default function matchStringLiteral(
-  path: NodePath<StringLiteral>,
+  path: NodePath<StringLiteral, StringLiteral>,
   compileOptions: CompileOptions
 ): CompiledMatcher {
-  const pattern: StringLiteral = path.node
+  const pattern: StringLiteral = path.value
+  const n = compileOptions.backend.t.namedTypes
   const captureMatcher = compileStringCaptureMatcher(
     path,
     (pattern) => pattern.value,
@@ -21,9 +22,9 @@ export default function matchStringLiteral(
     path,
     {
       match: (path: NodePath): boolean => {
-        const { node } = path
+        const { value: node } = path
 
-        return node?.type === 'StringLiteral' && pattern.value === node.value
+        return n.StringLiteral.check(node) && pattern.value === node.value
       },
       nodeType: 'StringLiteral',
     },

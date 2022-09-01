@@ -12,7 +12,8 @@ export default function matchLiteral(
   path: NodePath<Literal>,
   compileOptions: CompileOptions
 ): CompiledMatcher {
-  const pattern: Literal = path.node
+  const pattern: Literal = path.value
+  const n = compileOptions.backend.t.namedTypes
 
   const { regex } = pattern
 
@@ -23,9 +24,9 @@ export default function matchLiteral(
       path,
       {
         match: (path: NodePath): boolean => {
-          const { node } = path
+          const { value: node } = path
 
-          if (node?.type !== 'Literal') return false
+          if (!n.Literal.check(node)) return false
 
           return (
             node.regex != null &&
@@ -55,9 +56,9 @@ export default function matchLiteral(
     path,
     {
       match: (path: NodePath): boolean => {
-        const { node } = path
+        const { value: node } = path
 
-        if (node?.type !== 'Literal' || node.regex) return false
+        if (!n.Literal.check(node.type) || node.regex) return false
 
         return node.value === pattern.value
       },

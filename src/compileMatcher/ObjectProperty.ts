@@ -1,26 +1,23 @@
 import { ObjectProperty, NodePath, NodeType } from '../types'
-import compileMatcher, {
-  CompiledNodeMatcher,
-  CompileOptions,
-  MatchResult,
-} from '.'
+import compileMatcher, { CompiledMatcher, CompileOptions, MatchResult } from '.'
 import compileCaptureMatcher from './Capture'
 import indentDebug from './indentDebug'
 
 const nodeTypes: NodeType[] = ['Property', 'ObjectProperty']
 
 export default function compileObjectPropertyMatcher(
-  path: NodePath<ObjectProperty>,
+  path: NodePath<ObjectProperty, ObjectProperty>,
   compileOptions: CompileOptions
-): CompiledNodeMatcher | void {
+): CompiledMatcher | void {
   const { debug } = compileOptions
+  const n = compileOptions.backend.t.namedTypes
   const subCompileOptions = {
     ...compileOptions,
     debug: indentDebug(debug, 1),
   }
-  const pattern: ObjectProperty = path.node
+  const pattern: ObjectProperty = path.value
 
-  if (pattern.key.type === 'Identifier') {
+  if (n.Identifier.check(pattern.key)) {
     if (
       pattern.shorthand &&
       !pattern.computed &&
@@ -39,11 +36,10 @@ export default function compileObjectPropertyMatcher(
     const keyMatcher = compileMatcher(path.get('key'), subCompileOptions)
     const valueMatcher = compileMatcher(path.get('value'), subCompileOptions)
     return {
-      type: 'node',
       pattern: path,
       nodeType: nodeTypes,
       match: (_path: NodePath, matchSoFar: MatchResult): MatchResult => {
-        const { node } = _path
+        const { value: node } = _path
         if (!nodeTypes.includes(node.type)) {
           debug(`wrong node type`)
           return null

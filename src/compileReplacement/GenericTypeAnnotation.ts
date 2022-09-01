@@ -3,16 +3,17 @@ import { CompiledReplacement, CompileReplacementOptions } from '.'
 import compileCaptureReplacement from './Capture'
 
 export default function compileGenericTypeAnnotationReplacement(
-  path: NodePath<GenericTypeAnnotation>,
-  compileReplacementOptions: CompileReplacementOptions
+  path: NodePath<GenericTypeAnnotation, GenericTypeAnnotation>,
+  compileOptions: CompileReplacementOptions
 ): CompiledReplacement | void {
-  const pattern = path.node
-  if (pattern.id.type === 'Identifier') {
+  const pattern = path.value
+  const n = compileOptions.backend.t.namedTypes
+  if (n.Identifier.check(pattern.id)) {
     if (pattern.typeParameters == null) {
       const captureReplacement = compileCaptureReplacement(
         path,
         pattern.id.name,
-        compileReplacementOptions
+        compileOptions
       )
       if (captureReplacement) return captureReplacement
     }

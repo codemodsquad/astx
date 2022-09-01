@@ -1,6 +1,6 @@
-import { NodePath } from '../types'
 import CompilePathError from './CompilePathError'
 import generate from '@babel/generator'
+import { NodePath } from '../types'
 
 interface SourceLocation {
   start: {

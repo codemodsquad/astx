@@ -5,6 +5,7 @@ import compileMatcher, {
   MatchResult,
 } from './index'
 import indentDebug from './indentDebug'
+import areFieldValuesEqual from '../util/areFieldValuesEqual'
 
 const equivalenceClassesArray: {
   nodeTypes: Set<NodeType>
@@ -35,14 +36,14 @@ for (const klass of equivalenceClassesArray) {
 }
 
 export default function compileGenericNodeMatcher(
-  path: NodePath,
+  path: NodePath<Node, Node>,
   compileOptions: CompileOptions,
   options?: {
     keyMatchers?: Record<string, CompiledMatcher>
   }
 ): CompiledMatcher {
   const {
-    backend: { t, areFieldValuesEqual, isTypeFns, hasNode },
+    backend: { t },
   } = compileOptions
 
   const pattern: Node = path.node
@@ -54,7 +55,9 @@ export default function compileGenericNodeMatcher(
     baseType ||
     (nodeTypes ? [...nodeTypes] : null) ||
     (pattern.type as NodeType)
-  const isType = baseType ? isTypeFns[baseType] : null
+  const isType = baseType
+    ? (node: any) => (t.namedTypes as any)[baseType]?.check(node)
+    : null
   const isCorrectType = isType
     ? (node: Node) => isType(node)
     : nodeTypes
@@ -66,7 +69,7 @@ export default function compileGenericNodeMatcher(
   const keyMatchers: Record<string, CompiledMatcher> = Object.fromEntries(
     t
       .getFieldNames(pattern)
-      .filter((key: string) => key !== 'type')
+      // .filter((key: string) => key !== 'type')
       .map((key: string): [string, CompiledMatcher] => {
         const custom = options?.keyMatchers?.[key]
 
@@ -75,15 +78,7 @@ export default function compileGenericNodeMatcher(
         const value = t.getFieldValue(pattern, key)
         const fieldPath = path.get(key)
 
-        if (Array.isArray(fieldPath)) {
-          return [
-            key,
-            compileMatcher(fieldPath, {
-              ...compileOptions,
-              debug: indentDebug(debug, 2),
-            }),
-          ]
-        } else if (hasNode(fieldPath)) {
+        if (Array.isArray(value) || fieldPath.node === value) {
           return [
             key,
             compileMatcher(fieldPath, {
@@ -95,15 +90,11 @@ export default function compileGenericNodeMatcher(
           return [
             key,
             {
-              type: 'node',
               pattern: fieldPath,
               match: (path: NodePath, matchSoFar: MatchResult): MatchResult => {
-                const { parentPath } = path
-                if (!parentPath) return null
-                const nodeValue =
-                  path.node ?? t.getFieldValue(parentPath.node, key)
+                const nodeValue = t.getFieldValue(path.node, key)
 
-                if (areFieldValuesEqual(value, nodeValue)) {
+                if (areFieldValuesEqual(t, value, nodeValue)) {
                   debug('    %s === %s', value, nodeValue)
                   return matchSoFar || {}
                 } else {
@@ -117,15 +108,15 @@ export default function compileGenericNodeMatcher(
           return [
             key,
             {
-              type: 'node',
               pattern: fieldPath,
               match: (path: NodePath, matchSoFar: MatchResult): MatchResult => {
-                const { parentPath } = path
-                if (!parentPath) return null
-                const nodeValue =
-                  path.node ?? t.getFieldValue(parentPath.node, key)
+                const nodeValue = t.getFieldValue(path.node, key)
 
-                if (value === nodeValue) {
+                if (
+                  value === nodeValue ||
+                  (value === null && nodeValue === false) ||
+                  (value === false && nodeValue === null)
+                ) {
                   debug('    %s === %s', value, nodeValue)
                   return matchSoFar || {}
                 } else {
@@ -140,32 +131,25 @@ export default function compileGenericNodeMatcher(
   )
 
   return {
-    type: 'node',
     pattern: path,
     match: (path: NodePath, matchSoFar: MatchResult): MatchResult => {
       debug('%s (generic)', pattern.type)
 
-      if (isCorrectType(path?.node)) {
+      if (Array.isArray(path.value)) return null
+
+      if (isCorrectType(path?.value)) {
         for (const key in keyMatchers) {
           debug('  .%s', key)
           const matcher = keyMatchers[key]
-          const subpath = path.get(key)
-          if (matcher.type === 'array') {
-            if (!Array.isArray(subpath)) return null
-            matchSoFar = matcher.match(subpath, matchSoFar)
-          } else {
-            if (Array.isArray(subpath)) return null
-            matchSoFar = matcher.match(subpath, matchSoFar)
-          }
-
+          matchSoFar = matcher.match(path.get(key), matchSoFar)
           if (!matchSoFar) return null
         }
 
         return matchSoFar || {}
       } else {
         debug(
-          '  path?.node?.type (%s) is not compatible with pattern.type (%s)',
-          path?.node?.type,
+          '  path?.value?.type (%s) is not compatible with pattern.type (%s)',
+          path?.value?.type,
           pattern.type
         )
 

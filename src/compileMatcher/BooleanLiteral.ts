@@ -2,21 +2,19 @@ import { NodePath, BooleanLiteral } from '../types'
 import { CompiledMatcher, convertPredicateMatcher, CompileOptions } from '.'
 
 export default function matchBooleanLiteral(
-  path: NodePath<BooleanLiteral>,
+  path: NodePath<BooleanLiteral, BooleanLiteral>,
   compileOptions: CompileOptions
 ): CompiledMatcher {
-  const pattern = path.node
+  const pattern = path.value
+  const n = compileOptions.backend.t.namedTypes
 
   return convertPredicateMatcher(
     path,
     {
       match: (path: NodePath): boolean => {
-        const { node } = path
+        const { value: node } = path
 
-        return (
-          node?.type === 'BooleanLiteral' &&
-          pattern.value === (node as BooleanLiteral).value
-        )
+        return n.BooleanLiteral.check(node) && pattern.value === node.value
       },
       nodeType: 'BooleanLiteral',
     },

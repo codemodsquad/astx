@@ -3,11 +3,12 @@ import { CompiledReplacement, CompileReplacementOptions } from '.'
 import compileCaptureReplacement from './Capture'
 
 export default function compileJSXAttributeReplacement(
-  path: NodePath<JSXAttribute>,
+  path: NodePath<JSXAttribute, JSXAttribute>,
   compileOptions: CompileReplacementOptions
 ): CompiledReplacement | void {
-  const pattern = path.node
-  if (pattern.name.type === 'JSXIdentifier') {
+  const n = compileOptions.backend.t.namedTypes
+  const pattern = path.value
+  if (n.JSXIdentifier.check(pattern.name)) {
     if (pattern.value == null) {
       const captureReplacement = compileCaptureReplacement(
         path,

@@ -3,11 +3,10 @@ import compileMatcher, { CompiledMatcher, CompileOptions, MatchResult } from '.'
 import compileCaptureMatcher, { unescapeIdentifier } from './Capture'
 
 export default function compileIdentifierMatcher(
-  path: NodePath<Identifier>,
+  path: NodePath<Identifier, Identifier>,
   compileOptions: CompileOptions
 ): CompiledMatcher | void {
-  const pattern: Identifier = path.node
-  const { hasNode } = compileOptions.backend
+  const pattern: Identifier = path.value
 
   const typeAnnotation = path.get('typeAnnotation')
 
@@ -20,7 +19,7 @@ export default function compileIdentifierMatcher(
   if (captureMatcher) {
     const { captureAs } = captureMatcher
 
-    if (typeAnnotation && hasNode(typeAnnotation)) {
+    if (typeAnnotation && typeAnnotation.value) {
       const typeAnnotationMatcher = compileMatcher(
         typeAnnotation,
         compileOptions
@@ -42,10 +41,10 @@ export default function compileIdentifierMatcher(
             }
           }
 
-          const typeAnnotation = path.get('typeAnnotation')
-          return Array.isArray(typeAnnotation)
-            ? null
-            : typeAnnotationMatcher.match(typeAnnotation, matchSoFar)
+          return typeAnnotationMatcher.match(
+            path.get('typeAnnotation'),
+            matchSoFar
+          )
         },
       }
     }

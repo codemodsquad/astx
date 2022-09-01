@@ -1,9 +1,4 @@
-import {
-  CompileOptions,
-  MatchResult,
-  mergeCaptures,
-  CompiledNodeMatcher,
-} from '.'
+import { CompileOptions, MatchResult, mergeCaptures, CompiledMatcher } from '.'
 import { Node, NodePath } from '../types'
 import convertToJSXIdentifierName from '../convertReplacement/convertToJSXIdentifierName'
 import { Backend } from '../backend/Backend'
@@ -33,11 +28,10 @@ export function compileArrayCaptureMatcher(
   identifier: string,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   compileOptions: CompileOptions
-): CompiledNodeMatcher | void {
+): CompiledMatcher | void {
   const arrayCaptureAs = getArrayCaptureAs(identifier)
   if (arrayCaptureAs) {
     return {
-      type: 'node',
       pattern,
       arrayCaptureAs,
       match: (): MatchResult => {
@@ -54,11 +48,10 @@ export function compileRestCaptureMatcher(
   identifier: string,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   compileOptions: CompileOptions
-): CompiledNodeMatcher | void {
+): CompiledMatcher | void {
   const restCaptureAs = getRestCaptureAs(identifier)
   if (restCaptureAs) {
     return {
-      type: 'node',
       pattern,
       restCaptureAs,
       match: (): MatchResult => {
@@ -75,7 +68,7 @@ export function capturesAreEquivalent(
   a: Node,
   b: Node
 ): boolean {
-  if (backend.areASTsEqual(a, b)) return true
+  if (backend.t.astNodesAreEquivalent(a, b)) return true
   const aIdent = convertToJSXIdentifierName(a)
   const bIdent = convertToJSXIdentifierName(b)
   return aIdent ? aIdent === bIdent : false
@@ -85,24 +78,23 @@ export default function compileCaptureMatcher(
   pattern: NodePath,
   identifier: string,
   compileOptions: CompileOptions
-): CompiledNodeMatcher | void {
+): CompiledMatcher | void {
   const { debug } = compileOptions
   const captureAs = getCaptureAs(identifier)
   if (captureAs) {
     const whereCondition = compileOptions?.where?.[captureAs]
     return {
-      type: 'node',
       pattern,
       captureAs,
       match: (path: NodePath, matchSoFar: MatchResult): MatchResult => {
-        if (path.node == null) return null
+        if (path.value == null) return null
         debug('Capture', captureAs)
         const existingCapture = matchSoFar?.captures?.[captureAs]
         if (existingCapture) {
           return capturesAreEquivalent(
             compileOptions.backend,
             existingCapture.node,
-            path.node
+            path.value
           )
             ? matchSoFar
             : null
@@ -126,20 +118,19 @@ export function compileStringCaptureMatcher<N extends Node>(
   pattern: NodePath<N>,
   getString: (node: N) => string | null,
   compileOptions: CompileOptions
-): CompiledNodeMatcher | void {
+): CompiledMatcher | void {
   const { debug } = compileOptions
-  const string = getString(pattern.node)
+  const string = getString(pattern.value)
   if (!string) return
   const captureAs = getCaptureAs(string)
   if (captureAs) {
     return {
-      type: 'node',
       pattern,
       captureAs,
       match: (path: NodePath, matchSoFar: MatchResult): MatchResult => {
-        if (path.node?.type !== pattern.node.type) return null
+        if (path.value?.type !== pattern.value.type) return null
         debug('String Capture', captureAs)
-        const string = getString((path as NodePath<N>).node)
+        const string = getString((path as NodePath<N>).value)
         if (!string) return null
         const existingCapture = matchSoFar?.stringCaptures?.[captureAs]
         if (existingCapture) {

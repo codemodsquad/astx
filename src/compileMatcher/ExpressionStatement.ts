@@ -3,12 +3,13 @@ import { CompiledMatcher, CompileOptions } from '.'
 import compileCaptureMatcher from './Capture'
 
 export default function compileExpressionStatementMatcher(
-  path: NodePath<ExpressionStatement>,
+  path: NodePath<ExpressionStatement, ExpressionStatement>,
   compileOptions: CompileOptions
 ): CompiledMatcher | void {
-  const pattern: ExpressionStatement = path.node
+  const pattern: ExpressionStatement = path.value
+  const n = compileOptions.backend.t.namedTypes
 
-  if (pattern.expression.type === 'Identifier') {
+  if (n.Identifier.check(pattern.expression)) {
     const captureMatcher = compileCaptureMatcher(
       path,
       pattern.expression.name,

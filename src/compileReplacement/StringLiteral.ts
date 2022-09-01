@@ -8,7 +8,7 @@ import * as t from '@babel/types'
 export default function compileStringLiteralReplacement(
   path: NodePath<StringLiteral>
 ): CompiledReplacement | void {
-  const pattern = path.node
+  const pattern = path.value
   const captureAs = getCaptureAs(pattern.value)
   if (captureAs) {
     return {

@@ -23,18 +23,6 @@ function isNode(x: unknown): x is Node {
 function isNodeArray(x: unknown): x is Node[] {
   return Array.isArray(x) && !Array.isArray((x as any).raw)
 }
-function isNodePath(
-  x: unknown,
-  { isPath }: { isPath: (thing: any) => thing is NodePath }
-): x is NodePath {
-  return isPath(x)
-}
-function isNodePathArray(
-  x: unknown,
-  opts: { isPath: (thing: any) => thing is NodePath }
-): x is NodePath[] {
-  return Array.isArray(x) && isNodePath(x[0], opts)
-}
 
 export type FindOptions = {
   where?: { [captureName: string]: (path: NodePath) => boolean }
@@ -52,18 +40,21 @@ export default class Astx {
     { withCaptures = [] }: { withCaptures?: Match[] } = {}
   ) {
     this.backend = backend
-    this._paths = isNodePath(paths[0], this.backend)
-      ? (paths as NodePath[])
-      : (paths as Match[]).map((m) => m.paths).flat()
-    this._matches = isNodePath(paths[0], this.backend)
-      ? (paths as NodePath[]).map((path) => ({
-          type: 'node',
-          path,
-          node: path.node,
-          paths: [path],
-          nodes: [path.node],
-        }))
-      : (paths as Match[])
+    const { NodePath } = backend.t
+    this._paths =
+      paths[0] instanceof NodePath
+        ? (paths as NodePath[])
+        : (paths as Match[]).map((m) => m.paths).flat()
+    this._matches =
+      paths[0] instanceof NodePath
+        ? (paths as NodePath[]).map((path) => ({
+            type: 'node',
+            path,
+            node: path.node,
+            paths: [path],
+            nodes: [path.node],
+          }))
+        : (paths as Match[])
     this._withCaptures = withCaptures
   }
 
@@ -207,20 +198,22 @@ export default class Astx {
     ...rest: any[]
   ): Astx | ((options?: FindOptions) => Astx) {
     const { backend } = this
-    const { parsePattern, makePath } = backend
+    const { parsePattern } = backend
+    const { NodePath } = backend.t
     try {
       let paths: NodePath<any>[], options: FindOptions | undefined
       if (typeof arg0 === 'string') {
         paths = ensureArray(parsePattern(arg0))
         options = rest[0]
       } else if (
-        isNodePath(arg0, this.backend) ||
-        isNodePathArray(arg0, this.backend)
+        Array.isArray(arg0)
+          ? arg0[0] instanceof NodePath
+          : arg0 instanceof NodePath
       ) {
-        paths = ensureArray(arg0)
+        paths = ensureArray(arg0 as NodePath | NodePath[])
         options = rest[0]
       } else if (isNode(arg0) || isNodeArray(arg0)) {
-        paths = ensureArray(arg0).map(makePath)
+        paths = ensureArray(arg0).map((node) => new NodePath(node))
         options = rest[0]
       } else {
         const finalPaths = parsePattern(arg0 as any, ...rest)
@@ -282,20 +275,22 @@ export default class Astx {
     ...rest: any[]
   ): Astx | ((options?: FindOptions) => Astx) {
     const { backend } = this
-    const { parsePattern, makePath } = backend
+    const { parsePattern } = backend
+    const { NodePath } = backend.t
     try {
       let pattern, options: FindOptions | undefined
       if (typeof arg0 === 'string') {
         pattern = parsePattern(arg0)
         options = rest[0]
       } else if (
-        isNodePath(arg0, this.backend) ||
-        isNodePathArray(arg0, this.backend)
+        Array.isArray(arg0)
+          ? arg0[0] instanceof NodePath
+          : arg0 instanceof NodePath
       ) {
-        pattern = arg0
+        pattern = ensureArray(arg0 as NodePath | NodePath[])
         options = rest[0]
       } else if (isNode(arg0) || isNodeArray(arg0)) {
-        pattern = ensureArray(arg0).map(makePath)
+        pattern = ensureArray(arg0).map((node) => new NodePath(node))
         options = rest[0]
       } else {
         const finalPaths = parsePattern(arg0 as any, ...rest)

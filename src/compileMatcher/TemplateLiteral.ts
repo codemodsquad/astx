@@ -7,10 +7,10 @@ function generateValue(cooked: string): { raw: string; cooked: string } {
 }
 
 export default function matchTemplateLiteral(
-  path: NodePath<TemplateLiteral>,
+  path: NodePath<TemplateLiteral, TemplateLiteral>,
   compileOptions: CompileOptions
 ): CompiledMatcher | void {
-  const pattern: TemplateLiteral = path.node
+  const pattern: TemplateLiteral = path.value
 
   const captureMatcher = compileStringCaptureMatcher(
     path,

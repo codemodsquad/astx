@@ -1,4 +1,4 @@
-import { NodeType, NodePath, Statement, Expression } from '../types'
+import { NodePath, Statement, Expression } from '../types'
 import { parsePatternToNodes, parsePattern } from './parse'
 import * as template from './template'
 import * as AstTypes from 'ast-types'
@@ -32,23 +32,9 @@ export abstract class Backend<Node = any> {
   ) => Node | Node[]
 
   abstract generate: (node: Node) => { code: string }
-  abstract makePath: (node: Node) => NodePath
-  abstract isPath: (thing: any) => thing is NodePath
   abstract sourceRange: (
     node: Node
   ) => [number | null | undefined, number | null | undefined]
-  abstract areASTsEqual: (a: Node, b: Node) => boolean
-  abstract areFieldValuesEqual: (a: any, b: any) => boolean
-  abstract isStatement: (node: any) => node is Statement
-  abstract forEachNode: (
-    paths: NodePath[],
-    nodeTypes: NodeType[],
-    iteratee: (path: NodePath) => void
-  ) => void
-  abstract isTypeFns: Record<string, (node: any) => boolean>
-  abstract hasNode: <T = Node>(
-    path: NodePath<T>
-  ) => path is NodePath<NonNullable<T>>
 
   constructor() {
     this.template = {

@@ -3,11 +3,12 @@ import { CompiledReplacement, CompileReplacementOptions } from '.'
 import compileCaptureReplacement from './Capture'
 
 export default function compileTSTypeReferenceReplacement(
-  path: NodePath<TSTypeReference>,
+  path: NodePath<TSTypeReference, TSTypeReference>,
   compileOptions: CompileReplacementOptions
 ): CompiledReplacement | void {
-  const pattern = path.node
-  if (pattern.typeName.type === 'Identifier') {
+  const n = compileOptions.backend.t.namedTypes
+  const pattern = path.value
+  if (n.Identifier.check(pattern.typeName)) {
     if (pattern.typeParameters == null) {
       const captureReplacement = compileCaptureReplacement(
         path,

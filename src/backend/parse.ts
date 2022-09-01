@@ -1,6 +1,7 @@
 import { Backend } from './Backend'
-import { Expression, Statement, Node, NodePath } from '../types'
+import { NodePath, Expression, Statement, Node } from '../types'
 import ensureArray from '../util/ensureArray'
+import forEachNode from '../util/forEachNode'
 
 function parse0(
   backend: Backend,
@@ -26,12 +27,12 @@ export function parsePattern(
   ...quasis: any[]
 ): NodePath | NodePath[] {
   const ast = parse0(this, strings, ...quasis)
-  let result: NodePath | NodePath[] = ensureArray(ast).map((n) =>
-    this.makePath(n)
+  let result: NodePath | NodePath[] = ensureArray(ast).map(
+    (n) => new this.t.NodePath(n)
   )
   let extractNext = false
   let done = false
-  this.forEachNode(result, ['Node'], (path: NodePath) => {
+  forEachNode(this.t, result, ['Node'], (path: NodePath) => {
     if (done) return
     if (extractNext) {
       result = path

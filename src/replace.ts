@@ -35,8 +35,8 @@ export default function replace(
                   : (replace as Node | Node[]),
                 (nodes: Node | Node[]) =>
                   Array.isArray(nodes)
-                    ? nodes.map((n) => backend.makePath(n))
-                    : backend.makePath(nodes)
+                    ? nodes.map((n) => new backend.t.NodePath(n))
+                    : new backend.t.NodePath(nodes)
               ),
               { backend }
             )
@@ -49,17 +49,9 @@ export default function replace(
       p.parentPath?.node.type === 'ExpressionStatement' ? p.parentPath : p
     )
 
-    if (replacements.length > 1 || replacedPaths.length > 1) {
-      const { listKey, parentPath, key } = path
-      if (!parentPath || !listKey || typeof key !== 'number') continue
-      const siblingPaths = parentPath.get(listKey)
-      if (!Array.isArray(siblingPaths)) continue
-      for (const replacement of replacements) {
-        siblingPaths[key].insertBefore(replacement)
-      }
-      for (const path of replacedPaths) path.remove()
-    } else {
-      path.replaceWith(replacements[0])
+    replacedPaths[0]?.replace(...replacements)
+    for (let i = 1; i < replacedPaths.length; i++) {
+      replacedPaths[i].prune()
     }
   }
 }

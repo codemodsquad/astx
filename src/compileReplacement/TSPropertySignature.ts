@@ -3,11 +3,12 @@ import { CompiledReplacement, CompileReplacementOptions } from '.'
 import compileCaptureReplacement from './Capture'
 
 export default function compileTSPropertySignatureReplacement(
-  path: NodePath<TSPropertySignature>,
+  path: NodePath<TSPropertySignature, TSPropertySignature>,
   compileOptions: CompileReplacementOptions
 ): CompiledReplacement | void {
-  const pattern = path.node
-  if (pattern.key.type === 'Identifier') {
+  const n = compileOptions.backend.t.namedTypes
+  const pattern = path.value
+  if (n.Identifier.check(pattern.key)) {
     if (
       !pattern.optional &&
       !pattern.computed &&

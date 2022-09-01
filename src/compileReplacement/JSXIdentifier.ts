@@ -3,10 +3,10 @@ import { CompiledReplacement, CompileReplacementOptions } from '.'
 import compileCaptureReplacement, { unescapeIdentifier } from './Capture'
 
 export default function compileJSXIdentifierReplacement(
-  path: NodePath<JSXIdentifier>,
+  path: NodePath<JSXIdentifier, JSXIdentifier>,
   compileOptions: CompileReplacementOptions
 ): CompiledReplacement | void {
-  const pattern = path.node
+  const pattern = path.value
   const captureReplacement = compileCaptureReplacement(
     path,
     pattern.name,

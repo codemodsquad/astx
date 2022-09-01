@@ -35,7 +35,7 @@ export function compileArrayCaptureReplacement(
             ),
           ]
         }
-        return [...bulkConvert(cloneNode(pattern.node), convertReplacement)]
+        return [...bulkConvert(cloneNode(pattern.value), convertReplacement)]
       },
     }
   }
@@ -58,7 +58,7 @@ export default function compileCaptureReplacement(
             delete (clone as any).typeAnnotation
           return convertReplacement(clone)
         }
-        return convertReplacement(cloneNode(pattern.node))
+        return convertReplacement(cloneNode(pattern.value))
       },
     }
   }

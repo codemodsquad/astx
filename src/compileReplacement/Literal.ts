@@ -8,7 +8,7 @@ import * as t from 'ast-types'
 export default function compileLiteralReplacement(
   path: NodePath<t.namedTypes.Literal>
 ): CompiledReplacement | void {
-  const pattern = path.node
+  const pattern = path.value
   if (typeof pattern.value === 'string') {
     const captureAs = getCaptureAs(pattern.value)
     if (captureAs) {

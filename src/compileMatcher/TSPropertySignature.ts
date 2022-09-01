@@ -3,17 +3,18 @@ import { CompiledMatcher, CompileOptions } from '.'
 import compileCaptureMatcher from './Capture'
 
 export default function compileTSPropertySignatureMatcher(
-  path: NodePath<TSPropertySignature>,
+  path: NodePath<TSPropertySignature, TSPropertySignature>,
   compileOptions: CompileOptions
 ): CompiledMatcher | void {
-  const pattern: TSPropertySignature = path.node
+  const pattern: TSPropertySignature = path.value
+  const n = compileOptions.backend.t.namedTypes
 
-  if (pattern.key.type === 'Identifier') {
+  if (n.Identifier.check(pattern.key)) {
     if (
       !pattern.optional &&
       !pattern.computed &&
       (pattern.typeAnnotation == null ||
-        pattern.typeAnnotation?.typeAnnotation?.type === 'TSAnyKeyword')
+        n.TSAnyKeyword.check(pattern.typeAnnotation?.typeAnnotation))
     ) {
       const captureMatcher = compileCaptureMatcher(
         path,

@@ -3,12 +3,13 @@ import { CompiledMatcher, CompileOptions } from '.'
 import compileCaptureMatcher from './Capture'
 
 export default function compileJSXExpressionContainerMatcher(
-  path: NodePath<JSXExpressionContainer>,
+  path: NodePath<JSXExpressionContainer, JSXExpressionContainer>,
   compileOptions: CompileOptions
 ): CompiledMatcher | void {
-  const pattern: JSXExpressionContainer = path.node
+  const pattern: JSXExpressionContainer = path.value
+  const n = compileOptions.backend.t.namedTypes
 
-  if (pattern.expression.type === 'Identifier') {
+  if (n.Identifier.check(pattern.expression)) {
     const captureMatcher = compileCaptureMatcher(
       path,
       pattern.expression.name,

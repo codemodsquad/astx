@@ -92,10 +92,8 @@ export function extractMatchSource(
   const result: ExpectedMatch[] = []
   matches.forEach((_match: Match) => {
     const { type, pathCaptures, arrayPathCaptures, stringCaptures } = _match
-    const {
-      path,
-      paths,
-    }: { path?: NodePath; paths?: NodePath[] } = _match as any
+    const { path, paths }: { path?: NodePath; paths?: NodePath[] } =
+      _match as any
     const match: ExpectedMatch = {}
     if (type === 'node' && path) match.node = toSource(path)
     if (type === 'nodes' && paths) match.nodes = paths.map(toSource)
@@ -122,10 +120,8 @@ export function formatMatches(
   const result: ExpectedMatch[] = []
   matches.forEach((_match: Match) => {
     const { type, pathCaptures, arrayPathCaptures, stringCaptures } = _match
-    const {
-      path,
-      paths,
-    }: { path?: NodePath; paths?: NodePath[] } = _match as any
+    const { path, paths }: { path?: NodePath; paths?: NodePath[] } =
+      _match as any
     const match: ExpectedMatch = {}
     if (type === 'node' && path) match.node = toSource(path)
     if (type === 'nodes' && paths) match.nodes = paths.map(toSource)
@@ -230,7 +226,7 @@ for (const parser in groups) {
           `${testcaseDir}/${key}.ts`,
           function () {
             const ast = backend.parse(input)
-            const root = backend.makePath(ast)
+            const root = new backend.t.NodePath(ast)
 
             if (expectMatchesSelf) {
               const matches = find(root, backend.parsePattern(input), {
@@ -284,7 +280,7 @@ for (const parser in groups) {
           `${testcaseDir}/${key}.ts`,
           function () {
             const ast = backend.parse(input)
-            const root = backend.makePath(ast)
+            const root = new backend.t.NodePath(ast)
             const matches = find(root, backend.parsePattern(_find), {
               ...findOptions,
               where,

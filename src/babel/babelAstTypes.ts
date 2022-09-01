@@ -1,6 +1,6 @@
 import typesPlugin from 'ast-types/lib/types'
 import * as defaultTypes from '@babel/types'
-import { mapValues } from 'lodash'
+import { omit, mapValues } from 'lodash'
 import fork from 'ast-types/fork'
 import { Fork } from 'ast-types/types'
 import nodePathPlugin from 'ast-types/lib/node-path'
@@ -79,6 +79,7 @@ export default function babelAstTypes(
 
     for (const [type, fields] of Object.entries(t.NODE_FIELDS)) {
       const d = def(type)
+      d.field('type', type)
       const aliases: string[] | undefined = (t.ALIAS_KEYS as any)[type]
       if (aliases) {
         for (const alias of aliases) {
@@ -89,13 +90,16 @@ export default function babelAstTypes(
         d.bases('Node')
       }
       for (const [field, { validate, default: _default }] of Object.entries(
-        fields
+        type === 'File' ? omit(fields, 'tokens') : fields
       )) {
+        const fieldType = convertValidate(validate)
         d.field(
           field,
-          convertValidate(validate),
+          fieldType,
           Array.isArray(_default)
             ? () => [..._default]
+            : fieldType === builtInTypes.boolean && _default == null
+            ? () => false
             : _default !== undefined
             ? () => _default
             : undefined

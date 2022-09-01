@@ -3,11 +3,12 @@ import { CompiledReplacement, CompileReplacementOptions } from '.'
 import compileCaptureReplacement from './Capture'
 
 export default function compileJSXExpressionContainerReplacement(
-  path: NodePath<JSXExpressionContainer>,
+  path: NodePath<JSXExpressionContainer, JSXExpressionContainer>,
   compileOptions: CompileReplacementOptions
 ): CompiledReplacement | void {
-  const pattern = path.node
-  if (pattern.expression.type === 'Identifier') {
+  const n = compileOptions.backend.t.namedTypes
+  const pattern = path.value
+  if (n.Identifier.check(pattern.expression)) {
     const captureReplacement = compileCaptureReplacement(
       path,
       pattern.expression.name,
