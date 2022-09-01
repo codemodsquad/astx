@@ -7,7 +7,13 @@ export default function chooseGetBackend(parser: string): GetBackend {
     case 'babel':
       return getBabelBackend
     case 'recast/babel':
-      return getRecastBackend(getBabelBackend)
+      return getRecastBackend(
+        (file: string, options?: { [k in string]?: any }) =>
+          getBabelBackend(file, {
+            ...options,
+            tokens: true,
+          })
+      )
     default:
       throw new Error(`unknown parser: ${parser}`)
   }
