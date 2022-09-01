@@ -1,11 +1,5 @@
-import jscodeshift, {
-  ASTNode,
-  Expression,
-  Parser,
-  Statement,
-  JSCodeshift,
-} from 'jscodeshift'
-import { getParserAsync } from 'babel-parse-wild-code'
+import * as AstTypes from 'ast-types'
+import { Expression, Node, Statement } from './types'
 import Astx, { GetReplacement } from './Astx'
 import fs from 'fs-extra'
 import Path from 'path'
@@ -14,8 +8,9 @@ import { promisify } from 'util'
 import _resolve from 'resolve'
 import { FindOptions, Match } from './find'
 import omitBlankLineChanges from './util/omitBlankLineChanges'
-import generate from '@babel/generator'
 import CodeFrameError from './util/CodeFrameError'
+import { Backend, GetBackend } from './backend/Backend'
+import chooseGetBackend from './chooseGetBackend'
 const resolve = promisify(_resolve) as any
 
 type TransformOptions = {
@@ -27,16 +22,15 @@ type TransformOptions = {
   expression(strings: TemplateStringsArray, ...quasis: any[]): Expression
   statement(strings: TemplateStringsArray, ...quasis: any[]): Statement
   statements(strings: TemplateStringsArray, ...quasis: any[]): Statement[]
-  j: JSCodeshift
-  jscodeshift: JSCodeshift
+  t: typeof AstTypes
   report: (msg: string) => void
 }
 
 export type Transform = {
   astx?: (options: TransformOptions) => string | null | undefined | void
-  parser?: string | Parser
-  find?: string | ASTNode
-  replace?: string | GetReplacement
+  parser?: string | Backend
+  find?: string | Node | Node[]
+  replace?: string | Node | Node[] | GetReplacement
   where?: FindOptions['where']
 }
 
@@ -47,6 +41,7 @@ export type TransformResult = {
   reports?: any[]
   error?: Error
   matches?: Match[]
+  backend: Backend
 }
 
 const getPrettier = memoize(async (path: string): Promise<any> => {
@@ -66,36 +61,34 @@ const getPrettier = memoize(async (path: string): Promise<any> => {
   return null
 })
 
-const getBabelGenerator = memoize(async (path: string): Promise<any> => {
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const babelGenerator = require(await resolve('@babel/generator', {
-      basedir: path,
-    }))
-    if (typeof babelGenerator.default === 'function')
-      return babelGenerator.default
-  } catch (error) {
-    // ignore
-  }
-  return generate
-})
-
 export const runTransformOnFile =
-  (transform: Transform) =>
+  ({
+    transform,
+    getBackend,
+  }: {
+    transform: Transform
+    getBackend: GetBackend
+  }) =>
   async (file: string): Promise<TransformResult> => {
+    const { parser } = transform
+    let backend: Backend
+    try {
+      backend =
+        typeof parser === 'string'
+          ? await chooseGetBackend(parser)(file)
+          : parser instanceof Object
+          ? parser
+          : await getBackend(file)
+    } catch (error) {
+      return {
+        file,
+        error: error instanceof Error ? error : new Error(String(error)),
+        backend: null as any,
+      }
+    }
+
     try {
       const source = await fs.readFile(file, 'utf8')
-      const parser =
-        transform.parser ||
-        (await getParserAsync(file, {
-          allowReturnOutsideFunction: true,
-          allowSuperOutsideMethod: true,
-          allowUndeclaredExports: true,
-          tokens: true,
-          plugins: ['topLevelAwait'],
-        }))
-      const j = jscodeshift.withParser(parser)
-      const template = makeTemplate(j)
 
       let transformed
       const reports: any[] = []
@@ -104,23 +97,22 @@ export const runTransformOnFile =
 
       let transformFn = transform.astx
 
-      if (typeof transformFn !== 'function' && transform.find) {
+      const { find, replace } = transform
+      if (typeof transformFn !== 'function' && find) {
         transformFn = ({ astx }): any => {
-          const result = astx.find(
-            transform.find as string | ASTNode | ASTNode[],
-            {
-              where: transform.where,
-            }
-          )
-          if (transform.replace) result.replace(transform.replace as any)
+          const result = astx.find(find, {
+            where: transform.where,
+          })
+          if (replace) result.replace(replace)
           matches = result.matches()
           if (!result.size()) return null
         }
       }
       if (typeof transformFn === 'function') {
-        let root
+        let ast, root
         try {
-          root = j(source)
+          ast = backend.parse(source)
+          root = new backend.t.NodePath(ast)
         } catch (error) {
           if (error instanceof Error) {
             CodeFrameError.rethrow(error, { filename: file, source })
@@ -130,40 +122,43 @@ export const runTransformOnFile =
         const options = {
           source,
           path: file,
-          j,
-          jscodeshift: j,
+          root,
+          t: backend.t,
           report: (msg: any) => {
             reports.push(msg)
           },
-          ...template,
-          astx: new Astx(j, root.paths()),
+          ...backend.template,
+          astx: new Astx(backend, [root]),
         }
         const [_result, prettier] = await Promise.all([
           transformFn(options),
           getPrettier(Path.dirname(file)),
         ])
-        transformed = _result
-        if (transformed === undefined) {
-          transformed = root.toSource()
+        if (transform.astx || transform.replace) {
+          transformed = _result
+          if (transformed === undefined) {
+            transformed = backend.generate(ast).code
+          }
+          if (transformed === null) transformed = undefined
+          if (
+            prettier &&
+            typeof transformed === 'string' &&
+            transformed !== source
+          ) {
+            const config = (await prettier.resolveConfig(file)) || {}
+            if (/\.tsx?$/.test(file)) config.parser = 'typescript'
+            transformed = prettier.format(transformed, config)
+          }
+          if (transformed != null)
+            transformed = omitBlankLineChanges(source, transformed)
         }
-        if (transformed === null) transformed = undefined
-        if (
-          prettier &&
-          typeof transformed === 'string' &&
-          transformed !== source
-        ) {
-          const config = (await prettier.resolveConfig(file)) || {}
-          if (/\.tsx?$/.test(file)) config.parser = 'typescript'
-          transformed = prettier.format(transformed, config)
-        }
-        if (transformed != null)
-          transformed = omitBlankLineChanges(source, transformed)
       } else {
         return {
           file,
           error: new Error(
             'transform file must export either astx or find/replace'
           ),
+          backend,
         }
       }
       return {
@@ -172,11 +167,13 @@ export const runTransformOnFile =
         transformed,
         reports,
         matches,
+        backend,
       }
     } catch (error) {
       return {
         file,
         error: error instanceof Error ? error : new Error(String(error)),
+        backend,
       }
     }
   }

@@ -51,6 +51,7 @@ export type NodeType =
 
 export type Node = b.Node | k.NodeKind
 
+export type File = b.File | k.FileKind
 export type Block =
   | b.Block
   | k.BlockStatementKind

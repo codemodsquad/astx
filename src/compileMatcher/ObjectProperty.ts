@@ -18,11 +18,7 @@ export default function compileObjectPropertyMatcher(
   const pattern: ObjectProperty = path.value
 
   if (n.Identifier.check(pattern.key)) {
-    if (
-      pattern.shorthand &&
-      !pattern.computed &&
-      pattern.accessibility == null
-    ) {
+    if (pattern.shorthand && !pattern.computed) {
       const captureMatcher = compileCaptureMatcher(
         path,
         pattern.key.name,

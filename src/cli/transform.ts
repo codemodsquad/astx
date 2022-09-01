@@ -8,39 +8,24 @@ import fs from 'fs-extra'
 import dedent from 'dedent-js'
 import CodeFrameError from '../util/CodeFrameError'
 import { codeFrameColumns } from '@babel/code-frame'
+import runTransform from '../runTransform'
+import Astx from '../Astx'
+import formatMatches from '../util/formatMatches'
+import chooseGetBackend from '../chooseGetBackend'
+import getBabelBackend from '../babel/getBabelBackend'
+import { Backend } from '../backend/Backend'
 
 /* eslint-disable no-console */
 
 type Options = {
   transform?: string
   parser?: string
-  engine?: string
+  parserOptions?: string
   find?: string
   replace?: string
   filesAndDirectories?: string[]
   babelGenerator?: boolean
   yes?: boolean
-}
-
-async function getEngine(
-  engine: string
-): Promise<{
-  Astx: any
-  runTransform: any
-  runTransformOnFile: any
-  formatMatches: any
-}> {
-  switch (engine) {
-    case 'jscodeshift':
-      return {
-        Astx: (await import('../Astx')).default,
-        runTransform: (await import('../runTransform')).default,
-        runTransformOnFile: (await import('../runTransformOnFile'))
-          .runTransformOnFile,
-        formatMatches: (await import('../util/formatMatches')).default,
-      }
-  }
-  throw new Error(`invalid engine: ${engine}`)
 }
 
 const transform: CommandModule<Options> = {
@@ -56,13 +41,13 @@ const transform: CommandModule<Options> = {
         alias: 't',
         describe: `path to the transform file. Can be either a local path or url. Defaults to ./astx.js if --find isn't given`,
       })
-      // .options('engine', {
-      //   describe: 'engine to use',
-      //   type: 'string',
-      //   default: 'jscodeshift',
-      // })
       .options('parser', {
         describe: 'parser to use',
+        type: 'string',
+        default: 'babel',
+      })
+      .options('parserOptions', {
+        describe: 'options for parser',
         type: 'string',
       })
       .option('find', {
@@ -94,7 +79,18 @@ const transform: CommandModule<Options> = {
       process.exit(1)
     }
 
-    const engine = await getEngine(argv.engine || 'jscodeshift')
+    let getBackend = argv.parser
+      ? chooseGetBackend(argv.parser)
+      : getBabelBackend
+    if (argv.parserOptions) {
+      const parserOptionsObj = JSON.parse(argv.parserOptions)
+      getBackend = async (
+        file: string,
+        options?: { [k in string]?: any }
+      ): Promise<Backend> => {
+        return await getBackend(file, { ...parserOptionsObj, ...options })
+      }
+    }
 
     function getTransform(): any {
       const { transform, find, parser }: any = argv
@@ -127,9 +123,11 @@ const transform: CommandModule<Options> = {
       reports,
       error,
       matches,
-    } of engine.runTransform(transform, {
+      backend,
+    } of runTransform({
+      transform,
       paths,
-      useBabelGenerator: argv.babelGenerator,
+      getBackend,
     })) {
       const logHeader = (logFn: (value: string) => any) =>
         logFn(
@@ -175,7 +173,7 @@ const transform: CommandModule<Options> = {
         !transform.astx
       ) {
         logHeader(console.log)
-        console.log(engine.formatMatches(source, matches))
+        console.log(formatMatches(backend, source, matches))
       } else {
         unchangedCount++
       }
@@ -189,8 +187,8 @@ const transform: CommandModule<Options> = {
         )
         reports?.forEach((r: any) =>
           console.error(
-            r instanceof engine.Astx && source
-              ? engine.formatMatches(source, r.matches())
+            r instanceof Astx && source
+              ? formatMatches(backend, source, r.matches())
               : r
           )
         )

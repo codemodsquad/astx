@@ -5,14 +5,17 @@ import {
 } from './runTransformOnFile'
 import resolveGlobsAndDirs from './util/resolveGlobsAndDirs'
 import { clearCache } from 'babel-parse-wild-code'
+import { GetBackend } from './backend/Backend'
 
-export default async function* runTransform(
-  transform: Transform,
-  {
-    paths,
-    useBabelGenerator = false,
-  }: { paths: string[]; useBabelGenerator?: boolean }
-): AsyncIterable<TransformResult> {
+export default async function* runTransform({
+  transform,
+  paths,
+  getBackend,
+}: {
+  transform: Transform
+  paths: string[]
+  getBackend: GetBackend
+}): AsyncIterable<TransformResult> {
   const files = await resolveGlobsAndDirs(paths, [
     'js',
     'jsx',
@@ -26,7 +29,7 @@ export default async function* runTransform(
 
   clearCache()
   const transformResults = files.map(
-    runTransformOnFile(transform, { useBabelGenerator })
+    runTransformOnFile({ transform, getBackend })
   )
 
   for (const elem of transformResults) {

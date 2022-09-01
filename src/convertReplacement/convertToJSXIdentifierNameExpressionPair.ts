@@ -28,7 +28,10 @@ export default function convertToJSXIdentifierNameExpressionPair(
       break
     }
     case 'ImportSpecifier': {
-      const key = node.imported.name
+      const key =
+        node.imported.type === 'StringLiteral'
+          ? node.imported.value
+          : node.imported.name
       const value = node.local || node.imported
       return [key, value]
     }

@@ -1,5 +1,4 @@
-import { Node } from '@babel/types'
-import { Statement, Expression } from '../types'
+import { Node, File, Statement, Expression } from '@babel/types'
 import { Backend } from '../backend/Backend'
 import * as defaultParser from '@babel/parser'
 import { ParserOptions } from '@babel/parser'
@@ -8,12 +7,19 @@ import defaultGenerate from '@babel/generator'
 import * as AstTypes from 'ast-types'
 import babelAstTypes from './babelAstTypes'
 
+interface Parser {
+  parse(code: string, parserOpts?: ParserOptions): File
+  parseExpression(code: string, parserOpts?: ParserOptions): Expression
+}
+
+type Generate = (node: Node) => { code: string }
+
 export default class BabelBackend extends Backend<Node> {
   t: typeof AstTypes
   parse: (code: string) => Node
   parseExpression: (code: string) => Expression
   parseStatements: (code: string) => Statement[]
-  generate: (node: Node) => { code: string }
+  generate: Generate
   sourceRange: (
     node: Node
   ) => [number | null | undefined, number | null | undefined]
@@ -24,9 +30,9 @@ export default class BabelBackend extends Backend<Node> {
     generate = defaultGenerate,
     types = defaultTypes,
   }: {
-    parser?: typeof defaultParser
+    parser?: Parser
     parserOptions?: ParserOptions
-    generate?: typeof defaultGenerate
+    generate?: Generate
     types?: typeof defaultTypes
   } = {}) {
     super()

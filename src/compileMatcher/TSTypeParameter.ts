@@ -8,12 +8,7 @@ export default function compileTSTypeParameterMatcher(
 ): CompiledMatcher | void {
   const pattern: TSTypeParameter = path.value
 
-  if (
-    pattern.constraint == null &&
-    pattern.typeAnnotation == null &&
-    pattern.default == null &&
-    !pattern.optional
-  ) {
+  if (pattern.constraint == null && pattern.default == null) {
     const captureMatcher = compileCaptureMatcher(
       path,
       pattern.name,

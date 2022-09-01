@@ -8,7 +8,7 @@
   "main": "index.js",
   "sideEffects": false,
   "scripts": {
-    "cli": "ts-node src/cli/index.ts",
+    "cli": "babel-node --extensions .ts src/cli/index.ts",
     "lint": "eslint $npm_package_config_lint",
     "lint:fix": "eslint $npm_package_config_lint",
     "prettier": "prettier --write $npm_package_config_prettier",

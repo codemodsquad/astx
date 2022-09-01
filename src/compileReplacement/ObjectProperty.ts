@@ -9,11 +9,7 @@ export default function compileObjectPropertyReplacement(
   const n = compileOptions.backend.t.namedTypes
   const pattern = path.value
   if (n.Identifier.check(pattern.key)) {
-    if (
-      pattern.shorthand &&
-      !pattern.computed &&
-      pattern.accessibility == null
-    ) {
+    if (pattern.shorthand && !pattern.computed) {
       const captureReplacement = compileCaptureReplacement(
         path,
         pattern.key.name,

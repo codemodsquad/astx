@@ -1,20 +1,10 @@
-import { Statement, Expression } from '../types'
+import { File, Statement, Expression } from '../types'
 import { Backend } from '../backend/Backend'
 import * as defaultRecast from 'recast'
 import * as t from 'ast-types'
-import fork from 'ast-types/fork'
-import esProposalsDef from 'ast-types/def/es-proposals'
-import jsxDef from 'ast-types/def/jsx'
-import flowDef from 'ast-types/def/flow'
-import esprimaDef from 'ast-types/def/esprima'
-import babelDef from 'ast-types/def/babel'
-import typescriptDef from 'ast-types/def/typescript'
-import * as k from 'ast-types/gen/kinds'
-import addMissingFields from './util/addMissingFields'
 
-type Node = k.NodeKind
-
-export default class RecastBackend extends Backend<Node> {
+export default class RecastBackend<Node = any> extends Backend<Node> {
+  wrapped: Backend
   t: typeof t
   parse: (code: string) => Node
   parseExpression: (code: string) => Expression
@@ -25,27 +15,21 @@ export default class RecastBackend extends Backend<Node> {
   ) => [number | null | undefined, number | null | undefined]
 
   constructor({
+    wrapped,
     recast = defaultRecast,
     parseOptions,
   }: {
+    wrapped: Backend<Node>
     recast?: typeof defaultRecast
     parseOptions?: defaultRecast.Options
-  } = {}) {
+  }) {
     super()
-    this.t = fork([
-      // Feel free to add to or remove from this list of extension modules to
-      // configure the precise type hierarchy that you need.
-      esProposalsDef,
-      jsxDef,
-      flowDef,
-      esprimaDef,
-      babelDef,
-      typescriptDef,
-      addMissingFields,
-    ])
+    this.wrapped = wrapped
+    this.t = wrapped.t
+    parseOptions = { ...parseOptions, parser: wrapped }
     this.parse = (code: string) => recast.parse(code, parseOptions)
     this.parseStatements = (code: string): Statement[] => {
-      const ast: k.FileKind = recast.parse(code, parseOptions)
+      const ast: File = recast.parse(code, parseOptions)
       const errors =
         ast.type === 'File' ? (ast.program as any).errors : (ast as any).errors
       if (errors?.length) {
@@ -72,10 +56,7 @@ export default class RecastBackend extends Backend<Node> {
 
       return expression
     }
-    this.generate = (node: Node): { code: string } => recast.print(node)
-    this.sourceRange = (node: Node) =>
-      Array.isArray((node as any).range)
-        ? (node as any).range
-        : [(node as any).start, (node as any).end]
+    this.generate = (node: Node): { code: string } => recast.print(node as any)
+    this.sourceRange = wrapped.sourceRange
   }
 }

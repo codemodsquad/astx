@@ -1,21 +1,24 @@
 import { ImportSpecifier, NodePath } from '../types'
 import { CompiledMatcher, CompileOptions } from '.'
 import compileCaptureMatcher from './Capture'
-import convertToJSXIdentifierName from '../convertReplacement/convertToJSXIdentifierName'
 
 export default function compileImportSpecifierMatcher(
   path: NodePath<ImportSpecifier, ImportSpecifier>,
   compileOptions: CompileOptions
 ): CompiledMatcher | void {
+  const n = compileOptions.backend.t.namedTypes
   const pattern: ImportSpecifier = path.value
 
   const { importKind } = pattern as any
-  const importedName = convertToJSXIdentifierName(pattern.imported)
-  if (importedName && (!pattern.local || pattern.local.name === importedName)) {
+  const { imported, local } = pattern
+  if (
+    n.Identifier.check(imported) &&
+    (!local || local.name === imported.name)
+  ) {
     if (importKind == null || importKind === 'value') {
       const captureMatcher = compileCaptureMatcher(
         path,
-        importedName,
+        imported.name,
         compileOptions
       )
 

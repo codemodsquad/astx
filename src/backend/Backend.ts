@@ -3,6 +3,11 @@ import { parsePatternToNodes, parsePattern } from './parse'
 import * as template from './template'
 import * as AstTypes from 'ast-types'
 
+export type GetBackend = (
+  file: string,
+  options?: { [k in string]?: any }
+) => Promise<Backend>
+
 export abstract class Backend<Node = any> {
   abstract t: typeof AstTypes
   abstract parse: (code: string) => Node

@@ -155,21 +155,22 @@ for (const parser in groups) {
     allowReturnOutsideFunction: true,
     allowSuperOutsideMethod: true,
     allowUndeclaredExports: true,
-    tokens: true,
+    tokens: backendName === 'recast',
     plugins: ['jsx', 'topLevelAwait'],
   }
   const babelParser =
     actualParser === 'babel/tsx'
       ? tsParser.bindParserOpts(parserOpts)
       : jsParser.bindParserOpts(parserOpts)
+  const babelBackend = new BabelBackend({
+    parserOptions: babelParser.parserOpts,
+  })
   const backend: Backend =
     backendName === 'recast'
       ? new RecastBackend({
-          parseOptions: {
-            parser: babelParser,
-          },
+          wrapped: babelBackend,
         })
-      : new BabelBackend({ parserOptions: babelParser.parserOpts })
+      : babelBackend
   const prettierOptions = {
     parser: actualParser === 'babel/tsx' ? 'babel-ts' : 'babel-flow',
   }

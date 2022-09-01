@@ -6,14 +6,8 @@ export default function compileTSTypeParameterReplacement(
   path: NodePath<TSTypeParameter, TSTypeParameter>,
   compileOptions: CompileReplacementOptions
 ): CompiledReplacement | void {
-  const n = compileOptions.backend.t.namedTypes
   const pattern = path.value
-  if (
-    pattern.constraint == null &&
-    pattern.typeAnnotation == null &&
-    pattern.default == null &&
-    !pattern.optional
-  ) {
+  if (pattern.constraint == null && pattern.default == null) {
     const captureReplacement = compileCaptureReplacement(
       path,
       pattern.name,

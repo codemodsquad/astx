@@ -1,6 +1,7 @@
 import chalk from 'chalk'
 import countLines from './countLines'
 import { Match } from '../find'
+import { Backend } from '../backend/Backend'
 
 const captureColors = [
   chalk.green,
@@ -30,19 +31,27 @@ function deriveLineAndColumn(
   return { line, column: index - lastIndex }
 }
 
-function formatMatch(source: string, match: Match, lineCount: number): string {
+function formatMatch(
+  backend: Backend,
+  source: string,
+  match: Match,
+  lineCount: number
+): string {
   const lineNumberLength = String(lineCount).length
 
   if (match.type === 'nodes' && !match.nodes.length)
     return `${' '.repeat(lineNumberLength)} | (zero statements)`
-  const { start: nodeStart, end: nodeEnd, loc } =
-    match.type === 'node'
-      ? (match.node as any)
-      : {
-          start: (match.nodes[0] as any).start,
-          end: (match.nodes[match.nodes.length - 1] as any).end,
-          loc: { start: (match.nodes[0] as any).loc.start },
-        }
+  const {
+    start: nodeStart,
+    end: nodeEnd,
+    loc,
+  } = match.type === 'node'
+    ? (match.node as any)
+    : {
+        start: (match.nodes[0] as any).start,
+        end: (match.nodes[match.nodes.length - 1] as any).end,
+        loc: { start: (match.nodes[0] as any).loc.start },
+      }
   const { line: startLine, column: startCol } =
     loc?.start || deriveLineAndColumn(source, nodeStart)
   const { captures, arrayCaptures } = match
@@ -114,6 +123,7 @@ function formatMatch(source: string, match: Match, lineCount: number): string {
 }
 
 export default function formatMatches(
+  backend: Backend,
   source: string,
   matches: Match[]
 ): string {
@@ -122,7 +132,7 @@ export default function formatMatches(
   for (let i = 0; i < matches.length; i++) {
     const match = matches[i]
     if (i > 0) result.push(' '.repeat(String(lineCount).length + 1) + '|')
-    result.push(formatMatch(source, match, lineCount))
+    result.push(formatMatch(backend, source, match, lineCount))
   }
   return result.join('\n')
 }
