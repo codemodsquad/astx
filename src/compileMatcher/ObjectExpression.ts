@@ -5,7 +5,6 @@ import {
   ObjectProperty,
   SpreadElement,
 } from '../types'
-import t from 'ast-types'
 import compileGenericNodeMatcher from './GenericNodeMatcher'
 import indentDebug from './indentDebug'
 import compileMatcher, {
@@ -39,11 +38,7 @@ function getSimpleKey(
 }
 
 function getCaptureRestVariable(
-  property:
-    | ObjectProperty
-    | t.namedTypes.Property
-    | ObjectMethod
-    | SpreadElement
+  property: ObjectProperty | ObjectMethod | SpreadElement
 ): string | undefined {
   if (property.type !== 'SpreadElement') return undefined
   const { argument } = property
@@ -72,7 +67,7 @@ export default function compileObjectExpressionMatcher(
 
   for (let i = 0; i < pattern.properties.length; i++) {
     const property = pattern.properties[i]
-    const simpleKey = getSimpleKey(property)
+    const simpleKey = getSimpleKey(property as any)
 
     if (simpleKey && !getAnyCaptureAs(simpleKey)) {
       simpleProperties.set(
@@ -82,7 +77,7 @@ export default function compileObjectExpressionMatcher(
       continue
     }
 
-    const _captureRestVariable = getCaptureRestVariable(property)
+    const _captureRestVariable = getCaptureRestVariable(property as any)
 
     if (_captureRestVariable) {
       if (captureRestVariable)
@@ -132,7 +127,7 @@ export default function compileObjectExpressionMatcher(
       for (let i = 0; i < node.properties.length; i++) {
         const property = node.properties[i]
         const propertyPath = path.get('properties').get(i)
-        const simpleKey = getSimpleKey(property)
+        const simpleKey = getSimpleKey(property as any)
 
         if (simpleKey) {
           const matcher = remainingSimpleProperties.get(simpleKey)
