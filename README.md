@@ -26,6 +26,7 @@ These are docs for the version 2 beta branch.
   - [Making code DRY](#making-code-dry)
 - [Prior art and philosophy](#prior-art-and-philosophy)
 - [API](#api)
+  - [interface NodePath](#interface-nodepath)
   - [class Astx](#class-astx)
     - [`constructor(backend: Backend, paths: NodePath<any>[] | Match[], options?: { withCaptures?: Match[] })`](#constructorbackend-backend-paths-nodepathany--match-options--withcaptures-match-)
     - [`.find(...)` (`Astx`)](#find-astx)
@@ -213,7 +214,14 @@ Paste your code into [AST Explorer](https://astexplorer.net/) if you need to lea
 
 # API
 
-Note: the identifier `t` in all code examples refers to `import * as t from '@babel/types'`.
+## interface NodePath
+
+```ts
+import { NodePath } from 'astx'
+```
+
+This is the same `NodePath` interface as `ast-types`, with some improvements to the method type definitions.
+`astx` uses `ast-types` to traverse code, in hopes of supporting different parsers in the future.
 
 ## class Astx
 
