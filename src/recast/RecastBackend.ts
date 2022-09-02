@@ -4,13 +4,13 @@ import * as defaultRecast from 'recast'
 import * as t from 'ast-types'
 
 export default class RecastBackend<Node = any> extends Backend<Node> {
-  wrapped: Backend
-  t: typeof t
-  parse: (code: string) => Node
-  parseExpression: (code: string) => Expression
-  parseStatements: (code: string) => Statement[]
-  generate: (node: Node) => { code: string }
-  sourceRange: (
+  readonly wrapped: Backend
+  readonly t: typeof t
+  readonly parse: (code: string) => Node
+  readonly parseExpression: (code: string) => Expression
+  readonly parseStatements: (code: string) => Statement[]
+  readonly generate: (node: Node) => { code: string }
+  readonly sourceRange: (
     node: Node
   ) => [number | null | undefined, number | null | undefined]
 

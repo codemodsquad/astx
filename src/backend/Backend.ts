@@ -9,35 +9,35 @@ export type GetBackend = (
 ) => Promise<Backend>
 
 export abstract class Backend<Node = any> {
-  abstract t: typeof AstTypes
-  abstract parse: (code: string) => Node
-  abstract parseExpression: (code: string) => Expression
-  abstract parseStatements: (code: string) => Statement[]
-  template: {
-    statements: (
+  abstract readonly t: typeof AstTypes
+  abstract readonly parse: (code: string) => Node
+  abstract readonly parseExpression: (code: string) => Expression
+  abstract readonly parseStatements: (code: string) => Statement[]
+  readonly template: {
+    readonly statements: (
       code: TemplateStringsArray | string[] | string,
       ...nodes: any[]
     ) => Statement[]
-    statement: (
+    readonly statement: (
       code: TemplateStringsArray | string[] | string,
       ...nodes: any[]
     ) => Statement
-    expression: (
+    readonly expression: (
       code: TemplateStringsArray | string[] | string,
       ...nodes: any[]
     ) => Expression
   }
-  parsePattern: (
+  readonly parsePattern: (
     strings: TemplateStringsArray | string | string[],
     ...quasis: any[]
   ) => NodePath | NodePath[]
-  parsePatternToNodes: (
+  readonly parsePatternToNodes: (
     strings: TemplateStringsArray | string | string[],
     ...quasis: any[]
   ) => Node | Node[]
 
-  abstract generate: (node: Node) => { code: string }
-  abstract sourceRange: (
+  abstract readonly generate: (node: Node) => { code: string }
+  abstract readonly sourceRange: (
     node: Node
   ) => [number | null | undefined, number | null | undefined]
 

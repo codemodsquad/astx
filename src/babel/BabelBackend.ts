@@ -15,12 +15,12 @@ interface Parser {
 type Generate = (node: Node) => { code: string }
 
 export default class BabelBackend extends Backend<Node> {
-  t: typeof AstTypes
-  parse: (code: string) => Node
-  parseExpression: (code: string) => Expression
-  parseStatements: (code: string) => Statement[]
-  generate: Generate
-  sourceRange: (
+  readonly t: typeof AstTypes
+  readonly parse: (code: string) => Node
+  readonly parseExpression: (code: string) => Expression
+  readonly parseStatements: (code: string) => Statement[]
+  readonly generate: Generate
+  readonly sourceRange: (
     node: Node
   ) => [number | null | undefined, number | null | undefined]
 
