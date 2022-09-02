@@ -9,4 +9,4 @@ const x = {
 }
 `
 
-export const expectedError = `two capture rest variables aren't allowed, found $$b and $$a`
+export const expectedError = `can't have two or more rest matchers as siblings`

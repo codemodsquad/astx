@@ -19,10 +19,11 @@ import JSXExpressionContainer from './JSXExpressionContainer'
 import JSXIdentifier from './JSXIdentifier'
 import JSXText from './JSXText'
 import NumericLiteral from './NumericLiteral'
-import ObjectExpression from './ObjectExpression'
+// import ObjectExpression from './ObjectExpression'
 import ObjectProperty from './ObjectProperty'
 import ObjectTypeProperty from './ObjectTypeProperty'
 import RegExpLiteral from './RegExpLiteral'
+import SpreadElement from './SpreadElement'
 import StringLiteral from './StringLiteral'
 import TemplateLiteral from './TemplateLiteral'
 import TSExpressionWithTypeArguments from './TSExpressionWithTypeArguments'
@@ -119,10 +120,11 @@ const nodeMatchers: Record<
   JSXIdentifier,
   JSXText,
   NumericLiteral,
-  ObjectExpression,
+  // ObjectExpression,
   ObjectProperty,
   ObjectTypeProperty,
   RegExpLiteral,
+  SpreadElement,
   StringLiteral,
   TemplateLiteral,
   TSExpressionWithTypeArguments,
