@@ -17,6 +17,8 @@ const babelAstTypes: (t?: typeof defaultTypes) => ReturnType<typeof fork> =
       def('Node').field('type', builtInTypes.string)
 
       function tryConvertValidate(validate: any, node?: any): any {
+        if (!validate) return {}
+
         if (validate.type) {
           switch (validate.type) {
             case 'any':
