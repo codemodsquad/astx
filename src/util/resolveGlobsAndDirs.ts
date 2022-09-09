@@ -3,8 +3,8 @@ import * as Path from 'path'
 import { glob, hasMagic } from 'glob-gitignore'
 
 export default async function resolveGlobsAndDirs(
-  args: string[],
-  extensions: string[]
+  args: readonly string[],
+  extensions: readonly string[]
 ): Promise<string[]> {
   const args2: string[] = []
 

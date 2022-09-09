@@ -78,8 +78,8 @@ export function createMatch(
 }
 
 export default function find(
-  paths: NodePath | NodePath[],
-  pattern: NodePath | NodePath[],
+  paths: NodePath | readonly NodePath[],
+  pattern: NodePath | readonly NodePath[],
   options: FindOptions
 ): Match[] {
   const t = options.backend.t
@@ -96,11 +96,11 @@ export default function find(
     )
   }
 
-  const matcher = compileMatcher(pattern, options)
+  const matcher = compileMatcher(pattern as NodePath, options)
 
   const matches: Array<Match> = []
 
-  const nodeTypes: NodeType[] = ensureArray(matcher.nodeType || 'Node')
+  const nodeTypes: readonly NodeType[] = ensureArray(matcher.nodeType || 'Node')
 
   forEachNode(t, ensureArray(paths), nodeTypes, (path: NodePath) => {
     const result = matcher.match(path, options?.matchSoFar ?? null)
@@ -111,8 +111,8 @@ export default function find(
 }
 
 function findStatements(
-  paths: NodePath | NodePath[],
-  pattern: NodePath<Statement, Statement>[],
+  paths: NodePath | readonly NodePath[],
+  pattern: readonly NodePath<Statement, Statement>[],
   options: FindOptions
 ): Match[] {
   const t = options.backend.t

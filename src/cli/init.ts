@@ -47,8 +47,8 @@ const init: CommandModule<Options> = {
     const content =
       style === 'function'
         ? dedent`
-          exports.astx = ({ astx, j, root, expression, statement, statements }) => {
-            // example: astx.find\`$foo\`.replace\`$foo\`
+          exports.astx = ({ astx, t, expression, statement, statements, report }) => {
+            // example: astx.find\`$foo\`().replace\`$foo\`()
           }
         `
         : dedent`

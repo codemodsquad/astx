@@ -10,12 +10,12 @@ export type ReplaceOptions = {
 }
 
 export default function replace(
-  matches: Match[],
+  matches: readonly Match[],
   replace:
     | CompiledReplacement
     | Node
-    | Node[]
-    | ((match: Match) => Node | Node[]),
+    | readonly Node[]
+    | ((match: Match) => Node | readonly Node[]),
   { backend }: ReplaceOptions
 ): void {
   for (const match of matches) {
@@ -32,8 +32,8 @@ export default function replace(
               pipeline(
                 typeof replace === 'function'
                   ? replace(match)
-                  : (replace as Node | Node[]),
-                (nodes: Node | Node[]) =>
+                  : (replace as Node | readonly Node[]),
+                (nodes: Node | readonly Node[]) =>
                   Array.isArray(nodes)
                     ? nodes.map((n) => new backend.t.NodePath(n))
                     : new backend.t.NodePath(nodes)

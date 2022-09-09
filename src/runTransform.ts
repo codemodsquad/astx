@@ -12,7 +12,7 @@ export default async function* runTransform({
   getBackend,
 }: {
   transform: Transform
-  paths: string[]
+  paths: readonly string[]
   getBackend: GetBackend
 }): AsyncIterable<TransformResult> {
   const files = await resolveGlobsAndDirs(paths, [

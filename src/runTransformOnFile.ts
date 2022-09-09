@@ -40,7 +40,7 @@ export type TransformResult = {
   transformed?: string
   reports?: any[]
   error?: Error
-  matches?: Match[]
+  matches?: readonly Match[]
   backend: Backend
 }
 
@@ -93,7 +93,7 @@ const runTransformOnFile =
       let transformed
       const reports: any[] = []
 
-      let matches: Match[] | undefined
+      let matches: readonly Match[] | undefined
 
       let transformFn = transform.astx
 
@@ -104,8 +104,8 @@ const runTransformOnFile =
             where: transform.where,
           })
           if (replace) result.replace(replace)
-          matches = result.matches()
-          if (!result.size()) return null
+          matches = result.matches
+          if (!result.size) return null
         }
       }
       if (typeof transformFn === 'function') {

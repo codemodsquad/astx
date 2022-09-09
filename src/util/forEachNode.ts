@@ -3,8 +3,8 @@ import { NodeType, NodePath } from '../types'
 
 export default function forEachNode(
   t: typeof AstTypes,
-  paths: NodePath[],
-  nodeTypes: NodeType[],
+  paths: readonly NodePath[],
+  nodeTypes: readonly NodeType[],
   iteratee: (path: NodePath) => void
 ): void {
   const visited = new Set()

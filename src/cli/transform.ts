@@ -183,7 +183,7 @@ const transform: CommandModule<Options> = {
         reports?.forEach((r: any) =>
           console.error(
             r instanceof Astx && source
-              ? formatMatches(backend, source, r.matches())
+              ? formatMatches(backend, source, r.matches)
               : r
           )
         )

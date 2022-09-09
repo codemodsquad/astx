@@ -125,7 +125,7 @@ function formatMatch(
 export default function formatMatches(
   backend: Backend,
   source: string,
-  matches: Match[]
+  matches: readonly Match[]
 ): string {
   const result = []
   const lineCount = countLines(source)

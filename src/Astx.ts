@@ -5,7 +5,6 @@ import replace from './replace'
 import compileMatcher, { MatchResult } from './compileMatcher'
 import CodeFrameError from './util/CodeFrameError'
 import ensureArray from './util/ensureArray'
-import { once } from 'lodash'
 
 export type ParsePattern = (
   strings: string | string[] | TemplateStringsArray,
@@ -28,11 +27,13 @@ export type FindOptions = {
   where?: { [captureName: string]: (path: NodePath) => boolean }
 }
 
-export default class Astx {
+export default class Astx implements Iterable<Match> {
   private readonly backend: Backend
-  private readonly _paths: NodePath<any>[]
   private readonly _matches: Match[]
   private readonly _withCaptures: Match[]
+  private _lazyPaths: NodePath<Node, any>[] | undefined
+  private _lazyNodes: Node[] | undefined
+  private _lazyInitialMatch: MatchResult | undefined
 
   constructor(
     backend: Backend,
@@ -41,10 +42,6 @@ export default class Astx {
   ) {
     this.backend = backend
     const { NodePath } = backend.t
-    this._paths =
-      paths[0] instanceof NodePath
-        ? (paths as NodePath[])
-        : (paths as Match[]).map((m) => m.paths).flat()
     this._matches =
       paths[0] instanceof NodePath
         ? (paths as NodePath[]).map((path) => ({
@@ -58,19 +55,19 @@ export default class Astx {
     this._withCaptures = withCaptures
   }
 
-  size(): number {
+  get size(): number {
     return this._matches.length
   }
 
-  get length(): number {
-    return this._matches.length
-  }
-
-  matches(): Match[] {
+  get matches(): readonly Match[] {
     return this._matches
   }
 
-  match(): Match {
+  *[Symbol.iterator](): Iterator<Match> {
+    yield* this._matches
+  }
+
+  get match(): Match {
     const [match] = this._matches
     if (!match) {
       throw new Error(`you can't call match() when there are no matches`)
@@ -78,11 +75,19 @@ export default class Astx {
     return match
   }
 
-  paths(): NodePath[] {
-    return this._paths
+  get paths(): readonly NodePath[] {
+    return (
+      this._lazyPaths ||
+      (this._lazyPaths = this.matches.map((m) => m.paths).flat())
+    )
   }
 
-  nodes: () => Node[] = once((): Node[] => this._paths.map((p) => p.node))
+  get nodes(): readonly Node[] {
+    return (
+      this._lazyNodes ||
+      (this._lazyNodes = this.matches.map((m) => m.nodes).flat())
+    )
+  }
 
   filter(
     iteratee: (match: Match, index: number, matches: Match[]) => boolean
@@ -175,8 +180,14 @@ export default class Astx {
     return null
   }
 
-  private _createInitialMatch(): MatchResult {
-    return convertWithCaptures([...this._matches, ...this._withCaptures])
+  private get initialMatch(): MatchResult {
+    return (
+      this._lazyInitialMatch ||
+      (this._lazyInitialMatch = convertWithCaptures([
+        ...this._matches,
+        ...this._withCaptures,
+      ]))
+    )
   }
 
   closest(
@@ -201,7 +212,7 @@ export default class Astx {
     const { parsePattern } = backend
     const { NodePath } = backend.t
     try {
-      let paths: NodePath<any>[], options: FindOptions | undefined
+      let paths: readonly NodePath<any>[], options: FindOptions | undefined
       if (typeof arg0 === 'string') {
         paths = ensureArray(parsePattern(arg0))
         options = rest[0]
@@ -227,14 +238,13 @@ export default class Astx {
         ...options,
         backend,
       })
-      const matchSoFar = this._createInitialMatch()
 
       const matchedParents: Set<NodePath> = new Set()
       const matches: Match[] = []
-      this._paths.forEach((path) => {
+      this.paths.forEach((path) => {
         for (let p = path.parentPath; p; p = p.parentPath) {
           if (matchedParents.has(p)) return
-          const match = matcher.match(p, matchSoFar)
+          const match = matcher.match(p, this.initialMatch)
           if (match) {
             matchedParents.add(p)
             matches.push(createMatch(p, match))
@@ -298,10 +308,10 @@ export default class Astx {
       }
       return new Astx(
         backend,
-        find(this._paths, pattern, {
+        find(this.paths, pattern, {
           ...options,
           backend,
-          matchSoFar: this._createInitialMatch(),
+          matchSoFar: this.initialMatch,
         })
       )
     } catch (error) {

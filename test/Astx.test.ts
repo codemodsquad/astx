@@ -24,14 +24,14 @@ describe(`Astx`, function () {
     const reformat = (code: string) =>
       format(backend.generate(backend.parse(code)).code)
 
-    const toSource = (astx: Astx) => backend.generate(astx.nodes()[0]).code
+    const toSource = (astx: Astx) => backend.generate(astx.nodes[0]).code
     let source
     const createAstx = (src: string): Astx => {
       source = src
       return new Astx(backend, [new backend.t.NodePath(backend.parse(src))])
     }
     const extractMatchSource = (astx: Astx) =>
-      _extractMatchSource(astx.matches(), source, backend)
+      _extractMatchSource(astx.matches, source, backend)
     describe(backend.constructor.name, function () {
       it(`.find tagged template works`, function () {
         expect(
@@ -68,52 +68,46 @@ describe(`Astx`, function () {
           },
         ])
       })
-      it(`.match()`, function () {
+      it(`.match`, function () {
         const astx = createAstx(`foo + bar; baz + qux, qlomb`).find`$a + $b`()
-        expect(astx.match()).to.equal(astx.matches()[0])
+        expect(astx.match).to.equal(astx.matches[0])
       })
       it(`.at()`, function () {
         const astx = createAstx(`foo + bar; baz + qux, qlomb`).find`$a + $b`()
-        expect(astx.at(1).matches()).to.deep.equal([astx.matches()[1]])
+        expect(astx.at(1).matches).to.deep.equal([astx.matches[1]])
       })
       it(`.filter()`, function () {
         const astx = createAstx(`foo + bar; baz + qux, qlomb`).find`$a + $b`()
         expect(
-          astx.filter((m) => (m.captures?.$a as any)?.name === 'baz').matches()
-        ).to.deep.equal(astx.at(1).matches())
+          astx.filter((m) => (m.captures?.$a as any)?.name === 'baz').matches
+        ).to.deep.equal(astx.at(1).matches)
       })
-      it(`.nodes()`, function () {
+      it(`.nodes`, function () {
         const astx = createAstx(`foo + bar; baz + qux, qlomb`).find`$a + $b`()
-        expect(astx.length).to.be.above(0)
-        expect(astx.nodes()).to.deep.equal(astx.matches().map((m) => m.node))
+        expect(astx.size).to.be.above(0)
+        expect(astx.nodes).to.deep.equal(astx.matches.map((m) => m.node))
       })
-      it(`.paths()`, function () {
+      it(`.paths`, function () {
         const astx = createAstx(`foo + bar; baz + qux, qlomb`).find`$a + $b`()
-        expect(astx.length).to.be.above(0)
-        expect(astx.paths()).to.deep.equal(astx.matches().map((m) => m.path))
+        expect(astx.size).to.be.above(0)
+        expect(astx.paths).to.deep.equal(astx.matches.map((m) => m.path))
       })
-      it(`.nodes() -- array capture`, function () {
+      it(`.nodes -- array capture`, function () {
         const astx = createAstx(
           `const a = [1, 2, 3, 4]; const b = [1, 4, 5, 6]`
         ).find`[1, $$a]`()
-        expect(astx.length).to.be.above(0)
-        expect(astx.nodes()).to.deep.equal(
-          astx
-            .matches()
-            .map((m) => m.nodes)
-            .flat()
+        expect(astx.size).to.be.above(0)
+        expect(astx.nodes).to.deep.equal(
+          astx.matches.map((m) => m.nodes).flat()
         )
       })
-      it(`.paths() -- array capture`, function () {
+      it(`.paths -- array capture`, function () {
         const astx = createAstx(
           `const a = [1, 2, 3, 4]; const b = [1, 4, 5, 6]`
         ).find`[1, $$a]`()
-        expect(astx.length).to.be.above(0)
-        expect(astx.paths()).to.deep.equal(
-          astx
-            .matches()
-            .map((m) => m.paths)
-            .flat()
+        expect(astx.size).to.be.above(0)
+        expect(astx.paths).to.deep.equal(
+          astx.matches.map((m) => m.paths).flat()
         )
       })
       it(`.captures()`, function () {
