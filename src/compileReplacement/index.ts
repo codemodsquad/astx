@@ -1,5 +1,5 @@
-import { Node, NodePath } from '../types'
-import __debug, { Debugger } from 'debug'
+import { Node, NodePath, Debugger } from '../types'
+import __debug from 'debug'
 import compileGenericNodeReplacement from './GenericNodeReplacement'
 import compileGenericArrayReplacement from './GenericArrayReplacement'
 import ClassImplements from './ClassImplements'

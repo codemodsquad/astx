@@ -1,6 +1,6 @@
-import { NodeType, NodePath, Node } from '../types'
+import { NodeType, NodePath, Node, Debugger } from '../types'
 import * as t from 'ast-types'
-import __debug, { Debugger } from 'debug'
+import __debug from 'debug'
 import { Backend } from '../backend/Backend'
 import BooleanLiteral from './BooleanLiteral'
 import CallExpression from './CallExpression'

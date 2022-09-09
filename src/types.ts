@@ -4,6 +4,11 @@ import * as k from 'ast-types/gen/kinds'
 
 type ArrayElement<A> = A extends readonly (infer T)[] ? T : never
 
+export interface Debugger {
+  (formatter: any, ...args: any[]): void
+  enabled?: boolean
+}
+
 export interface NodePath<N = Node, V = any> {
   value: V
   node: N

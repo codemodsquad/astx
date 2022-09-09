@@ -1,4 +1,4 @@
-import { Debugger } from 'debug'
+import { Debugger } from '../types'
 
 export default function indentDebug(debug: Debugger, amount: number): Debugger {
   const indent = '  '.repeat(amount)
