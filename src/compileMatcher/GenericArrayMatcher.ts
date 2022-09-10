@@ -53,9 +53,14 @@ export default function compileGenericArrayMatcher(
   path: NodePath<Node, Node[]> | NodePath<Node, Node>[],
   compileOptions: CompileOptions,
   {
+    compileElemMatcher = compileMatcher,
     defaultUnordered = getDefaultUnordered(path),
     skipElement = () => false,
   }: {
+    compileElemMatcher?: (
+      path: NodePath,
+      options: CompileOptions
+    ) => CompiledMatcher
     defaultUnordered?: boolean
     skipElement?: (path: NodePath) => boolean
   } = {}
@@ -68,7 +73,7 @@ export default function compileGenericArrayMatcher(
     debug: indentDebug(debug, 2),
   }
   let matchers: CompiledMatcher[] = pattern.map((value, i) =>
-    compileMatcher(paths[i], elemOptions)
+    compileElemMatcher(paths[i], elemOptions)
   )
 
   assertArrayMatchersValid(matchers)

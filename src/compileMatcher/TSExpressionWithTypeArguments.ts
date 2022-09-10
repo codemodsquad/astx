@@ -14,7 +14,8 @@ export default function compileTSExpressionWithTypeArgumentsMatcher(
       const captureMatcher = compileCaptureMatcher(
         path,
         pattern.expression.name,
-        compileOptions
+        compileOptions,
+        { nodeType: 'TSExpressionWithTypeArguments' }
       )
 
       if (captureMatcher) return captureMatcher

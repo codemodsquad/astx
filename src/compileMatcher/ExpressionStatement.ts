@@ -13,7 +13,8 @@ export default function compileExpressionStatementMatcher(
     const captureMatcher = compileCaptureMatcher(
       path,
       pattern.expression.name,
-      compileOptions
+      compileOptions,
+      { nodeType: 'Statement' }
     )
 
     if (captureMatcher) return captureMatcher

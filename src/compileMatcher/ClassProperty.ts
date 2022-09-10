@@ -19,7 +19,11 @@ export default function compileClassPropertyMatcher(
       const captureMatcher = compileCaptureMatcher(
         path,
         pattern.key.name,
-        compileOptions
+        compileOptions,
+        {
+          getCondition: () => (path: NodePath) =>
+            (n as any).ClassBody.check(path.parent?.value),
+        }
       )
 
       if (captureMatcher) return captureMatcher

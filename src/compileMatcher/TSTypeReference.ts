@@ -15,7 +15,8 @@ export default function compileTSTypeReferenceMatcher(
       const captureMatcher = compileCaptureMatcher(
         path,
         typeName.name,
-        compileOptions
+        compileOptions,
+        { nodeType: 'TSType' }
       )
 
       if (captureMatcher) return captureMatcher

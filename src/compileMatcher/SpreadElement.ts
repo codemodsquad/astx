@@ -9,7 +9,9 @@ export default function compileSpreadElementMatcher(
   const n = compileOptions.backend.t.namedTypes
   const { argument } = path.value
   if (n.Identifier.check(argument)) {
-    const capture = compileCaptureMatcher(path, argument.name, compileOptions)
+    const capture = compileCaptureMatcher(path, argument.name, compileOptions, {
+      nodeType: 'ObjectMember',
+    })
     if (capture) {
       const restCaptureAs = capture.arrayCaptureAs || capture.restCaptureAs
       if (restCaptureAs) {

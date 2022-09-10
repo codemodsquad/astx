@@ -11,7 +11,8 @@ export default function matchStringLiteral(
   const captureMatcher = compileStringCaptureMatcher(
     path,
     (pattern) => pattern.value,
-    compileOptions
+    compileOptions,
+    { nodeType: 'StringLiteral' }
   )
 
   if (captureMatcher) return captureMatcher

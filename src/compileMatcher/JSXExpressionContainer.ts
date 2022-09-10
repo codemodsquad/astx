@@ -13,7 +13,26 @@ export default function compileJSXExpressionContainerMatcher(
     const captureMatcher = compileCaptureMatcher(
       path,
       pattern.expression.name,
-      compileOptions
+      compileOptions,
+      {
+        nodeType: ['JSX', 'StringLiteral'],
+        getCondition: () =>
+          [
+            function isJSXAttributeValue(path: NodePath): boolean {
+              return (
+                n.JSXAttribute.check(path.parent?.value) &&
+                path.name === 'value'
+              )
+            },
+            function isJSXChild(path: NodePath): boolean {
+              return (
+                (n.JSXElement.check(path.parent?.value) ||
+                  n.JSXFragment.check(path.parent?.value)) &&
+                path.parentPath?.name === 'children'
+              )
+            },
+          ].find((c) => c(path)),
+      }
     )
 
     if (captureMatcher) return captureMatcher

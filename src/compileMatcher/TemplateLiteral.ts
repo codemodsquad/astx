@@ -16,7 +16,8 @@ export default function matchTemplateLiteral(
     path,
     (node: TemplateLiteral) =>
       node.quasis.length === 1 ? node.quasis[0].value.cooked ?? null : null,
-    compileOptions
+    compileOptions,
+    { nodeType: 'TemplateLiteral' }
   )
 
   if (captureMatcher) return captureMatcher

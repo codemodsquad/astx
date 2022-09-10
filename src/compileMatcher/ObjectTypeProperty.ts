@@ -21,7 +21,12 @@ export default function compileObjectTypePropertyMatcher(
       const captureMatcher = compileCaptureMatcher(
         path,
         pattern.key.name,
-        compileOptions
+        compileOptions,
+        {
+          nodeType: 'Flow',
+          getCondition: () => (path: NodePath) =>
+            n.ObjectTypeAnnotation.check(path.parent?.value),
+        }
       )
 
       if (captureMatcher) return captureMatcher

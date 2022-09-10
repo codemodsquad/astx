@@ -7,13 +7,46 @@ export default function compileIdentifierMatcher(
   compileOptions: CompileOptions
 ): CompiledMatcher | void {
   const pattern: Identifier = path.value
+  const n = compileOptions.backend.t.namedTypes
 
   const typeAnnotation = path.get('typeAnnotation')
 
   const captureMatcher = compileCaptureMatcher(
     path,
     pattern.name,
-    compileOptions
+    compileOptions,
+    {
+      nodeType: 'Identifier',
+      getCondition: () =>
+        [
+          ...[
+            [n.VariableDeclarator, 'id'],
+            [n.Function, 'id'],
+            [n.CallExpression, 'callee'],
+            [n.MemberExpression, 'object'],
+            [n.MemberExpression, 'property'],
+            [n.ObjectProperty, 'key'],
+            [n.ObjectProperty, 'value'],
+            [n.SpreadElement, 'argument'],
+            [(n as any).Class, 'id'],
+            [(n as any).Class, 'superClass'],
+            [n.TypeAlias, 'id'],
+            [n.TSTypeAliasDeclaration, 'id'],
+            [n.ObjectTypeProperty, 'key'],
+            [n.ObjectTypeProperty, 'value'],
+          ].map(
+            ([type, field]) =>
+              (path: NodePath) =>
+                (type as any).check(path.parent?.value) && path.name === field
+          ),
+          ...[[n.TSFunctionType, 'parameters']].map(
+            ([type, field]) =>
+              (path: NodePath) =>
+                (type as any).check(path.parent?.value) &&
+                path.parentPath?.name === field
+          ),
+        ].find((cond) => cond(path)),
+    }
   )
 
   if (captureMatcher) {

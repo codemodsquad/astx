@@ -12,7 +12,8 @@ export default function compileTypeParameterMatcher(
     const captureMatcher = compileCaptureMatcher(
       path,
       pattern.name,
-      compileOptions
+      compileOptions,
+      { nodeType: 'TypeParameter' }
     )
 
     if (captureMatcher) return captureMatcher

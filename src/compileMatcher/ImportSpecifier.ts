@@ -19,7 +19,14 @@ export default function compileImportSpecifierMatcher(
       const captureMatcher = compileCaptureMatcher(
         path,
         imported.name,
-        compileOptions
+        compileOptions,
+        {
+          nodeType: [
+            'ImportSpecifier',
+            'ImportDefaultSpecifier',
+            'ImportNamespaceSpecifier',
+          ],
+        }
       )
 
       if (captureMatcher) return captureMatcher

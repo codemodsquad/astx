@@ -22,7 +22,8 @@ export default function compileObjectPropertyMatcher(
       const captureMatcher = compileCaptureMatcher(
         path,
         pattern.key.name,
-        compileOptions
+        compileOptions,
+        { nodeType: 'ObjectMember' }
       )
 
       if (captureMatcher) return captureMatcher

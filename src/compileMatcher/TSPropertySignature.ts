@@ -19,7 +19,8 @@ export default function compileTSPropertySignatureMatcher(
       const captureMatcher = compileCaptureMatcher(
         path,
         pattern.key.name,
-        compileOptions
+        compileOptions,
+        { nodeType: 'TSTypeElement' }
       )
 
       if (captureMatcher) return captureMatcher

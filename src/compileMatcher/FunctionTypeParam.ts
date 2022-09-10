@@ -16,7 +16,8 @@ export default function compileFunctionTypeParamMatcher(
       const captureMatcher = compileCaptureMatcher(
         path,
         pattern.typeAnnotation.id.name,
-        compileOptions
+        compileOptions,
+        { nodeType: 'FunctionTypeParam' }
       )
 
       if (captureMatcher) return captureMatcher

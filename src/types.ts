@@ -110,6 +110,7 @@ export type TemplateLiteral = b.TemplateLiteral | k.TemplateLiteralKind
 export type TSExpressionWithTypeArguments =
   | b.TSExpressionWithTypeArguments
   | k.TSExpressionWithTypeArgumentsKind
+export type TSFunctionType = b.TSFunctionType | k.TSFunctionTypeKind
 export type TSPropertySignature =
   | b.TSPropertySignature
   | k.TSPropertySignatureKind

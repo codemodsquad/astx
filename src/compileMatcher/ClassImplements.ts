@@ -14,7 +14,8 @@ export default function compileClassImplementsMatcher(
       const captureMatcher = compileCaptureMatcher(
         path,
         pattern.id.name,
-        compileOptions
+        compileOptions,
+        { nodeType: 'ClassImplements' }
       )
 
       if (captureMatcher) return captureMatcher

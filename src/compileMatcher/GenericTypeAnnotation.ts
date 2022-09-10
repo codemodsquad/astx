@@ -15,7 +15,8 @@ export default function compileGenericTypeAnnotationMatcher(
       const captureMatcher = compileCaptureMatcher(
         path,
         id.name,
-        compileOptions
+        compileOptions,
+        { nodeType: 'FlowType' }
       )
 
       if (captureMatcher) return captureMatcher

@@ -14,7 +14,13 @@ export default function compileJSXAttributeMatcher(
       const captureMatcher = compileCaptureMatcher(
         path,
         pattern.name.name,
-        compileOptions
+        compileOptions,
+        {
+          nodeType: 'JSX',
+          getCondition: () => (path) =>
+            n.JSXOpeningElement.check(path.parent?.value) &&
+            path.parentPath?.name === 'attributes',
+        }
       )
 
       if (captureMatcher) return captureMatcher

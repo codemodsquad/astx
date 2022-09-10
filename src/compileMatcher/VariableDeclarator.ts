@@ -14,7 +14,8 @@ export default function compileVariableDeclaratorMatcher(
       const captureMatcher = compileCaptureMatcher(
         path,
         pattern.id.name,
-        compileOptions
+        compileOptions,
+        { nodeType: 'VariableDeclarator' }
       )
 
       if (captureMatcher) return captureMatcher
