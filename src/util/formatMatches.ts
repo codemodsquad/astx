@@ -15,7 +15,7 @@ const captureColors = [
 function deriveLineAndColumn(
   source: string,
   index: number
-): { line: number; column: number } {
+): { startLine: number; startColumn: number } {
   const rx = /\r\n?|\n/gm
 
   let lastIndex = 0
@@ -28,7 +28,7 @@ function deriveLineAndColumn(
     line++
     lastIndex = match.index
   }
-  return { line, column: index - lastIndex }
+  return { startLine: line, startColumn: index - lastIndex }
 }
 
 function formatMatch(
@@ -41,19 +41,21 @@ function formatMatch(
 
   if (match.type === 'nodes' && !match.nodes.length)
     return `${' '.repeat(lineNumberLength)} | (zero statements)`
-  const {
-    start: nodeStart,
-    end: nodeEnd,
-    loc,
-  } = match.type === 'node'
-    ? (match.node as any)
-    : {
-        start: (match.nodes[0] as any).start,
-        end: (match.nodes[match.nodes.length - 1] as any).end,
-        loc: { start: (match.nodes[0] as any).loc.start },
-      }
-  const { line: startLine, column: startCol } =
-    loc?.start || deriveLineAndColumn(source, nodeStart)
+  const { start: nodeStart } = backend.location(match.nodes[0])
+  const { end: nodeEnd } = backend.location(match.nodes[match.nodes.length - 1])
+  if (nodeStart == null || nodeEnd == null) {
+    throw new Error('failed to get match location')
+  }
+
+  let { startLine, startColumn: startCol } = backend.location(match.nodes[0])
+
+  if (startLine == null || startCol == null) {
+    ;({ startLine, startColumn: startCol } = deriveLineAndColumn(
+      source,
+      nodeStart
+    ))
+  }
+
   const { captures, arrayCaptures } = match
   const start = nodeStart - startCol
   const eolRegex = /\r\n?|\n/gm

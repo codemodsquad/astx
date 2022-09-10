@@ -6,6 +6,7 @@ import * as defaultTypes from '@babel/types'
 import defaultGenerate from '@babel/generator'
 import * as AstTypes from 'ast-types'
 import babelAstTypes from './babelAstTypes'
+import { Location } from '../types'
 
 interface Parser {
   parse(code: string, parserOpts?: ParserOptions): File
@@ -20,9 +21,7 @@ export default class BabelBackend extends Backend<Node> {
   readonly parseExpression: (code: string) => Expression
   readonly parseStatements: (code: string) => Statement[]
   readonly generate: Generate
-  readonly sourceRange: (
-    node: Node
-  ) => [number | null | undefined, number | null | undefined]
+  readonly location: (node: Node) => Location
 
   constructor({
     parser = defaultParser,
@@ -51,6 +50,13 @@ export default class BabelBackend extends Backend<Node> {
       return ast.program.body
     }
     this.generate = generate
-    this.sourceRange = (node: Node) => [node.start, node.end]
+    this.location = (node: Node) => ({
+      start: node.start,
+      end: node.end,
+      startLine: node.loc?.start?.line,
+      startColumn: node.loc?.start?.column,
+      endLine: node.loc?.end?.line,
+      endColumn: node.loc?.end?.column,
+    })
   }
 }

@@ -57,13 +57,13 @@ export function extractMatchSource(
 ): ExpectedMatch[] {
   function toSource(path: NodePath): string {
     const { node } = path
-    const [start, end] = backend.sourceRange(node)
+    const { start, end } = backend.location(node)
     if (start == null || end == null)
       throw new Error(`failed to get node source range`)
     const { type, astx, typeAnnotation } = node as any
 
     if (astx?.excludeTypeAnnotationFromCapture && typeAnnotation) {
-      const [typeAnnotationStart] = backend.sourceRange(typeAnnotation)
+      const { start: typeAnnotationStart } = backend.location(typeAnnotation)
       if (typeAnnotationStart != null && Number.isFinite(typeAnnotationStart)) {
         return source.substring(start, typeAnnotationStart)
       }

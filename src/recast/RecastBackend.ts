@@ -1,4 +1,4 @@
-import { File, Statement, Expression } from '../types'
+import { File, Statement, Expression, Location } from '../types'
 import { Backend } from '../backend/Backend'
 import * as defaultRecast from 'recast'
 import * as t from 'ast-types'
@@ -10,9 +10,7 @@ export default class RecastBackend<Node = any> extends Backend<Node> {
   readonly parseExpression: (code: string) => Expression
   readonly parseStatements: (code: string) => Statement[]
   readonly generate: (node: Node) => { code: string }
-  readonly sourceRange: (
-    node: Node
-  ) => [number | null | undefined, number | null | undefined]
+  readonly location: (node: Node) => Location
 
   constructor({
     wrapped,
@@ -57,6 +55,6 @@ export default class RecastBackend<Node = any> extends Backend<Node> {
       return expression
     }
     this.generate = (node: Node): { code: string } => recast.print(node as any)
-    this.sourceRange = wrapped.sourceRange
+    this.location = wrapped.location
   }
 }

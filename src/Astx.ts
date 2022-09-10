@@ -28,7 +28,7 @@ export type FindOptions = {
 }
 
 export default class Astx implements Iterable<Match> {
-  private readonly backend: Backend
+  public readonly backend: Backend
   private readonly _matches: Match[]
   private readonly _withCaptures: Match[]
   private _lazyPaths: NodePath<Node, any>[] | undefined

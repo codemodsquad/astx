@@ -1,4 +1,4 @@
-import { NodePath, Statement, Expression } from '../types'
+import { NodePath, Statement, Expression, Location } from '../types'
 import { parsePatternToNodes, parsePattern } from './parse'
 import * as template from './template'
 import * as AstTypes from 'ast-types'
@@ -37,9 +37,7 @@ export abstract class Backend<Node = any> {
   ) => Node | Node[]
 
   abstract readonly generate: (node: Node) => { code: string }
-  abstract readonly sourceRange: (
-    node: Node
-  ) => [number | null | undefined, number | null | undefined]
+  abstract readonly location: (node: Node) => Location
 
   constructor() {
     this.template = {

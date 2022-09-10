@@ -4,6 +4,15 @@ import * as k from 'ast-types/gen/kinds'
 
 type ArrayElement<A> = A extends readonly (infer T)[] ? T : never
 
+export type Location = {
+  start?: number | null
+  end?: number | null
+  startLine?: number | null
+  startColumn?: number | null
+  endLine?: number | null
+  endColumn?: number | null
+}
+
 export interface Debugger {
   (formatter: any, ...args: any[]): void
   enabled?: boolean
