@@ -6,7 +6,7 @@ import * as defaultTypes from '@babel/types'
 import defaultGenerate from '@babel/generator'
 import * as AstTypes from 'ast-types'
 import babelAstTypes from './babelAstTypes'
-import { Location } from '../types'
+import { Comment, Location } from '../types'
 
 interface Parser {
   parse(code: string, parserOpts?: ParserOptions): File
@@ -22,6 +22,10 @@ export default class BabelBackend extends Backend<Node> {
   readonly parseStatements: (code: string) => Statement[]
   readonly generate: Generate
   readonly location: (node: Node) => Location
+  readonly comments: (
+    node: Node,
+    kind?: 'leading' | 'inner' | 'trailing'
+  ) => Iterable<Comment>
 
   constructor({
     parser = defaultParser,
@@ -58,5 +62,22 @@ export default class BabelBackend extends Backend<Node> {
       endLine: node.loc?.end?.line,
       endColumn: node.loc?.end?.column,
     })
+    this.comments = function* comments(
+      node: Node,
+      kind?: 'leading' | 'inner' | 'trailing'
+    ): Iterable<Comment> {
+      if (!kind || kind === 'leading') {
+        const { leadingComments } = node
+        if (leadingComments) yield* leadingComments
+      }
+      if (!kind || kind === 'inner') {
+        const { innerComments } = node
+        if (innerComments) yield* innerComments
+      }
+      if (!kind || kind === 'trailing') {
+        const { trailingComments } = node
+        if (trailingComments) yield* trailingComments
+      }
+    }
   }
 }

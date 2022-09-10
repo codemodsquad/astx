@@ -1,5 +1,5 @@
 import { Backend } from './Backend'
-import { NodePath, Expression, Statement, Node } from '../types'
+import { NodePath, Expression, Statement, Node, Comment } from '../types'
 import ensureArray from '../util/ensureArray'
 import forEachNode from '../util/forEachNode'
 
@@ -30,8 +30,41 @@ export function parsePattern(
   let result: NodePath | NodePath[] = ensureArray(ast).map(
     (n) => new this.t.NodePath(n)
   )
-  let extractNext = false
+  const allComments: Comment[] = []
+  forEachNode(this.t, result, ['Node'], (path: NodePath) => {
+    if (allComments.length >= 2) return
+    const { node } = path
+    for (const comment of this.comments(node)) {
+      allComments.push(comment)
+    }
+  })
   let done = false
+  if (allComments.length >= 2) {
+    let from = Infinity,
+      to = -Infinity
+    for (const comment of allComments) {
+      const { start, end } = this.location(comment)
+      if (start != null && start > to) to = start
+      if (end != null && end < from) from = end
+    }
+    if (from != null && to != null && from < to) {
+      const pathInRange = (path: NodePath) => {
+        const { start, end } = this.location(path.node)
+        return start != null && end != null && start >= from && end <= to
+      }
+      forEachNode(this.t, result, ['Node'], (path: NodePath) => {
+        if (done) return
+        if (pathInRange(path)) {
+          while (path.parentPath != null && pathInRange(path.parentPath))
+            path = path.parentPath
+          result = path
+          done = true
+        }
+      })
+      if (done) return result
+    }
+  }
+  let extractNext = false
   forEachNode(this.t, result, ['Node'], (path: NodePath) => {
     if (done) return
     if (extractNext) {

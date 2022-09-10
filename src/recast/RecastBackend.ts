@@ -1,9 +1,12 @@
-import { File, Statement, Expression, Location } from '../types'
+import { File, Statement, Expression, Location, Comment } from '../types'
 import { Backend } from '../backend/Backend'
 import * as defaultRecast from 'recast'
 import * as t from 'ast-types'
+import * as k from 'ast-types/gen/kinds'
 
-export default class RecastBackend<Node = any> extends Backend<Node> {
+type Node = k.NodeKind
+
+export default class RecastBackend extends Backend<Node> {
   readonly wrapped: Backend
   readonly t: typeof t
   readonly parse: (code: string) => Node
@@ -11,13 +14,17 @@ export default class RecastBackend<Node = any> extends Backend<Node> {
   readonly parseStatements: (code: string) => Statement[]
   readonly generate: (node: Node) => { code: string }
   readonly location: (node: Node) => Location
+  readonly comments: (
+    node: Node,
+    kind?: 'leading' | 'trailing' | 'inner'
+  ) => Iterable<Comment>
 
   constructor({
     wrapped,
     recast = defaultRecast,
     parseOptions,
   }: {
-    wrapped: Backend<Node>
+    wrapped: Backend
     recast?: typeof defaultRecast
     parseOptions?: defaultRecast.Options
   }) {
@@ -56,5 +63,18 @@ export default class RecastBackend<Node = any> extends Backend<Node> {
     }
     this.generate = (node: Node): { code: string } => recast.print(node as any)
     this.location = wrapped.location
+    this.comments = function* comments(
+      node: Node,
+      kind?: 'leading' | 'inner' | 'trailing'
+    ): Iterable<Comment> {
+      if (!node.comments) return
+      yield* node.comments?.filter(
+        (comment) =>
+          !kind ||
+          (kind === 'inner'
+            ? !comment.leading && !comment.trailing
+            : comment[kind] === true)
+      )
+    }
   }
 }

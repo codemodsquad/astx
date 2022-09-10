@@ -64,6 +64,7 @@ export type NodeType =
   | keyof b.Aliases
 
 export type Node = b.Node | k.NodeKind
+export type Comment = b.Comment | k.CommentKind
 
 export type File = b.File | k.FileKind
 export type Block =

@@ -1,65 +1,77 @@
 {
-	"findTestcase": {
-		"prefix": "find-testcase",
-		"body": [
-			"export const input = `",
-			"$0",
-			"`",
-			"",
-			"export const find = `",
-			"",
-			"`",
-			"",
-			"export const expectedFind = [",
-			"",
-			"]",
-			""
-		]
-	},
-	"findReplaceTestcase": {
-	  "prefix": "find-replace-testcase",
-	  "body": [
-	    "export const input = `",
-	    "$0",
-	    "`",
-	    "",
-	    "export const find = `",
-	    "",
-	    "`",
-	    "",
-	    "export const expectedFind = [",
-	    "",
-	    "]",
-	    "",
-	    "export const replace = `",
-	    "",
-	    "`",
-	    "",
-	    "export const expectedReplace = `",
-	    "",
-	    "`",
-	    ""
-	  ]
-	},
-	"replaceTestcase": {
-	  "prefix": "replace-testcase",
-	  "body": [
-	    "export const input = `",
-	    "$0",
-	    "`",
-	    "",
-	    "export const find = `",
-	    "",
-	    "`",
-	    "",
-	    "export const replace = `",
-	    "",
-	    "`",
-	    "",
-	    "export const expectedReplace = `",
-	    "",
-	    "`",
-	    ""
-	  ]
-	}
+  "parseTestcase": {
+    "prefix": "parse-testcase",
+    "body": [
+      "export const input = `",
+      "$0",
+      "`",
+      "",
+      "export const expected = `",
+      "",
+      "`"
+    ]
+  },
+  "findTestcase": {
+    "prefix": "find-testcase",
+    "body": [
+      "export const input = `",
+      "$0",
+      "`",
+      "",
+      "export const find = `",
+      "",
+      "`",
+      "",
+      "export const expectedFind = [",
+      "",
+      "]",
+      ""
+    ]
+  },
+  "findReplaceTestcase": {
+    "prefix": "find-replace-testcase",
+    "body": [
+      "export const input = `",
+      "$0",
+      "`",
+      "",
+      "export const find = `",
+      "",
+      "`",
+      "",
+      "export const expectedFind = [",
+      "",
+      "]",
+      "",
+      "export const replace = `",
+      "",
+      "`",
+      "",
+      "export const expectedReplace = `",
+      "",
+      "`",
+      ""
+    ]
+  },
+  "replaceTestcase": {
+    "prefix": "replace-testcase",
+    "body": [
+      "export const input = `",
+      "$0",
+      "`",
+      "",
+      "export const find = `",
+      "",
+      "`",
+      "",
+      "export const replace = `",
+      "",
+      "`",
+      "",
+      "export const expectedReplace = `",
+      "",
+      "`",
+      ""
+    ]
+  }
 }
