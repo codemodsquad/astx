@@ -1,6 +1,9 @@
 import CompilePathError from './CompilePathError'
 import generate from '@babel/generator'
 import { NodePath } from '../types'
+import { codeFrameColumns, BabelCodeFrameOptions } from '@babel/code-frame'
+import chalk from 'chalk'
+import dedent from 'dedent-js'
 
 interface SourceLocation {
   start: {
@@ -47,8 +50,8 @@ export default class CodeFrameError extends Error {
     if (loc == null && (path?.node as any)?.loc) {
       const { start, end } = (path?.node as any).loc
       loc = {
-        start: { line: start.line, column: start.column + 1 },
-        end: { line: end.line, column: end.column + 1 },
+        start: { line: start.line, column: start.column },
+        end: { line: end.line, column: end.column },
       }
     }
     this.loc = loc
@@ -67,7 +70,7 @@ export default class CodeFrameError extends Error {
     }
     if (error instanceof SyntaxError) {
       const { lineNumber, columnNumber, loc } = error as any
-      throw new CodeFrameError(error.message, {
+      throw new CodeFrameError(error.message.replace(/\s*\(\d+:\d+\)$/, ''), {
         filename,
         source,
         loc:
@@ -79,5 +82,30 @@ export default class CodeFrameError extends Error {
       })
     }
     throw error
+  }
+
+  format(options: BabelCodeFrameOptions & { stack?: boolean }): string {
+    const red =
+      options.highlightCode || options.forceColor ? chalk.red : (s: string) => s
+    const { loc, source, stack, message, filename } = this
+    if (!loc || !source) return red(options.stack && stack ? stack : message)
+    const start = {
+      line: loc.start.line,
+      column: loc.start.column + 1,
+    }
+    const end = loc.end
+      ? {
+          line: loc.end.line,
+          column: loc.end.column + 1,
+        }
+      : undefined
+    return dedent`
+      ${red(`Error in ${filename} (${start.line}:${start.column})`)}
+      ${codeFrameColumns(source, { start, end }, { message, ...options })}${
+      options.stack && stack
+        ? '\n' + red(stack?.replace(/^.*?(\r\n?|\n)/, ''))
+        : ''
+    }
+    `
   }
 }

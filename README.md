@@ -80,8 +80,10 @@ These are docs for the version 2 beta branch.
   - [`exports.find` (optional)](#exportsfind-optional)
   - [`exports.where` (optional)](#exportswhere-optional)
   - [`exports.replace` (optional)](#exportsreplace-optional)
-  - [`exports.parser` (optional)](#exportsparser-optional)
   - [`exports.astx` (optional)](#exportsastx-optional)
+- [Configuration](#configuration)
+  - [Config option: `parser`](#config-option-parser)
+  - [Config option: `parserOptions`](#config-option-parseroptions)
 - [CLI](#cli)
 
 <!-- tocstop -->
@@ -614,10 +616,6 @@ The function arguments are the same as described in [`.find().replace()`](#findr
 [`.findStatements().replace()`](#findstatementsreplace), depending on whether `exports.find`
 is multiple statements or not.
 
-## `exports.parser` (optional)
-
-The parser name to use, or a parser/generator [`Backend`](src/backend/Backend.ts) implementation.
-
 ## `exports.astx` (optional)
 
 A function to perform an arbitrary transform using the `Astx` API. It gets called with an object with the following properties:
@@ -634,6 +632,33 @@ A function to perform an arbitrary transform using the `Astx` API. It gets calle
 Unlike `jscodeshift`, your transform function can be async, and it doesn't have to return the transformed code,
 but you can return a `string`. You can also return `null` to
 skip the file.
+
+# Configuration
+
+`astx` supports configuration in the following places (via [`cosmiconfig`](https://github.com/davidtheclark/cosmiconfig)):
+
+- an `astx` property in package.json
+- an `.astxrc` file in JSON or YAML format
+- an `.astxrc.json`, `.astxrc.yaml`, `.astxrc.yml`, `.astxrc.js`, or `.astxrc.cjs` file
+- an `astx.config.js` or `astx.config.cjs` CommonJS module exporting an object
+
+### Config option: `parser`
+
+The parser to use. Options:
+
+- `babel/auto` (default,)
+- `babel` (faster than `babel/auto`, but uses default parse options instead, you may have to configure `parserOptions`)
+- `recast/babel`
+- `recast/babel/auto`
+
+`babel/auto` automatically determines parse options from your babel config if present.
+`babel` uses fixed parse options instead, so it's faster than `babel/auto`, but you may have to configure `parserOptions`.
+The `recast/babel(/auto)` options use [`recast`](https://github.com/benjamn/recast) to preserve formatting.
+I've seen `recast` output invalid syntax on some files, so use with caution.
+
+### Config option: `parserOptions`
+
+Options to pass to the parser. Right now this is just the [`@babel/parser` options](https://babeljs.io/docs/en/babel-parser#options).
 
 # CLI
 
@@ -677,8 +702,8 @@ Options:
       --version        Show version number                             [boolean]
   -t, --transform      path to the transform file. Can be either a local path or
                        url. Defaults to ./astx.js if --find isn't given
-      --parser         parser to use (options: babel, recast/babel)
-                                                     [string] [default: "babel"]
+      --parser         parser to use (options: babel, babel/auto, recast/babel,
+                       recast/babel/auto)                               [string]
       --parserOptions  options for parser                               [string]
   -f, --find           search pattern                                   [string]
   -r, --replace        replace pattern                                  [string]

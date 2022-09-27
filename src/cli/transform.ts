@@ -1,19 +1,17 @@
-import yargs, { Arguments, Argv, CommandModule } from 'yargs'
+import { Arguments, Argv, CommandModule } from 'yargs'
 import path from 'path'
 import chalk from 'chalk'
 import formatDiff from '../util/formatDiff'
 import isEmpty from 'lodash/isEmpty'
+import once from 'lodash/once'
 import inquirer from 'inquirer'
 import fs from 'fs-extra'
 import dedent from 'dedent-js'
 import CodeFrameError from '../util/CodeFrameError'
-import { codeFrameColumns } from '@babel/code-frame'
 import runTransform from '../runTransform'
 import Astx from '../Astx'
 import formatMatches from '../util/formatMatches'
-import chooseGetBackend from '../chooseGetBackend'
-import getBabelBackend from '../babel/getBabelBackend'
-import { Backend } from '../backend/Backend'
+import { Transform } from '../runTransformOnFile'
 
 /* eslint-disable no-console */
 
@@ -41,9 +39,9 @@ const transform: CommandModule<Options> = {
         describe: `path to the transform file. Can be either a local path or url. Defaults to ./astx.js if --find isn't given`,
       })
       .options('parser', {
-        describe: 'parser to use (options: babel, recast/babel)',
+        describe:
+          'parser to use (options: babel, babel/auto, recast/babel, recast/babel/auto)',
         type: 'string',
-        default: 'babel',
       })
       .options('parserOptions', {
         describe: 'options for parser',
@@ -69,43 +67,27 @@ const transform: CommandModule<Options> = {
     const paths = (argv.filesAndDirectories || []).filter(
       (x) => typeof x === 'string'
     ) as string[]
-    if (!paths.length) {
-      yargs.showHelp()
-      process.exit(1)
-    }
 
-    let getBackend = argv.parser
-      ? chooseGetBackend(argv.parser)
-      : getBabelBackend
-    if (argv.parserOptions) {
-      const parserOptionsObj = JSON.parse(argv.parserOptions)
-      getBackend = async (
-        file: string,
-        options?: { [k in string]?: any }
-      ): Promise<Backend> => {
-        return await getBackend(file, { ...parserOptionsObj, ...options })
+    let transform: Transform
+    let transformFile: string | undefined
+    if (argv.transform) {
+      transformFile = path.resolve(argv.transform)
+      transform = await import(transformFile)
+    } else if (argv.find) {
+      const getOpt = (regex: RegExp): string | undefined => {
+        const index = process.argv.findIndex((a) => regex.test(a))
+        return index >= 0 ? process.argv[index + 1] : undefined
       }
+      // yargs Eats quotes, not cool...
+      const find = getOpt(/^(-f|--find)$/)
+      const replace = getOpt(/^(-r|--replace)$/)
+      transform = { find, replace }
+    } else {
+      transformFile = path.resolve('astx.js')
+      transform = await import(transformFile)
     }
 
-    function getTransform(): any {
-      const { transform, find, parser }: any = argv
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      if (transform) return require(path.resolve(transform))
-      if (find) {
-        const getOpt = (regex: RegExp): string | undefined => {
-          const index = process.argv.findIndex((a) => regex.test(a))
-          return index >= 0 ? process.argv[index + 1] : undefined
-        }
-        // yargs Eats quotes, not cool...
-        const find = getOpt(/^(-f|--find)$/)
-        const replace = getOpt(/^(-r|--replace)$/)
-        return { find, replace, parser }
-      }
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      return require(path.resolve('./astx.js'))
-    }
-
-    const transform = getTransform()
+    const { parser, parserOptions } = argv
 
     const results: Record<string, string> = {}
     let errorCount = 0
@@ -121,34 +103,34 @@ const transform: CommandModule<Options> = {
       backend,
     } of runTransform({
       transform,
+      transformFile,
       paths,
-      getBackend,
+      config: {
+        parser: parser as any,
+        parserOptions: parserOptions ? JSON.parse(parserOptions) : undefined,
+      },
     })) {
-      const logHeader = (logFn: (value: string) => any) =>
+      const relpath = path.relative(process.cwd(), file)
+      const logHeader = once((logFn: (value: string) => any) =>
         logFn(
           chalk.blue(dedent`
-            ==========================================
-            ${file}
-            ==========================================
+            ${'='.repeat(relpath.length)}
+            ${chalk.bold(relpath)}
+            ${'='.repeat(relpath.length)}
           `)
         )
+      )
 
       if (error) {
         errorCount++
         logHeader(console.error)
-        if (error instanceof CodeFrameError && error.source && error.loc) {
+        if (error instanceof CodeFrameError) {
           console.error(
-            dedent`
-              ${chalk.red(
-                `Error in ${error.filename} (${error.loc.start.line}:${error.loc.start.column})`
-              )}
-              ${codeFrameColumns(error.source, error.loc, {
-                highlightCode: true,
-                forceColor: true,
-                message: error.message,
-              })}
-              ${chalk.red(error.stack?.replace(/^.*?(\r\n?|\n)/, ''))}
-            `
+            error.format({
+              highlightCode: true,
+              forceColor: true,
+              stack: true,
+            })
           )
         } else {
           console.error(chalk.red(error.stack))
@@ -157,7 +139,7 @@ const transform: CommandModule<Options> = {
         changedCount++
         results[file] = transformed
         if (!argv.yes) {
-          logHeader(console.error)
+          logHeader(console.log)
           console.log(formatDiff(source, transformed))
         }
       } else if (
@@ -174,6 +156,7 @@ const transform: CommandModule<Options> = {
       }
 
       if (reports?.length) {
+        logHeader(console.error)
         console.error(
           chalk.blue(dedent`
             Reports

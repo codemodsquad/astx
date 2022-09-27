@@ -9,7 +9,8 @@ import _resolve from 'resolve'
 import { FindOptions, Match } from './find'
 import omitBlankLineChanges from './util/omitBlankLineChanges'
 import CodeFrameError from './util/CodeFrameError'
-import { Backend, GetBackend } from './backend/Backend'
+import { Backend } from './backend/Backend'
+import { AstxConfig, astxCosmiconfig } from './AstxConfig'
 import chooseGetBackend from './chooseGetBackend'
 const resolve = promisify(_resolve) as any
 
@@ -28,7 +29,6 @@ type TransformOptions = {
 
 export type Transform = {
   astx?: (options: TransformOptions) => string | null | undefined | void
-  parser?: string | Backend
   find?: string | Node | Node[]
   replace?: string | Node | Node[] | GetReplacement
   where?: FindOptions['where']
@@ -61,121 +61,126 @@ const getPrettier = memoize(async (path: string): Promise<any> => {
   return null
 })
 
-const runTransformOnFile =
-  ({
-    transform,
-    getBackend,
-  }: {
-    transform: Transform
-    getBackend: GetBackend
-  }) =>
-  async (file: string): Promise<TransformResult> => {
-    const { parser } = transform
-    let backend: Backend
-    try {
-      backend =
-        typeof parser === 'string'
-          ? await chooseGetBackend(parser)(file)
-          : parser instanceof Object
-          ? parser
-          : await getBackend(file)
-    } catch (error) {
-      return {
-        file,
-        error: error instanceof Error ? error : new Error(String(error)),
-        backend: null as any,
-      }
-    }
+export interface Signal {
+  aborted: boolean
+}
 
-    try {
-      const source = await fs.readFile(file, 'utf8')
+export default async function runTransformOnFile({
+  transform,
+  config: configOverrides,
+  file,
+  signal,
+}: {
+  file: string
+  transform: Transform
+  config?: Partial<AstxConfig>
+  signal?: Signal
+}): Promise<TransformResult> {
+  const config = (await astxCosmiconfig.search(Path.dirname(file)))?.config as
+    | AstxConfig
+    | undefined
 
-      let transformed
-      const reports: any[] = []
+  if (signal?.aborted) throw new Error('aborted')
 
-      let matches: readonly Match[] | undefined
-
-      let transformFn = transform.astx
-
-      const { find, replace } = transform
-      if (typeof transformFn !== 'function' && find) {
-        transformFn = ({ astx }): any => {
-          const result = astx.find(find, {
-            where: transform.where,
-          })
-          if (replace) result.replace(replace)
-          matches = result.matches
-          if (!result.size) return null
-        }
-      }
-      if (typeof transformFn === 'function') {
-        let ast, root
-        try {
-          ast = backend.parse(source)
-          root = new backend.t.NodePath(ast)
-        } catch (error) {
-          if (error instanceof Error) {
-            CodeFrameError.rethrow(error, { filename: file, source })
-          }
-          throw error
-        }
-        const options = {
-          source,
-          path: file,
-          root,
-          t: backend.t,
-          report: (msg: any) => {
-            reports.push(msg)
-          },
-          ...backend.template,
-          astx: new Astx(backend, [root]),
-        }
-        const [_result, prettier] = await Promise.all([
-          transformFn(options),
-          getPrettier(Path.dirname(file)),
-        ])
-        if (transform.astx || transform.replace) {
-          transformed = _result
-          if (transformed === undefined) {
-            transformed = backend.generate(ast).code
-          }
-          if (transformed === null) transformed = undefined
-          if (
-            prettier &&
-            typeof transformed === 'string' &&
-            transformed !== source
-          ) {
-            const config = (await prettier.resolveConfig(file)) || {}
-            if (/\.tsx?$/.test(file)) config.parser = 'typescript'
-            transformed = prettier.format(transformed, config)
-          }
-          if (transformed != null)
-            transformed = omitBlankLineChanges(source, transformed)
-        }
-      } else {
-        return {
-          file,
-          error: new Error(
-            'transform file must export either astx or find/replace'
-          ),
-          backend,
-        }
-      }
-      return {
-        file,
-        source,
-        transformed,
-        reports,
-        matches,
-        backend,
-      }
-    } catch (error) {
-      return {
-        file,
-        error: error instanceof Error ? error : new Error(String(error)),
-        backend,
-      }
-    }
+  const parser = configOverrides?.parser ?? config?.parser
+  const parserOptions = {
+    ...config?.parserOptions,
+    ...configOverrides?.parserOptions,
   }
 
-export default runTransformOnFile
+  const backend = await chooseGetBackend(parser)(file, parserOptions)
+  if (signal?.aborted) throw new Error('aborted')
+
+  try {
+    const source = await fs.readFile(file, 'utf8')
+    if (signal?.aborted) throw new Error('aborted')
+
+    let transformed
+    const reports: any[] = []
+
+    let matches: readonly Match[] | undefined
+
+    let transformFn = transform.astx
+
+    const { find, replace } = transform
+    if (typeof transformFn !== 'function' && find) {
+      transformFn = ({ astx }): any => {
+        const result = astx.find(find, {
+          where: transform.where,
+        })
+        if (replace) result.replace(replace)
+        matches = result.matches
+        if (!result.size) return null
+      }
+    }
+    if (typeof transformFn === 'function') {
+      let ast, root
+      try {
+        ast = backend.parse(source)
+        root = new backend.t.NodePath(ast)
+      } catch (error) {
+        if (error instanceof Error) {
+          CodeFrameError.rethrow(error, { filename: file, source })
+        }
+        throw error
+      }
+      const options = {
+        source,
+        path: file,
+        root,
+        t: backend.t,
+        report: (msg: any) => {
+          if (msg instanceof Astx && !msg.size) return
+          reports.push(msg)
+        },
+        ...backend.template,
+        astx: new Astx(backend, [root]),
+      }
+      const [_result, prettier] = await Promise.all([
+        transformFn(options),
+        getPrettier(Path.dirname(file)),
+      ])
+      if (signal?.aborted) throw new Error('aborted')
+      if (transform.astx || transform.replace) {
+        transformed = _result
+        if (transformed === undefined) {
+          transformed = backend.generate(ast).code
+        }
+        if (transformed === null) transformed = undefined
+        if (
+          prettier &&
+          typeof transformed === 'string' &&
+          transformed !== source
+        ) {
+          const config = (await prettier.resolveConfig(file)) || {}
+          if (/\.tsx?$/.test(file)) config.parser = 'typescript'
+          transformed = prettier.format(transformed, config)
+        }
+        if (transformed != null)
+          transformed = omitBlankLineChanges(source, transformed)
+      }
+    } else {
+      return {
+        file,
+        error: new Error(
+          'transform file must export either astx or find/replace'
+        ),
+        backend,
+      }
+    }
+    return {
+      file,
+      source,
+      transformed,
+      reports,
+      matches,
+      backend,
+    }
+  } catch (error) {
+    return {
+      file,
+      error: error instanceof Error ? error : new Error(String(error)),
+      backend,
+    }
+  }
+}

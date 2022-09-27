@@ -8,6 +8,7 @@ export {
 } from './compileReplacement'
 export { Backend } from './backend/Backend'
 export { NodePath, Node } from './types'
+export { default as getBabelAutoBackend } from './babel/getBabelAutoBackend'
 export { default as getBabelBackend } from './babel/getBabelBackend'
 export { default as BabelBackend } from './babel/BabelBackend'
 export { default as getRecastBackend } from './recast/getRecastBackend'
