@@ -1,9 +1,24 @@
 import CompilePathError from './CompilePathError'
 import generate from '@babel/generator'
 import { NodePath } from '../types'
-import { codeFrameColumns, BabelCodeFrameOptions } from '@babel/code-frame'
+import { codeFrameColumns } from '@babel/code-frame'
 import chalk from 'chalk'
 import dedent from 'dedent-js'
+
+interface BabelCodeFrameOptions {
+  /** Syntax highlight the code as JavaScript for terminals. default: false */
+  highlightCode?: boolean | undefined
+  /**  The number of lines to show above the error. default: 2 */
+  linesAbove?: number | undefined
+  /**  The number of lines to show below the error. default: 3 */
+  linesBelow?: number | undefined
+  /**
+   * Forcibly syntax highlight the code as JavaScript (for non-terminals);
+   * overrides highlightCode.
+   * default: false
+   */
+  forceColor?: boolean | undefined
+}
 
 export interface SourceLocation {
   start: {
