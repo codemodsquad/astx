@@ -31,12 +31,18 @@ export default async function* runTransform({
   for (const include of paths) {
     for await (const file of astxGlob({ include, cwd })) {
       if (signal?.aborted) return
-      const transformed = await runTransformOnFile({
-        file,
-        transform,
-        config,
-        signal,
-      })
+      let transformed
+      try {
+        transformed = await runTransformOnFile({
+          file,
+          transform,
+          config,
+          signal,
+        })
+      } catch (error: any) {
+        if (error.message === 'aborted' && signal?.aborted) return
+        throw error
+      }
       if (signal?.aborted) return
       yield transformed
     }
