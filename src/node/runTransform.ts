@@ -1,11 +1,9 @@
-import runTransformOnFile, {
-  Signal,
-  Transform,
-  TransformResult,
-} from './runTransformOnFile'
+import runTransformOnFile from './runTransformOnFile'
 import { clearCache } from 'babel-parse-wild-code'
-import { AstxConfig, astxCosmiconfig } from './AstxConfig'
-import astxGlob from './util/astxGlob'
+import { AstxConfig } from '../AstxConfig'
+import astxGlob from './astxGlob'
+import { astxCosmiconfig } from './astxCosmiconfig'
+import { Transform, TransformResult } from '../Astx'
 
 export default async function* runTransform({
   transform: _transform,
@@ -20,7 +18,7 @@ export default async function* runTransform({
   paths?: readonly string[]
   cwd?: string
   config?: Partial<AstxConfig>
-  signal?: Signal
+  signal?: AbortSignal
 }): AsyncIterable<TransformResult> {
   clearCache()
   astxCosmiconfig.clearSearchCache()

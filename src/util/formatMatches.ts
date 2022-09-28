@@ -1,7 +1,8 @@
 import chalk from 'chalk'
 import countLines from './countLines'
 import { Match } from '../find'
-import { Backend } from '../backend/Backend'
+import { Location, Node } from '../types'
+import { IpcMatch, IpcNode } from '../node/ipc'
 
 const captureColors = [
   chalk.green,
@@ -31,10 +32,14 @@ function deriveLineAndColumn(
   return { startLine: line, startColumn: index - lastIndex }
 }
 
+interface Backend {
+  location: (node: Node | IpcNode) => Location
+}
+
 function formatMatch(
   backend: Backend,
   source: string,
-  match: Match,
+  match: Match | IpcMatch,
   lineCount: number
 ): string {
   const lineNumberLength = String(lineCount).length
@@ -127,7 +132,7 @@ function formatMatch(
 export default function formatMatches(
   backend: Backend,
   source: string,
-  matches: readonly Match[]
+  matches: readonly Match[] | readonly IpcMatch[]
 ): string {
   const result = []
   const lineCount = countLines(source)
@@ -137,4 +142,15 @@ export default function formatMatches(
     result.push(formatMatch(backend, source, match, lineCount))
   }
   return result.join('\n')
+}
+
+export function formatIpcMatches(
+  source: string,
+  matches: readonly IpcMatch[]
+): string {
+  return formatMatches(
+    { location: (node: any) => node.location },
+    source,
+    matches
+  )
 }

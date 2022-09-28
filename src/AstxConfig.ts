@@ -1,7 +1,5 @@
 import { Backend } from './backend/Backend'
-import { cosmiconfig } from 'cosmiconfig'
 import * as t from 'typed-validators'
-import { CosmiconfigResult } from 'cosmiconfig/dist/types'
 
 export type AstxConfig = {
   parser?:
@@ -11,6 +9,7 @@ export type AstxConfig = {
     | 'recast/babel/auto'
     | Backend
   parserOptions?: Record<string, any>
+  workers?: number
 }
 
 export const AstxConfigType: t.TypeAlias<AstxConfig> = t.alias(
@@ -26,16 +25,7 @@ export const AstxConfigType: t.TypeAlias<AstxConfig> = t.alias(
       ),
 
       parserOptions: t.record(t.string(), t.any()),
+      workers: t.number(),
     },
   })
 )
-
-export const astxCosmiconfig = cosmiconfig('astx', {
-  transform: (result: CosmiconfigResult): CosmiconfigResult =>
-    result
-      ? {
-          ...result,
-          config: AstxConfigType.assert(result.config || {}),
-        }
-      : null,
-})

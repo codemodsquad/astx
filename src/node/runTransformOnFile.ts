@@ -1,48 +1,17 @@
-import * as AstTypes from 'ast-types'
-import { Expression, Node, Statement } from './types'
-import Astx, { GetReplacement } from './Astx'
 import fs from 'fs-extra'
 import Path from 'path'
 import memoize from 'lodash/memoize'
 import { promisify } from 'util'
 import _resolve from 'resolve'
-import { FindOptions, Match } from './find'
-import omitBlankLineChanges from './util/omitBlankLineChanges'
-import CodeFrameError from './util/CodeFrameError'
-import { Backend } from './backend/Backend'
-import { AstxConfig, astxCosmiconfig } from './AstxConfig'
-import chooseGetBackend from './chooseGetBackend'
+import { Match } from '../find'
+import omitBlankLineChanges from '../util/omitBlankLineChanges'
+import CodeFrameError from '../util/CodeFrameError'
+import { AstxConfig } from '../AstxConfig'
+import chooseGetBackend from '../chooseGetBackend'
+import { astxCosmiconfig } from './astxCosmiconfig'
+import Astx, { Transform, TransformOptions, TransformResult } from '../Astx'
+import { Node } from '../types'
 const resolve = promisify(_resolve) as any
-
-type TransformOptions = {
-  /** The absolute path to the current file. */
-  path: string
-  /** The source code of the current file. */
-  source: string
-  astx: Astx
-  expression(strings: TemplateStringsArray, ...quasis: any[]): Expression
-  statement(strings: TemplateStringsArray, ...quasis: any[]): Statement
-  statements(strings: TemplateStringsArray, ...quasis: any[]): Statement[]
-  t: typeof AstTypes
-  report: (msg: string) => void
-}
-
-export type Transform = {
-  astx?: (options: TransformOptions) => string | null | undefined | void
-  find?: string | Node | Node[]
-  replace?: string | Node | Node[] | GetReplacement
-  where?: FindOptions['where']
-}
-
-export type TransformResult = {
-  file: string
-  source?: string
-  transformed?: string
-  reports?: any[]
-  error?: Error
-  matches?: readonly Match[]
-  backend: Backend
-}
 
 const getPrettier = memoize(async (path: string): Promise<any> => {
   try {
@@ -61,21 +30,23 @@ const getPrettier = memoize(async (path: string): Promise<any> => {
   return null
 })
 
-export interface Signal {
-  aborted: boolean
+export type RunTransformOnFileOptions = {
+  file: string
+  transform?: Transform
+  transformFile?: string
+  config?: Partial<AstxConfig>
+  signal?: AbortSignal
 }
 
 export default async function runTransformOnFile({
-  transform,
+  transform: _transform,
+  transformFile,
   config: configOverrides,
   file,
   signal,
-}: {
-  file: string
-  transform: Transform
-  config?: Partial<AstxConfig>
-  signal?: Signal
-}): Promise<TransformResult> {
+}: RunTransformOnFileOptions): Promise<TransformResult> {
+  const transform = transformFile ? await import(transformFile) : _transform
+
   const config = (await astxCosmiconfig.search(Path.dirname(file)))?.config as
     | AstxConfig
     | undefined
@@ -104,8 +75,8 @@ export default async function runTransformOnFile({
 
     const { find, replace } = transform
     if (typeof transformFn !== 'function' && find) {
-      transformFn = ({ astx }): any => {
-        const result = astx.find(find, {
+      transformFn = ({ astx }: TransformOptions): any => {
+        const result = astx.find(find as string | Node | Node[], {
           where: transform.where,
         })
         if (replace) result.replace(replace)

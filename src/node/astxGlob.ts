@@ -6,7 +6,7 @@ import glob from './glob'
 
 type Fs = typeof defaultFs
 
-type Options = {
+export type AstxGlobOptions = {
   include?: string
   exclude?: string
   includeMatcher?: Minimatch
@@ -33,7 +33,7 @@ const exts = [
 ]
 
 export default async function* astxGlob(
-  options: Options
+  options: AstxGlobOptions
 ): AsyncIterable<string> {
   for await (const entry of glob(options)) {
     if (entry.endsWith('/')) {

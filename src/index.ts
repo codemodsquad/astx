@@ -1,4 +1,11 @@
-export { default as Astx, ParsePattern, GetReplacement } from './Astx'
+export {
+  default as Astx,
+  Transform,
+  TransformOptions,
+  TransformResult,
+  ParsePattern,
+  GetReplacement,
+} from './Astx'
 export { default as find, Match, FindOptions } from './find'
 export { default as compileMatcher, CompiledMatcher } from './compileMatcher'
 export { default as replace, ReplaceOptions } from './replace'
@@ -13,11 +20,6 @@ export { default as getBabelBackend } from './babel/getBabelBackend'
 export { default as BabelBackend } from './babel/BabelBackend'
 export { default as getRecastBackend } from './recast/getRecastBackend'
 export { default as RecastBackend } from './recast/RecastBackend'
-export { default as runTransform } from './runTransform'
-export {
-  default as runTransformOnFile,
-  Transform,
-  TransformResult,
-} from './runTransformOnFile'
 export { default as CodeFrameError } from './util/CodeFrameError'
 export { default as CompilePathError } from './util/CompilePathError'
+export { AstxConfig } from './AstxConfig'

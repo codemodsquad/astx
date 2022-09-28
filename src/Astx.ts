@@ -1,10 +1,41 @@
-import { Node, NodePath } from './types'
+import { Expression, Statement, Node, NodePath } from './types'
 import { Backend } from './backend/Backend'
 import find, { Match, convertWithCaptures, createMatch } from './find'
 import replace from './replace'
 import compileMatcher, { MatchResult } from './compileMatcher'
 import CodeFrameError from './util/CodeFrameError'
 import ensureArray from './util/ensureArray'
+import * as AstTypes from 'ast-types'
+
+export type TransformOptions = {
+  /** The absolute path to the current file. */
+  path: string
+  /** The source code of the current file. */
+  source: string
+  astx: Astx
+  expression(strings: TemplateStringsArray, ...quasis: any[]): Expression
+  statement(strings: TemplateStringsArray, ...quasis: any[]): Statement
+  statements(strings: TemplateStringsArray, ...quasis: any[]): Statement[]
+  t: typeof AstTypes
+  report: (msg: string) => void
+}
+
+export type Transform = {
+  astx?: (options: TransformOptions) => string | null | undefined | void
+  find?: string | Node | Node[]
+  replace?: string | Node | Node[] | GetReplacement
+  where?: FindOptions['where']
+}
+
+export type TransformResult = {
+  file: string
+  source?: string
+  transformed?: string
+  reports?: any[]
+  error?: Error
+  matches?: readonly Match[]
+  backend: Backend
+}
 
 export type ParsePattern = (
   strings: string | string[] | TemplateStringsArray,

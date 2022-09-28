@@ -8,10 +8,10 @@ import inquirer from 'inquirer'
 import fs from 'fs-extra'
 import dedent from 'dedent-js'
 import CodeFrameError from '../util/CodeFrameError'
-import runTransform from '../runTransform'
-import Astx from '../Astx'
-import formatMatches from '../util/formatMatches'
-import { Transform } from '../runTransformOnFile'
+import { formatIpcMatches } from '../util/formatMatches'
+import { AstxWorkerPool, astxCosmiconfig } from '../node'
+import { invertIpcError } from '../node/ipc'
+import { Transform } from '../Astx'
 
 /* eslint-disable no-console */
 
@@ -93,15 +93,9 @@ const transform: CommandModule<Options> = {
     let errorCount = 0
     let changedCount = 0
     let unchangedCount = 0
-    for await (const {
-      file,
-      source,
-      transformed,
-      reports,
-      error,
-      matches,
-      backend,
-    } of runTransform({
+    const config = (await astxCosmiconfig.search())?.config
+    const pool = new AstxWorkerPool({ capacity: config?.workers })
+    for await (const event of pool.runTransform({
       transform,
       transformFile,
       paths,
@@ -110,6 +104,18 @@ const transform: CommandModule<Options> = {
         parserOptions: parserOptions ? JSON.parse(parserOptions) : undefined,
       },
     })) {
+      if (event.type === 'progress') {
+        continue
+      }
+      const {
+        file,
+        source,
+        transformed,
+        reports,
+        matches,
+        error: _error,
+      } = event.result
+      const error = _error ? invertIpcError(_error) : undefined
       const relpath = path.relative(process.cwd(), file)
       const logHeader = once((logFn: (value: string) => any) =>
         logFn(
@@ -150,7 +156,7 @@ const transform: CommandModule<Options> = {
         !transform.astx
       ) {
         logHeader(console.log)
-        console.log(formatMatches(backend, source, matches))
+        console.log(formatIpcMatches(source, matches))
       } else {
         unchangedCount++
       }
@@ -165,9 +171,10 @@ const transform: CommandModule<Options> = {
         )
         reports?.forEach((r: any) =>
           console.error(
-            r instanceof Astx && source
-              ? formatMatches(backend, source, r.matches)
-              : r
+            // r instanceof Astx && source
+            //   ? formatIpcMatches(source, r.matches)
+            //   : r
+            r
           )
         )
       }
@@ -220,6 +227,8 @@ const transform: CommandModule<Options> = {
       }
       if (process.send) process.send({ exit: 0 })
     }
+    await pool.end()
+    process.exit(0)
   },
 }
 

@@ -5,7 +5,7 @@ import { codeFrameColumns, BabelCodeFrameOptions } from '@babel/code-frame'
 import chalk from 'chalk'
 import dedent from 'dedent-js'
 
-interface SourceLocation {
+export interface SourceLocation {
   start: {
     line: number
     column: number
