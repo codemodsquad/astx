@@ -12,6 +12,9 @@ import { formatIpcMatches } from '../util/formatMatches'
 import { AstxWorkerPool, astxCosmiconfig } from '../node'
 import { invertIpcError } from '../node/ipc'
 import { Transform } from '../Astx'
+import ansiEscapes from 'ansi-escapes'
+import { Progress } from '../node/AstxWorkerPool'
+import { spinner } from './spinner'
 
 /* eslint-disable no-console */
 
@@ -64,6 +67,8 @@ const transform: CommandModule<Options> = {
       }),
 
   handler: async (argv: Arguments<Options>) => {
+    const startTime = Date.now()
+
     const paths = (argv.filesAndDirectories || []).filter(
       (x) => typeof x === 'string'
     ) as string[]
@@ -93,91 +98,133 @@ const transform: CommandModule<Options> = {
     let errorCount = 0
     let changedCount = 0
     let unchangedCount = 0
+
+    let progress: Progress = {
+      type: 'progress',
+      completed: 0,
+      total: 0,
+      globDone: false,
+    }
+
+    let progressDisplayed = false
+    function clearProgress() {
+      if (progressDisplayed) {
+        process.stderr.write(ansiEscapes.cursorLeft + ansiEscapes.eraseLine)
+        progressDisplayed = false
+      }
+    }
+    function showProgress() {
+      clearProgress()
+      progressDisplayed = true
+      const { completed, total, globDone } = progress
+      process.stderr.write(
+        chalk.magenta(
+          `${spinner()} Running... ${completed}/${total}${
+            globDone && total
+              ? ` (${((completed * 100) / total).toFixed(1)}%)`
+              : ''
+          } ${((Date.now() - startTime) / 1000).toFixed(2)}s`
+        )
+      )
+    }
+    let spinnerInterval
+
     const config = (await astxCosmiconfig.search())?.config
     const pool = new AstxWorkerPool({ capacity: config?.workers })
-    for await (const event of pool.runTransform({
-      transform,
-      transformFile,
-      paths,
-      config: {
-        parser: parser as any,
-        parserOptions: parserOptions ? JSON.parse(parserOptions) : undefined,
-      },
-    })) {
-      if (event.type === 'progress') {
-        continue
+    try {
+      if (process.stderr.isTTY) {
+        spinnerInterval = setInterval(showProgress, 30)
       }
-      const {
-        file,
-        source,
-        transformed,
-        reports,
-        matches,
-        error: _error,
-      } = event.result
-      const error = _error ? invertIpcError(_error) : undefined
-      const relpath = path.relative(process.cwd(), file)
-      const logHeader = once((logFn: (value: string) => any) =>
-        logFn(
-          chalk.blue(dedent`
+      for await (const event of pool.runTransform({
+        transform,
+        transformFile,
+        paths,
+        config: {
+          parser: parser as any,
+          parserOptions: parserOptions ? JSON.parse(parserOptions) : undefined,
+        },
+      })) {
+        if (event.type === 'progress') {
+          progress = event
+          if (process.stderr.isTTY) showProgress()
+          continue
+        }
+        clearProgress()
+        const {
+          file,
+          source,
+          transformed,
+          reports,
+          matches,
+          error: _error,
+        } = event.result
+        const error = _error ? invertIpcError(_error) : undefined
+        const relpath = path.relative(process.cwd(), file)
+        const logHeader = once((logFn: (value: string) => any) =>
+          logFn(
+            chalk.blue(dedent`
             ${'='.repeat(relpath.length)}
             ${chalk.bold(relpath)}
             ${'='.repeat(relpath.length)}
           `)
-        )
-      )
-
-      if (error) {
-        errorCount++
-        logHeader(console.error)
-        if (error instanceof CodeFrameError) {
-          console.error(
-            error.format({
-              highlightCode: true,
-              forceColor: true,
-              stack: true,
-            })
           )
-        } else {
-          console.error(chalk.red(error.stack))
-        }
-      } else if (source && transformed && source !== transformed) {
-        changedCount++
-        results[file] = transformed
-        if (!argv.yes) {
-          logHeader(console.log)
-          console.log(formatDiff(source, transformed))
-        }
-      } else if (
-        matches?.length &&
-        source &&
-        transform.find &&
-        !transform.replace &&
-        !transform.astx
-      ) {
-        logHeader(console.log)
-        console.log(formatIpcMatches(source, matches))
-      } else {
-        unchangedCount++
-      }
+        )
 
-      if (reports?.length) {
-        logHeader(console.error)
-        console.error(
-          chalk.blue(dedent`
+        if (error) {
+          errorCount++
+          logHeader(console.error)
+          if (error instanceof CodeFrameError) {
+            console.error(
+              error.format({
+                highlightCode: true,
+                forceColor: true,
+                stack: true,
+              })
+            )
+          } else {
+            console.error(chalk.red(error.stack))
+          }
+        } else if (source && transformed && source !== transformed) {
+          changedCount++
+          results[file] = transformed
+          if (!argv.yes) {
+            logHeader(console.log)
+            console.log(formatDiff(source, transformed))
+          }
+        } else if (
+          matches?.length &&
+          source &&
+          transform.find &&
+          !transform.replace &&
+          !transform.astx
+        ) {
+          logHeader(console.log)
+          console.log(formatIpcMatches(source, matches))
+        } else {
+          unchangedCount++
+        }
+
+        if (reports?.length) {
+          logHeader(console.error)
+          console.error(
+            chalk.blue(dedent`
             Reports
             -------
           `)
-        )
-        reports?.forEach((r: any) =>
-          console.error(
-            // r instanceof Astx && source
-            //   ? formatIpcMatches(source, r.matches)
-            //   : r
-            r
           )
-        )
+          reports?.forEach((r: any) =>
+            console.error(
+              // r instanceof Astx && source
+              //   ? formatIpcMatches(source, r.matches)
+              //   : r
+              r
+            )
+          )
+        }
       }
+    } finally {
+      if (spinnerInterval != null) clearInterval(spinnerInterval)
+      clearProgress()
     }
 
     if (transform.replace || transform.astx) {

@@ -38,6 +38,7 @@ specifiers:
   '@typescript-eslint/eslint-plugin': ^4.14.1
   '@typescript-eslint/parser': ^4.14.1
   '@typescript-eslint/typescript-estree': ^4.14.1
+  ansi-escapes: ^4.0.0
   ast-types: ^0.14.2
   babel-eslint: ^10.1.0
   babel-parse-wild-code: ^2.0.2
@@ -138,6 +139,7 @@ devDependencies:
   '@typescript-eslint/eslint-plugin': 4.33.0_mhw7s7g7fa36tpmw5rkmjqvi6q
   '@typescript-eslint/parser': 4.33.0_td6yqss6ra3qoebludh4ctrhym
   '@typescript-eslint/typescript-estree': 4.33.0_typescript@4.8.2
+  ansi-escapes: 4.3.2
   babel-eslint: 10.1.0_eslint@7.32.0
   babel-plugin-istanbul: 6.1.1
   chai: 4.3.6

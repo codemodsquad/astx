@@ -66,6 +66,7 @@ export default class AstxWorkerPool {
         if (signal?.aborted) return
         total++
         yield progress()
+        if (signal?.aborted) return
         const promise = this.runTransformOnFile({
           file,
           transform,
@@ -79,6 +80,7 @@ export default class AstxWorkerPool {
         promises.push(promise)
       }
     }
+    if (signal?.aborted) return
     globDone = true
     yield progress()
 
@@ -89,7 +91,5 @@ export default class AstxWorkerPool {
       completed++
       yield progress()
     }
-    if (signal?.aborted) return
-    yield progress()
   }
 }
