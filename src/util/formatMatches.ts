@@ -73,13 +73,15 @@ function formatMatch(
   const captureRanges = []
   if (captures) {
     for (const [key, node] of Object.entries(captures)) {
-      const { start, end } = node as any
-      captureRanges.push({
-        key,
-        start,
-        end,
-        color: captureColors[captureColor++] || chalk.gray,
-      })
+      const { start, end } = backend.location(node)
+      if (start != null && end != null) {
+        captureRanges.push({
+          key,
+          start,
+          end,
+          color: captureColors[captureColor++] || chalk.gray,
+        })
+      }
     }
   }
   if (arrayCaptures) {
@@ -87,14 +89,16 @@ function formatMatch(
       const first = nodes[0]
       const last = nodes[nodes.length - 1]
       if (!first || !last) continue
-      const { start } = first as any
-      const { end } = last as any
-      captureRanges.push({
-        key,
-        start,
-        end,
-        color: captureColors[captureColor++] || chalk.gray,
-      })
+      const { start } = backend.location(first)
+      const { end } = backend.location(last)
+      if (start != null && end != null) {
+        captureRanges.push({
+          key,
+          start,
+          end,
+          color: captureColors[captureColor++] || chalk.gray,
+        })
+      }
     }
   }
 
