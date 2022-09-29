@@ -1,5 +1,4 @@
 import defaultFs from 'fs-extra'
-import { Dirent } from 'fs'
 import Gitignore from 'gitignore-fs'
 import path from 'path'
 import { Minimatch } from 'minimatch'
@@ -46,18 +45,24 @@ async function* globDir({
   if (includeDir) {
     entries.push(dir.replace(/[/\\]?$/, '/'))
   }
+  let readdir
+  try {
+    readdir = (await fs.readdir(dir, { withFileTypes: true })).map(
+      (entry) => path.join(dir, entry.name) + (entry.isDirectory() ? '/' : '')
+    )
+  } catch (error: any) {
+    if (error.code !== 'ENOTDIR') {
+      throw error
+    }
+    readdir = [dir]
+  }
   await Promise.all(
-    (
-      await fs.readdir(dir, { withFileTypes: true })
-    ).map(async (entry: Dirent) => {
-      const fullpath =
-        path.join(dir, entry.name) + (entry.isDirectory() ? '/' : '')
-
+    readdir.map(async (fullpath: string) => {
       if (await gitignore.ignores(fullpath)) return
       const matchpath = isAbsolute ? fullpath : path.relative(cwd, fullpath)
       if (
         (includeMatcher &&
-          !includeMatcher.match(matchpath, entry.isDirectory())) ||
+          !includeMatcher.match(matchpath, fullpath.endsWith('/'))) ||
         excludeMatcher?.match(matchpath)
       ) {
         return
