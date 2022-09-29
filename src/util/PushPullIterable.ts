@@ -1,11 +1,12 @@
+import RingBuffer from './RingBuffer'
+
 type ResolveReject<T> = {
   resolve: (value: T) => void
   reject: (error?: any) => void
 }
 
-export class PushPullIterable<T> implements AsyncIterable<T> {
-  private readonly capacity: number
-  private queue: T[] = []
+export default class PushPullIterable<T> implements AsyncIterable<T> {
+  private queue: RingBuffer<T>
   private pushQueue: ResolveReject<boolean>[] = []
   private pullQueue: ResolveReject<IteratorResult<T>>[] = []
   private producing = true
@@ -20,7 +21,7 @@ export class PushPullIterable<T> implements AsyncIterable<T> {
     ) {
       throw new Error(`invalid capacity: ${capacity}`)
     }
-    this.capacity = capacity
+    this.queue = new RingBuffer(capacity)
   }
 
   [Symbol.asyncIterator](): AsyncIterator<T> {
@@ -57,7 +58,7 @@ export class PushPullIterable<T> implements AsyncIterable<T> {
       waitingPull.resolve({ value, done: false })
       return this.consuming
     }
-    if (this.queue.length < this.capacity) {
+    if (!this.queue.isFull) {
       this.queue.push(value)
       return this.consuming
     }
@@ -76,8 +77,8 @@ export class PushPullIterable<T> implements AsyncIterable<T> {
     if (!this.consuming) {
       throw new Error(`can't call next after returning or throwing`)
     }
-    if (this.queue.length) {
-      const pulled: T = this.queue.shift() as any
+    if (this.queue.size) {
+      const pulled: T = this.queue.pull() as any
       this.pushQueue.shift()?.resolve(true)
       return { value: pulled, done: false }
     }

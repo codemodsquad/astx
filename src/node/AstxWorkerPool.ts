@@ -7,7 +7,7 @@ import AstxWorker from './AstxWorker'
 import AsyncPool from './AsyncPool'
 import { astxCosmiconfig } from './astxCosmiconfig'
 import { RunTransformOnFileOptions } from './runTransformOnFile'
-import { PushPullIterable } from '../util/PushPullIterable'
+import PushPullIterable from '../util/PushPullIterable'
 
 class AbortedError extends Error {}
 
