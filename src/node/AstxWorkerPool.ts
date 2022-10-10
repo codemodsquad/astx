@@ -38,12 +38,14 @@ export default class AstxWorkerPool {
     transform,
     transformFile,
     paths,
+    exclude,
     cwd = process.cwd(),
     config,
     signal,
     queueCapacity,
   }: Omit<RunTransformOnFileOptions, 'file'> & {
     paths?: readonly string[]
+    exclude?: string
     cwd?: string
     queueCapacity?: number
   }): AsyncIterable<{ type: 'result'; result: IpcTransformResult } | Progress> {
@@ -77,7 +79,7 @@ export default class AstxWorkerPool {
       try {
         await emit(progress())
         for (const include of paths?.length ? paths : [cwd]) {
-          for await (const file of astxGlob({ include, cwd })) {
+          for await (const file of astxGlob({ include, exclude, cwd })) {
             if (signal?.aborted) return
             total++
             await emit(progress())
