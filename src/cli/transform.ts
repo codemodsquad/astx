@@ -15,6 +15,7 @@ import { Transform } from '../Astx'
 import ansiEscapes from 'ansi-escapes'
 import { Progress } from '../node/AstxWorkerPool'
 import { spinner } from './spinner'
+import '../node/registerTsNode'
 
 /* eslint-disable no-console */
 
@@ -39,7 +40,7 @@ const transform: CommandModule<Options> = {
       })
       .option('transform', {
         alias: 't',
-        describe: `path to the transform file. Can be either a local path or url. Defaults to ./astx.js if --find isn't given`,
+        describe: `path to the transform file. Can be either a local path or url. Defaults to ./astx.ts or ./astx.js if --find isn't given`,
       })
       .options('parser', {
         describe:
@@ -73,25 +74,35 @@ const transform: CommandModule<Options> = {
       (x) => typeof x === 'string'
     ) as string[]
 
-    let transform: Transform
-    let transformFile: string | undefined
-    if (argv.transform) {
-      transformFile = path.resolve(argv.transform)
-      transform = await import(transformFile)
-    } else if (argv.find) {
-      const getOpt = (regex: RegExp): string | undefined => {
-        const index = process.argv.findIndex((a) => regex.test(a))
-        return index >= 0 ? process.argv[index + 1] : undefined
+    const { transform, transformFile } = await (async (): Promise<{
+      transform: Transform
+      transformFile?: string
+    }> => {
+      if (argv.transform) {
+        const transformFile = path.resolve(argv.transform)
+        return {
+          transformFile,
+          transform: await import(transformFile),
+        }
+      } else if (argv.find) {
+        const getOpt = (regex: RegExp): string | undefined => {
+          const index = process.argv.findIndex((a) => regex.test(a))
+          return index >= 0 ? process.argv[index + 1] : undefined
+        }
+        // yargs Eats quotes, not cool...
+        const find = getOpt(/^(-f|--find)$/)
+        const replace = getOpt(/^(-r|--replace)$/)
+        return { transform: { find, replace } }
+      } else {
+        const files = [path.resolve('astx.ts'), path.resolve('astx.js')]
+        for (const transformFile of files) {
+          if (await fs.pathExists(transformFile)) {
+            return { transformFile, transform: await import(transformFile) }
+          }
+        }
+        throw new Error(`missing transform file: ${files.join(' or ')}`)
       }
-      // yargs Eats quotes, not cool...
-      const find = getOpt(/^(-f|--find)$/)
-      const replace = getOpt(/^(-r|--replace)$/)
-      transform = { find, replace }
-    } else {
-      transformFile = path.resolve('astx.js')
-      transform = await import(transformFile)
-    }
-
+    })()
     const { parser, parserOptions } = argv
 
     const results: Record<string, string> = {}

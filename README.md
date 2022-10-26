@@ -82,8 +82,8 @@ These are docs for the version 2 beta branch.
   - [`exports.replace` (optional)](#exportsreplace-optional)
   - [`exports.astx` (optional)](#exportsastx-optional)
 - [Configuration](#configuration)
-  - [Config option: `parser`](#config-option-parser)
-  - [Config option: `parserOptions`](#config-option-parseroptions)
+    - [Config option: `parser`](#config-option-parser)
+    - [Config option: `parserOptions`](#config-option-parseroptions)
 - [CLI](#cli)
 
 <!-- tocstop -->
@@ -595,7 +595,7 @@ foo(1, 1, { foo: 1 }, { bar: 1 }) // no match
 
 # Transform files
 
-Like `jscodeshift`, you can put code to perform a transform in a `.js` file (defaults to `astx.js` in the working directory, unless you specify a different file with the `-t` CLI option).
+Like `jscodeshift`, you can put code to perform a transform in a `.ts` or `.js` file (defaults to `astx.ts` or `astx.js` in the working directory, unless you specify a different file with the `-t` CLI option).
 
 The transform file API is a bit different from `jscodeshift` though. You can have the following exports:
 
@@ -694,14 +694,15 @@ astx -t <transformFile> [<files ...>] [<directories ...>]
 
 astx [<files ...>] [<directories ...>]
 
-  Applies the default transform file (astx.js in working directory)
+  Applies the default transform file (astx.ts or astx.js in working directory)
   to the given files and directories
 
 Options:
       --help           Show help                                       [boolean]
       --version        Show version number                             [boolean]
   -t, --transform      path to the transform file. Can be either a local path or
-                       url. Defaults to ./astx.js if --find isn't given
+                       url. Defaults to ./astx.ts or ./astx.js if --find isn't
+                       given
       --parser         parser to use (options: babel, babel/auto, recast/babel,
                        recast/babel/auto)                               [string]
       --parserOptions  options for parser                               [string]

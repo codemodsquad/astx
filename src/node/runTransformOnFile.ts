@@ -11,6 +11,7 @@ import chooseGetBackend from '../chooseGetBackend'
 import { astxCosmiconfig } from './astxCosmiconfig'
 import Astx, { Transform, TransformOptions, TransformResult } from '../Astx'
 import { Node } from '../types'
+import './registerTsNode'
 const resolve = promisify(_resolve) as any
 
 const getPrettier = memoize(async (path: string): Promise<any> => {
