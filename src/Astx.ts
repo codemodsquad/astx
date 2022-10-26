@@ -17,7 +17,7 @@ export type TransformOptions = {
   statement(strings: TemplateStringsArray, ...quasis: any[]): Statement
   statements(strings: TemplateStringsArray, ...quasis: any[]): Statement[]
   t: typeof AstTypes
-  report: (msg: string) => void
+  report: (msg: unknown) => void
 }
 
 export type Transform = {
@@ -25,13 +25,15 @@ export type Transform = {
   find?: string | Node | Node[]
   replace?: string | Node | Node[] | GetReplacement
   where?: FindOptions['where']
+  onReport?: (options: { file: string; report: unknown }) => void
+  finish?: () => any
 }
 
 export type TransformResult = {
   file: string
   source?: string
   transformed?: string
-  reports?: any[]
+  reports?: unknown[]
   error?: Error
   matches?: readonly Match[]
   backend: Backend

@@ -104,7 +104,13 @@ export default class AstxWorker {
           throw error
         }
         case 'transformResult': {
-          return message.result
+          const { result } = message
+          if (result.reports?.length && transform?.onReport) {
+            for (const report of result.reports) {
+              transform.onReport({ file, report })
+            }
+          }
+          return result
         }
         default: {
           throw new Error(`unknown message: ${JSON.stringify(message)}`)
@@ -140,6 +146,7 @@ export function workerProcess(): void {
             transformFile,
             config,
             signal,
+            forWorker: true,
           })
         } catch (error: any) {
           process.send?.({

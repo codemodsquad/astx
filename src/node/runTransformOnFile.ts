@@ -37,6 +37,7 @@ export type RunTransformOnFileOptions = {
   transformFile?: string
   config?: Partial<AstxConfig>
   signal?: AbortSignal
+  forWorker?: boolean
 }
 
 export default async function runTransformOnFile({
@@ -45,8 +46,11 @@ export default async function runTransformOnFile({
   config: configOverrides,
   file,
   signal,
+  forWorker,
 }: RunTransformOnFileOptions): Promise<TransformResult> {
-  const transform = transformFile ? await import(transformFile) : _transform
+  const transform: Transform = transformFile
+    ? await import(transformFile)
+    : _transform
 
   const config = (await astxCosmiconfig.search(Path.dirname(file)))?.config as
     | AstxConfig
@@ -68,7 +72,7 @@ export default async function runTransformOnFile({
     if (signal?.aborted) throw new Error('aborted')
 
     let transformed
-    const reports: any[] = []
+    const reports: unknown[] = []
 
     let matches: readonly Match[] | undefined
 
@@ -101,8 +105,9 @@ export default async function runTransformOnFile({
         path: file,
         root,
         t: backend.t,
-        report: (msg: any) => {
+        report: (msg: unknown) => {
           if (msg instanceof Astx && !msg.size) return
+          if (!forWorker) transform.onReport?.({ file, report: msg })
           reports.push(msg)
         },
         ...backend.template,

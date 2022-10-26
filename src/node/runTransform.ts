@@ -47,4 +47,6 @@ export default async function* runTransform({
       yield transformed
     }
   }
+  if (signal?.aborted) return
+  await transform.finish?.()
 }

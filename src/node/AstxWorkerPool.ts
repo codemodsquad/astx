@@ -95,7 +95,11 @@ export default class AstxWorkerPool {
                 completed++
                 await emit({ type: 'result', result })
                 await emit(progress())
-                if (globDone && completed === total) events.return()
+                if (globDone && completed === total) {
+                  if (signal?.aborted) return
+                  await transform?.finish?.()
+                  events.return()
+                }
               })
               .catch((error) => {
                 if (error instanceof AbortedError) return
