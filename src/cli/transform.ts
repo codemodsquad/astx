@@ -215,7 +215,7 @@ const transform: CommandModule<Options> = {
           unchangedCount++
         }
 
-        if (reports?.length) {
+        if (reports?.length && !transform.onReport) {
           logHeader(console.error)
           console.error(
             chalk.blue(dedent`
@@ -223,14 +223,7 @@ const transform: CommandModule<Options> = {
             -------
           `)
           )
-          reports?.forEach((r: any) =>
-            console.error(
-              // r instanceof Astx && source
-              //   ? formatIpcMatches(source, r.matches)
-              //   : r
-              r
-            )
-          )
+          reports?.forEach((r: any) => console.error(r))
         }
       }
     } finally {
