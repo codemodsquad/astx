@@ -75,6 +75,13 @@ export default class AstxWorkerPool {
       globDone,
     })
 
+    async function checkDone(): Promise<void> {
+      if (globDone && completed === total) {
+        await transform?.finish?.()
+        events.return()
+      }
+    }
+
     ;(async () => {
       try {
         await emit(progress())
@@ -94,12 +101,10 @@ export default class AstxWorkerPool {
                 if (signal?.aborted) return
                 completed++
                 await emit({ type: 'result', result })
+                if (signal?.aborted) return
                 await emit(progress())
-                if (globDone && completed === total) {
-                  if (signal?.aborted) return
-                  await transform?.finish?.()
-                  events.return()
-                }
+                if (signal?.aborted) return
+                await checkDone()
               })
               .catch((error) => {
                 if (error instanceof AbortedError) return
@@ -110,6 +115,8 @@ export default class AstxWorkerPool {
         if (signal?.aborted) return
         globDone = true
         await emit(progress())
+        if (signal?.aborted) return
+        await checkDone()
       } catch (error) {
         if (error instanceof AbortedError) return
         events.throw(error)
