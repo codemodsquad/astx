@@ -11,6 +11,7 @@ import compileReplacement from '../compileReplacement'
 import convertToExpression from '../convertReplacement/convertToExpression'
 import convertStatementReplacement from '../convertReplacement/convertStatementReplacement'
 import ensureArray from '../util/ensureArray'
+import Astx from '../Astx'
 
 export function statements(
   this: Backend,
@@ -26,12 +27,27 @@ export function statements(
     }
     if (Array.isArray(nodes[i])) {
       const name = `$$tpl___${i}`
-      arrayCaptures[name] = nodes[i]
+      arrayCaptures[name] = nodes[i].map((n: any) =>
+        n instanceof Astx ? n.node : n
+      )
       varNames.push(name)
     } else {
-      const name = `$tpl___${i}`
-      captures[name] = nodes[i]
-      varNames.push(name)
+      if (nodes[i] instanceof Astx) {
+        const astx: Astx = nodes[i]
+        if (astx.size > 1) {
+          const name = `$$tpl___${i}`
+          arrayCaptures[name] = [...astx.nodes]
+          varNames.push(name)
+        } else {
+          const name = `$tpl___${i}`
+          captures[name] = astx.node
+          varNames.push(name)
+        }
+      } else {
+        const name = `$tpl___${i}`
+        captures[name] = nodes[i]
+        varNames.push(name)
+      }
     }
   }
   const src = ([...ensureArray(code)] as string[]).reduce(

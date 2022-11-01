@@ -259,7 +259,7 @@ You can call `.find` as a method or tagged template literal:
 
 If you give the pattern as a string, it must be a valid expression or statement(s). Otherwise it should be valid
 AST node(s) you already parsed or constructed.
-You can interpolate AST nodes or arrays of AST nodes in the tagged template literal.
+You can interpolate strings, AST nodes, arrays of AST nodes, and `Astx` instances in the tagged template literal.
 
 For example you could do `` astx.find`${t.identifier('foo')} + 3`() ``.
 
