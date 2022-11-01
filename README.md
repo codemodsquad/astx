@@ -36,7 +36,11 @@ These are docs for the version 2 beta branch.
       - [`FindOptions.withCaptures` (`Match | Match[]`)](#findoptionswithcaptures-match--match)
     - [`.find(...).replace(...)` (`void`)](#findreplace-void)
     - [`.size()` (`number`)](#size-number)
-    - [`.length` (`number`)](#length-number)
+    - [`` [name: `$${string}` | `$$${string}` | `$$$${string}`] `` (`Astx`)](#name-string--string--string-astx)
+    - [`.node` (`Node`)](#node-node)
+    - [`.path` (`NodePath`)](#path-nodepath)
+    - [`.code` (`string`)](#code-string)
+    - [`[Symbol.iterator]` (`Iterator<Astx>`)](#symboliterator-iteratorastx)
     - [`.matches()` (`Match[]`)](#matches-match)
     - [`.match()` (`Match`)](#match-match)
     - [`.paths()` (`NodePath[]`)](#paths-nodepath)
@@ -315,9 +319,33 @@ astx
 
 Returns the number of matches from the `.find()` or `.closest()` call that returned this instance.
 
-### `.length` (`number`)
+### `` [name: `$${string}` | `$$${string}` | `$$$${string}`] `` (`Astx`)
 
-Synonym for `size()`.
+Gets an `Astx` instance focused on the capture(s) with the given `name`.
+
+For example, you can do:
+
+```ts
+for (const { $v } of astx.find`process.env.$v`()) {
+  report($v.code)
+}
+```
+
+### `.node` (`Node`)
+
+Returns the first node of the first match. Throws an error if there are no matches.
+
+### `.path` (`NodePath`)
+
+Returns the first path of the first match. Throws an error if there are no matches.
+
+### `.code` (`string`)
+
+Generates code from the first node of the first match. Throws an error if there are no matches.
+
+### `[Symbol.iterator]` (`Iterator<Astx>`)
+
+Iterates through each match, returning an `Astx` instance for each match.
 
 ### `.matches()` (`Match[]`)
 

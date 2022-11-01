@@ -1,6 +1,7 @@
 export {
   default as Astx,
   Transform,
+  TransformFunction,
   TransformOptions,
   TransformResult,
   ParsePattern,

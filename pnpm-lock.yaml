@@ -22,6 +22,7 @@ specifiers:
   '@types/babel__generator': ^7.6.3
   '@types/babel__parser': ^7.1.1
   '@types/chai': ^4.2.14
+  '@types/chai-as-promised': ^7.1.5
   '@types/debug': ^4.1.5
   '@types/diff': ^5.0.0
   '@types/fs-extra': ^9.0.6
@@ -44,6 +45,7 @@ specifiers:
   babel-parse-wild-code: ^2.0.2
   babel-plugin-istanbul: ^6.0.0
   chai: ^4.2.0
+  chai-as-promised: ^7.1.1
   chalk: ^4.1.0
   codecov: ^3.8.1
   copy: ^0.3.2
@@ -123,6 +125,7 @@ devDependencies:
   '@types/babel__generator': 7.6.4
   '@types/babel__parser': 7.1.1
   '@types/chai': 4.3.3
+  '@types/chai-as-promised': 7.1.5
   '@types/debug': 4.1.7
   '@types/diff': 5.0.2
   '@types/fs-extra': 9.0.13
@@ -143,6 +146,7 @@ devDependencies:
   babel-eslint: 10.1.0_eslint@7.32.0
   babel-plugin-istanbul: 6.1.1
   chai: 4.3.6
+  chai-as-promised: 7.1.1_chai@4.3.6
   codecov: 3.8.3
   copy: 0.3.2
   cross-env: 7.0.3
@@ -1945,6 +1949,12 @@ packages:
       '@babel/parser': 7.18.13
     dev: true
 
+  /@types/chai-as-promised/7.1.5:
+    resolution: {integrity: sha512-jStwss93SITGBwt/niYrkf2C+/1KTeZCZl1LaeezTlqppAKeoQC7jxyqYuP72sxBGKCIbw7oHgbYssIRzT5FCQ==}
+    dependencies:
+      '@types/chai': 4.3.3
+    dev: true
+
   /@types/chai/4.3.3:
     resolution: {integrity: sha512-hC7OMnszpxhZPduX+m+nrx+uFoLkWOMiR4oa/AZF3MuSETYTZmFfJAHqZEM8MVlvfG7BEUcgvtwoCTxBp6hm3g==}
     dev: true
@@ -2682,6 +2692,15 @@ packages:
     dependencies:
       ansicolors: 0.3.2
       redeyed: 2.1.1
+    dev: true
+
+  /chai-as-promised/7.1.1_chai@4.3.6:
+    resolution: {integrity: sha512-azL6xMoi+uxu6z4rhWQ1jbdUhOMhis2PvscD/xjLqNMkv3BPPp2JyyuTHOrf9BOosGpNQ11v6BKv/g57RXbiaA==}
+    peerDependencies:
+      chai: '>= 2.1.2 < 5'
+    dependencies:
+      chai: 4.3.6
+      check-error: 1.0.2
     dev: true
 
   /chai/4.3.6:

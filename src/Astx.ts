@@ -20,8 +20,12 @@ export type TransformOptions = {
   report: (msg: unknown) => void
 }
 
+export type TransformFunction = (
+  options: TransformOptions
+) => string | null | undefined | void
+
 export type Transform = {
-  astx?: (options: TransformOptions) => string | null | undefined | void
+  astx?: TransformFunction
   find?: string | Node | Node[]
   replace?: string | Node | Node[] | GetReplacement
   where?: FindOptions['where']
@@ -60,7 +64,14 @@ export type FindOptions = {
   where?: { [captureName: string]: (path: NodePath) => boolean }
 }
 
-export default class Astx implements Iterable<Match> {
+class ExtendableProxy {
+  constructor(handler: ProxyHandler<any>) {
+    return new Proxy(this, handler)
+  }
+}
+
+export default class Astx extends ExtendableProxy implements Iterable<Astx> {
+  [name: `$${string}` | `$$${string}` | `$$$${string}`]: Astx
   public readonly backend: Backend
   private readonly _matches: Match[]
   private readonly _withCaptures: Match[]
@@ -73,6 +84,36 @@ export default class Astx implements Iterable<Match> {
     paths: NodePath<any>[] | Match[],
     { withCaptures = [] }: { withCaptures?: Match[] } = {}
   ) {
+    super({
+      get(target: Astx, prop: string): Astx {
+        if (typeof prop === 'symbol' || !prop.startsWith('$'))
+          return (target as any)[prop]
+        const matches: Match[] = []
+        for (const { arrayPathCaptures, pathCaptures } of target._matches) {
+          const arrayPaths = arrayPathCaptures?.[prop]
+          if (arrayPaths) {
+            matches.push({
+              type: 'nodes',
+              path: arrayPaths[0],
+              node: arrayPaths[0].node,
+              paths: arrayPaths,
+              nodes: arrayPaths.map((p: NodePath) => p.node),
+            })
+          }
+          const path = pathCaptures?.[prop]
+          if (path) {
+            matches.push({
+              type: 'node',
+              path,
+              node: path.node,
+              paths: [path],
+              nodes: [path.node],
+            })
+          }
+        }
+        return new Astx(target.backend, matches)
+      },
+    })
     this.backend = backend
     const { NodePath } = backend.t
     this._matches =
@@ -96,8 +137,10 @@ export default class Astx implements Iterable<Match> {
     return this._matches
   }
 
-  *[Symbol.iterator](): Iterator<Match> {
-    yield* this._matches
+  *[Symbol.iterator](): Iterator<Astx> {
+    for (const match of this.matches) {
+      yield new Astx(this.backend, [match])
+    }
   }
 
   get match(): Match {
@@ -106,6 +149,18 @@ export default class Astx implements Iterable<Match> {
       throw new Error(`you can't call match() when there are no matches`)
     }
     return match
+  }
+
+  get node(): Node {
+    return this.match.node
+  }
+
+  get path(): NodePath {
+    return this.match.path
+  }
+
+  get code(): string {
+    return this.backend.generate(this.node).code
   }
 
   get paths(): readonly NodePath[] {
