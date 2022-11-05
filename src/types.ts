@@ -74,6 +74,7 @@ export type Block =
   | k.TSModuleBlockKind
 export type Expression = b.Expression | k.ExpressionKind
 export type Statement = b.Statement | k.StatementKind
+export type AssignmentPattern = b.AssignmentPattern | k.AssignmentPatternKind
 export type BooleanLiteral = b.BooleanLiteral | k.BooleanLiteralKind
 export type CallExpression = b.CallExpression | k.CallExpressionKind
 export type ClassDeclaration = b.ClassImplements | k.ClassImplementsKind

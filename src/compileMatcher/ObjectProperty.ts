@@ -17,6 +17,9 @@ export default function compileObjectPropertyMatcher(
   }
   const pattern: ObjectProperty = path.value
 
+  if (n.AssignmentPattern.check(pattern.value)) {
+    return compileMatcher(path.get('value'), compileOptions)
+  }
   if (n.Identifier.check(pattern.key)) {
     if (pattern.shorthand && !pattern.computed) {
       const captureMatcher = compileCaptureMatcher(

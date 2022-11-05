@@ -2,6 +2,7 @@ import { NodeType, NodePath, Node, Debugger } from '../types'
 import * as t from 'ast-types'
 import __debug from 'debug'
 import { Backend } from '../backend/Backend'
+import AssignmentPattern from './AssignmentPattern'
 import BooleanLiteral from './BooleanLiteral'
 import CallExpression from './CallExpression'
 import ClassImplements from './ClassImplements'
@@ -104,6 +105,7 @@ const nodeMatchers: Record<
     options: CompileOptions
   ) => CompiledMatcher | undefined | void
 > = {
+  AssignmentPattern,
   BooleanLiteral,
   CallExpression,
   ClassImplements,
