@@ -5,7 +5,7 @@ d()
 `
 
 export const find = `
-type X = { /**/ $a: any }
+type X = { /**/ $a: $ }
 `
 
 export const expectedFind = ['a: number', 'b: string'].map((node) => ({

@@ -8,8 +8,8 @@ interface Foo {
 `
 export const find = `
 interface Foo {
-  $$a: any;
-  $b: any;
+  $$a: $;
+  $b: $;
   d(x: number): string;
 }
 `
@@ -34,9 +34,9 @@ export const expectedFind = [
 export const replace = `
 interface Foo {
   d(x: number): string;
-  $b: any;
+  $b: $;
   e(): number;
-  $$a: any;
+  $$a: $;
 }
 `
 

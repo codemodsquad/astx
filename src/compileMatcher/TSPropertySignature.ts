@@ -14,7 +14,9 @@ export default function compileTSPropertySignatureMatcher(
       !pattern.optional &&
       !pattern.computed &&
       (pattern.typeAnnotation == null ||
-        n.TSAnyKeyword.check(pattern.typeAnnotation?.typeAnnotation))
+        (n.TSTypeReference.check(pattern.typeAnnotation?.typeAnnotation) &&
+          n.Identifier.check(pattern.typeAnnotation.typeAnnotation.typeName) &&
+          pattern.typeAnnotation.typeAnnotation.typeName.name === '$'))
     ) {
       const placeholderMatcher = compilePlaceholderMatcher(
         path,

@@ -13,7 +13,9 @@ export default function compileTSPropertySignatureReplacement(
       !pattern.optional &&
       !pattern.computed &&
       (pattern.typeAnnotation == null ||
-        pattern.typeAnnotation?.typeAnnotation?.type === 'TSAnyKeyword')
+        (n.TSTypeReference.check(pattern.typeAnnotation?.typeAnnotation) &&
+          n.Identifier.check(pattern.typeAnnotation.typeAnnotation.typeName) &&
+          pattern.typeAnnotation.typeAnnotation.typeName.name === '$'))
     ) {
       const captureReplacement = compilePlaceholderReplacement(
         path,

@@ -14,7 +14,9 @@ export default function compileObjectTypePropertyReplacement(
       !(pattern as any).proto &&
       !(pattern as any).method &&
       !pattern.optional &&
-      n.AnyTypeAnnotation.check(pattern.value) &&
+      n.GenericTypeAnnotation.check(pattern.value) &&
+      n.Identifier.check(pattern.value.id) &&
+      pattern.value.id.name === '$' &&
       pattern.variance == null
     ) {
       const captureReplacement = compilePlaceholderReplacement(
