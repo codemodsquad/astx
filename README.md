@@ -38,12 +38,15 @@ These are docs for the version 2 beta branch.
     - [Support Table](#support-table)
   - [String Matching](#string-matching)
   - [Extracting nodes](#extracting-nodes)
-  - [`$Optional(pattern)`](#optionalpattern)
-  - [`$Or(...)`](#or)
-  - [`$And(...)`](#and)
-  - [`$Optional<pattern>`](#optionalpattern-1)
-  - [`$Or<...>`](#or-1)
-  - [`$And<...>`](#and-1)
+  - [Special Constructs](#special-constructs)
+    - [`$Optional(pattern)`](#optionalpattern)
+    - [`$Or(...)`](#or)
+    - [`$And(...)`](#and)
+    - [`$Optional<pattern>`](#optionalpattern-1)
+    - [`$Or<...>`](#or-1)
+    - [`$And<...>`](#and-1)
+    - [`$Ordered`](#ordered)
+    - [`$Unordered`](#unordered)
 - [API](#api)
   - [interface NodePath](#interface-nodepath)
   - [class Astx](#class-astx)
@@ -406,29 +409,39 @@ would match `Array<number>` type annotations.
 
 `/**/` also works in replacement patterns.
 
-## `$Optional(pattern)`
+## Special Constructs
+
+### `$Optional(pattern)`
 
 Matches either the given expression or no node in its place. For example `let $a = $Optional(2)` will match `let foo = 2` and `let foo` (with no initializer), but not `let foo = 3`.
 
-## `$Or(...)`
+### `$Or(...)`
 
 Matches nodes that match at least one of the given patterns. For example `$Or(foo($$args), {a: $value})` will match calls to `foo` and object literals with only an `a` property.
 
-## `$And(...)`
+### `$And(...)`
 
 Matches nodes that match all of the given patterns. This is mostly useful for narrowing down the types of nodes that can be captured into a given placeholder. For example, `let $a = $And($init, $a + $b)` will match `let` declarations where the initializer matches `$a + $b`, and capture the initializer as `$init`.
 
-## `$Optional<pattern>`
+### `$Optional<pattern>`
 
 Matches either the given type annotation or no node in its place. For example `let $a: $Optional<number>` will match `let foo: number` and `let foo` (with no type annotation), but not ` let foo: string``let foo: string `.
 
-## `$Or<...>`
+### `$Or<...>`
 
 Matches nodes that match at least one of the given type annotations. For example `let $x: $Or<number[], string[]>` will match `let` declarations of type `number[]` or `string[]`.
 
-## `$And<...>`
+### `$And<...>`
 
 Matches nodes that match all of the given type annotations. This is mostly useful for narrowing down the types of nodes that can be captured into a given placeholder. For example, `let $a: $And<$type, $elem[]>` will match `let` declarations where the type annotation matches `$elem[]`, and capture the type annotation as `$type`.
+
+### `$Ordered`
+
+Forces the pattern to match sibling nodes in the same order.
+
+### `$Unordered`
+
+Forces the pattern to match sibling nodes in any order.
 
 # API
 
