@@ -480,6 +480,9 @@ Generally speaking, an identifier starting with `$` is a _placeholder_ that func
 - `$$<name>` matches a contiguous list of nodes ("array placeholder")
 - `$$$<name>`: matches all other siblings ("rest placeholder")
 
+The `<name>` (if given) must start with a letter or number; otherwise the identifier will
+not be treated as a placeholder.
+
 Rest placeholders (`$$$`) may not be sibilings of ordered list placeholders (`$$`).
 
 Unless a placeholder is anonymous, it will "capture" the matched node(s), meaning you can use the same placeholder in the
