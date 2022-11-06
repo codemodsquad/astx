@@ -9,19 +9,20 @@ export default function compileObjectPropertyMatcher(
   path: NodePath<ObjectProperty, ObjectProperty>,
   compileOptions: CompileOptions
 ): CompiledMatcher | void {
-  const { debug } = compileOptions
-  const n = compileOptions.backend.t.namedTypes
+  const { debug, backend } = compileOptions
+  const n = backend.t.namedTypes
   const subCompileOptions = {
     ...compileOptions,
     debug: indentDebug(debug, 1),
   }
   const pattern: ObjectProperty = path.value
 
-  if (n.AssignmentPattern.check(pattern.value)) {
-    return compileMatcher(path.get('value'), compileOptions)
-  }
   if (n.Identifier.check(pattern.key)) {
-    if (pattern.shorthand && !pattern.computed) {
+    if (
+      pattern.shorthand &&
+      !pattern.computed &&
+      backend.t.astNodesAreEquivalent(pattern.key, pattern.value)
+    ) {
       const captureMatcher = compileCaptureMatcher(
         path,
         pattern.key.name,

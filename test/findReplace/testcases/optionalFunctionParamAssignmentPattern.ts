@@ -34,5 +34,3 @@ export const expectedFind = [
     node: 'function z(bar: number = 2) { }',
   },
 ]
-
-export const only = true

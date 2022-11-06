@@ -23,10 +23,7 @@ export default function compileAssignmentPatternMatcher(
     return {
       pattern,
       match: (path: NodePath, matchSoFar: MatchResult): MatchResult => {
-        debug('AssignmentPattern')
-        if (pathIs(path, n.ObjectProperty)) {
-          path = path.get('value')
-        }
+        debug('AssignmentPattern (with optional right)')
         return (
           pathIs(path, n.AssignmentPattern) ? wholeMatcher : leftMatcher
         ).match(path, matchSoFar)
