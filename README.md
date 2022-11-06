@@ -84,7 +84,7 @@ These are docs for the version 2 beta branch.
   - [`$Optional<pattern>`](#optionalpattern-1)
   - [`$Or<...>`](#or-1)
   - [`$And<...>`](#and-1)
-  - [| Backreferences](#-backreferences)
+  - [Backreferences](#backreferences)
 - [Transform files](#transform-files)
   - [`exports.find` (optional)](#exportsfind-optional)
   - [`exports.where` (optional)](#exportswhere-optional)
@@ -651,7 +651,7 @@ Matches nodes that match at least one of the given type annotations. For example
 
 Matches nodes that match all of the given type annotations. This is mostly useful for narrowing down the types of nodes that can be captured into a given placeholder. For example, `let $a: $And<$type, $elem[]>` will match `let` declarations where the type annotation matches `$elem[]`, and capture the type annotation as `$type`.
 
-## | Backreferences
+## Backreferences
 
 If you use the same capture placeholder more than once, subsequent positions will have to match what was captured for the first occurrence of the placeholder.
 
