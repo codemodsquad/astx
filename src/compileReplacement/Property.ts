@@ -11,12 +11,12 @@ export default function compilePropertyReplacement(
   const pattern = path.value
   if (n.Identifier.check(pattern.key)) {
     if (pattern.shorthand && !pattern.computed) {
-      const captureReplacement = compilePlaceholderReplacement(
+      const placeholderReplacement = compilePlaceholderReplacement(
         path,
         pattern.key.name,
         compileOptions
       )
-      if (captureReplacement) return captureReplacement
+      if (placeholderReplacement) return placeholderReplacement
     }
   }
 }

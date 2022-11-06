@@ -8,11 +8,11 @@ export default function compileTypeParameterReplacement(
 ): CompiledReplacement | void {
   const pattern = path.value
   if (pattern.variance == null && pattern.bound == null) {
-    const captureReplacement = compilePlaceholderReplacement(
+    const placeholderReplacement = compilePlaceholderReplacement(
       path,
       pattern.name,
       compileOptions
     )
-    if (captureReplacement) return captureReplacement
+    if (placeholderReplacement) return placeholderReplacement
   }
 }

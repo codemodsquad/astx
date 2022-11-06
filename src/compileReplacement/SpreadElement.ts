@@ -10,11 +10,11 @@ export default function compileSpreadElementReplacement(
   const pattern = path.value
   const { argument } = pattern
   if (n.Identifier.check(argument)) {
-    const captureReplacement = compileArrayPlaceholderReplacement(
+    const placeholderReplacement = compileArrayPlaceholderReplacement(
       path,
       argument.name,
       compileOptions
     )
-    if (captureReplacement) return captureReplacement as any
+    if (placeholderReplacement) return placeholderReplacement as any
   }
 }

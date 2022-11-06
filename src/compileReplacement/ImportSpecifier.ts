@@ -14,12 +14,12 @@ export default function compileImportSpecifierReplacement(
     (!local || local.name === imported.name)
   ) {
     if (importKind == null || importKind === 'value') {
-      const captureReplacement = compilePlaceholderReplacement(
+      const placeholderReplacement = compilePlaceholderReplacement(
         path,
         imported.name,
         compileOptions
       )
-      if (captureReplacement) return captureReplacement
+      if (placeholderReplacement) return placeholderReplacement
     }
   }
 }

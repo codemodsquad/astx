@@ -19,12 +19,12 @@ export default function compileObjectTypePropertyReplacement(
       pattern.value.id.name === '$' &&
       pattern.variance == null
     ) {
-      const captureReplacement = compilePlaceholderReplacement(
+      const placeholderReplacement = compilePlaceholderReplacement(
         path,
         pattern.key.name,
         compileOptions
       )
-      if (captureReplacement) return captureReplacement
+      if (placeholderReplacement) return placeholderReplacement
     }
   }
 }

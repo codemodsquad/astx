@@ -10,12 +10,12 @@ export default function compileGenericTypeAnnotationReplacement(
   const n = compileOptions.backend.t.namedTypes
   if (n.Identifier.check(pattern.id)) {
     if (pattern.typeParameters == null) {
-      const captureReplacement = compilePlaceholderReplacement(
+      const placeholderReplacement = compilePlaceholderReplacement(
         path,
         pattern.id.name,
         compileOptions
       )
-      if (captureReplacement) return captureReplacement
+      if (placeholderReplacement) return placeholderReplacement
     }
   }
 }

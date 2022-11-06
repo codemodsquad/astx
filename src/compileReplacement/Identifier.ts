@@ -16,21 +16,21 @@ export default function compileIdentifierReplacement(
 
   const typeAnnotation = path.get('typeAnnotation')
 
-  const captureReplacement = compilePlaceholderReplacement(
+  const placeholderReplacement = compilePlaceholderReplacement(
     path,
     pattern.name,
     compileOptions
   )
-  if (captureReplacement) {
+  if (placeholderReplacement) {
     if (typeAnnotation.value != null) {
       const typeAnnotationReplacement = compileGenericNodeReplacement(
         typeAnnotation,
         compileOptions
       )
       return {
-        ...captureReplacement,
+        ...placeholderReplacement,
         generate: (match: ReplaceableMatch): Node | Node[] => {
-          const generated = captureReplacement.generate(match)
+          const generated = placeholderReplacement.generate(match)
           if (!Array.isArray(generated)) {
             ;(generated as any).typeAnnotation =
               typeAnnotationReplacement.generate(match)
@@ -39,7 +39,7 @@ export default function compileIdentifierReplacement(
         },
       }
     }
-    return captureReplacement
+    return placeholderReplacement
   }
   pattern.name = unescapeIdentifier(pattern.name)
 }

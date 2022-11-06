@@ -14,12 +14,12 @@ export default function compileFunctionTypeParamReplacement(
     n.Identifier.check(pattern.typeAnnotation.id)
   ) {
     if (pattern.typeAnnotation.typeParameters == null) {
-      const captureReplacement = compilePlaceholderReplacement(
+      const placeholderReplacement = compilePlaceholderReplacement(
         path,
         pattern.typeAnnotation.id.name,
         compileOptions
       )
-      if (captureReplacement) return captureReplacement
+      if (placeholderReplacement) return placeholderReplacement
     }
   }
 }

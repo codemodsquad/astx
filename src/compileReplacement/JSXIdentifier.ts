@@ -9,11 +9,11 @@ export default function compileJSXIdentifierReplacement(
   compileOptions: CompileReplacementOptions
 ): CompiledReplacement | void {
   const pattern = path.value
-  const captureReplacement = compilePlaceholderReplacement(
+  const placeholderReplacement = compilePlaceholderReplacement(
     path,
     pattern.name,
     compileOptions
   )
-  if (captureReplacement) return captureReplacement
+  if (placeholderReplacement) return placeholderReplacement
   pattern.name = unescapeIdentifier(pattern.name)
 }

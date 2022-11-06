@@ -11,12 +11,12 @@ export default function compileImportDefaultSpecifierReplacement(
   if (local != null) {
     const { importKind } = (path.parentPath as NodePath<ImportDeclaration>).node
     if (importKind == null || importKind === 'value') {
-      const captureReplacement = compilePlaceholderReplacement(
+      const placeholderReplacement = compilePlaceholderReplacement(
         path,
         local.name,
         compileOptions
       )
-      if (captureReplacement) return captureReplacement
+      if (placeholderReplacement) return placeholderReplacement
     }
   }
 }

@@ -15,12 +15,12 @@ export default function compileClassPropertyReplacement(
       pattern.variance == null &&
       pattern.value == null
     ) {
-      const captureReplacement = compilePlaceholderReplacement(
+      const placeholderReplacement = compilePlaceholderReplacement(
         path,
         pattern.key.name,
         compileOptions
       )
-      if (captureReplacement) return captureReplacement
+      if (placeholderReplacement) return placeholderReplacement
     }
   }
 }

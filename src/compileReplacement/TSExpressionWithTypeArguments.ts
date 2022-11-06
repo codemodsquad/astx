@@ -10,12 +10,12 @@ export default function compileTSExpressionWithTypeArgumentsReplacement(
   const pattern = path.value
   if (n.Identifier.check(pattern.expression)) {
     if (pattern.typeParameters == null) {
-      const captureReplacement = compilePlaceholderReplacement(
+      const placeholderReplacement = compilePlaceholderReplacement(
         path,
         pattern.expression.name,
         compileOptions
       )
-      if (captureReplacement) return captureReplacement
+      if (placeholderReplacement) return placeholderReplacement
     }
   }
 }

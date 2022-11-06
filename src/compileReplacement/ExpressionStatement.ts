@@ -9,11 +9,11 @@ export default function compileExpressionStatementReplacement(
   const pattern = path.value
   const n = compileOptions.backend.t.namedTypes
   if (n.Identifier.check(pattern.expression)) {
-    const captureReplacement = compilePlaceholderReplacement(
+    const placeholderReplacement = compilePlaceholderReplacement(
       path,
       pattern.expression.name,
       compileOptions
     )
-    if (captureReplacement) return captureReplacement
+    if (placeholderReplacement) return placeholderReplacement
   }
 }

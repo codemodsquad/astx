@@ -17,12 +17,12 @@ export default function compileTSPropertySignatureReplacement(
           n.Identifier.check(pattern.typeAnnotation.typeAnnotation.typeName) &&
           pattern.typeAnnotation.typeAnnotation.typeName.name === '$'))
     ) {
-      const captureReplacement = compilePlaceholderReplacement(
+      const placeholderReplacement = compilePlaceholderReplacement(
         path,
         pattern.key.name,
         compileOptions
       )
-      if (captureReplacement) return captureReplacement
+      if (placeholderReplacement) return placeholderReplacement
     }
   }
 }

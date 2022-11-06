@@ -10,12 +10,12 @@ export default function compileJSXAttributeReplacement(
   const pattern = path.value
   if (n.JSXIdentifier.check(pattern.name)) {
     if (pattern.value == null) {
-      const captureReplacement = compilePlaceholderReplacement(
+      const placeholderReplacement = compilePlaceholderReplacement(
         path,
         pattern.name.name,
         compileOptions
       )
-      if (captureReplacement) return captureReplacement
+      if (placeholderReplacement) return placeholderReplacement
     }
   }
 }

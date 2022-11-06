@@ -10,12 +10,12 @@ export default function compileVariableDeclaratorReplacement(
   const pattern = path.value
   if (n.Identifier.check(pattern.id)) {
     if (pattern.init == null) {
-      const captureReplacement = compilePlaceholderReplacement(
+      const placeholderReplacement = compilePlaceholderReplacement(
         path,
         pattern.id.name,
         compileOptions
       )
-      if (captureReplacement) return captureReplacement
+      if (placeholderReplacement) return placeholderReplacement
     }
   }
 }

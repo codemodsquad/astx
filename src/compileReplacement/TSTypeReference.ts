@@ -10,12 +10,12 @@ export default function compileTSTypeReferenceReplacement(
   const pattern = path.value
   if (n.Identifier.check(pattern.typeName)) {
     if (pattern.typeParameters == null) {
-      const captureReplacement = compilePlaceholderReplacement(
+      const placeholderReplacement = compilePlaceholderReplacement(
         path,
         pattern.typeName.name,
         compileOptions
       )
-      if (captureReplacement) return captureReplacement
+      if (placeholderReplacement) return placeholderReplacement
     }
   }
 }
