@@ -236,6 +236,7 @@ and is _captured_ as `$a`.
 
 Replace patterns are almost identical to find patterns, except that placeholders get replaced with whatever was _captured_ into
 the placeholder name by the find pattern, and special find constructs like `$Or(A, B)` have no special meaning in replace patterns.
+(In the future, there may be special replace constructs that perform some kind of transformation on captured nodes.)
 
 For example, the find pattern `foo($a)` matches `foo(1 + 2)`, then the replace pattern `foo({ value: $a })` will generate the code
 `foo({ value: 1 + 2 })`.
