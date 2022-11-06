@@ -25,6 +25,25 @@ These are docs for the version 2 beta branch.
   - [Converting require statements to imports](#converting-require-statements-to-imports)
   - [Making code DRY](#making-code-dry)
 - [Prior art and philosophy](#prior-art-and-philosophy)
+- [Pattern Language](#pattern-language)
+  - [Placeholders](#placeholders)
+    - [Node Placeholders (`$<name>`)](#node-placeholders-name)
+    - [Array Placeholders (`$$<name>`)](#array-placeholders-name)
+    - [Rest Placeholders (`$$$<name>`)](#rest-placeholders-name)
+    - [Anonymous Placeholders](#anonymous-placeholders)
+    - [Backreferences](#backreferences)
+  - [Object Matching](#object-matching)
+  - [List Matching](#list-matching)
+    - [Ordered and unordered List Matching](#ordered-and-unordered-list-matching)
+    - [Support Table](#support-table)
+  - [String Matching](#string-matching)
+  - [Extracting nodes](#extracting-nodes)
+  - [`$Optional(pattern)`](#optionalpattern)
+  - [`$Or(...)`](#or)
+  - [`$And(...)`](#and)
+  - [`$Optional<pattern>`](#optionalpattern-1)
+  - [`$Or<...>`](#or-1)
+  - [`$And<...>`](#and-1)
 - [API](#api)
   - [interface NodePath](#interface-nodepath)
   - [class Astx](#class-astx)
@@ -66,25 +85,6 @@ These are docs for the version 2 beta branch.
     - [`.arrayCaptures`](#arraycaptures)
     - [`.arrayPathCaptures`](#arraypathcaptures)
     - [`.stringCaptures`](#stringcaptures)
-- [Match Patterns](#match-patterns)
-  - [Placeholders](#placeholders)
-    - [Node Placeholders (`$<name>`)](#node-placeholders-name)
-    - [Array Placeholders (`$$<name>`)](#array-placeholders-name)
-    - [Rest Placeholders (`$$$<name>`)](#rest-placeholders-name)
-    - [Anonymous Placeholders](#anonymous-placeholders)
-  - [Object Matching](#object-matching)
-  - [List Matching](#list-matching)
-    - [Ordered and unordered List Matching](#ordered-and-unordered-list-matching)
-    - [Support Table](#support-table)
-  - [String Matching](#string-matching)
-  - [Extracting nodes](#extracting-nodes)
-  - [`$Optional(pattern)`](#optionalpattern)
-  - [`$Or(...)`](#or)
-  - [`$And(...)`](#and)
-  - [`$Optional<pattern>`](#optionalpattern-1)
-  - [`$Or<...>`](#or-1)
-  - [`$And<...>`](#and-1)
-  - [Backreferences](#backreferences)
 - [Transform files](#transform-files)
   - [`exports.find` (optional)](#exportsfind-optional)
   - [`exports.where` (optional)](#exportswhere-optional)
@@ -222,6 +222,213 @@ So the philosophy of `astx` is:
 - **Use the same search and replace pattern syntax in the javascript API for anything more complex, so that you have unlimited flexibility**
 
 Paste your code into [AST Explorer](https://astexplorer.net/) if you need to learn about the structure of the AST.
+
+# Pattern Language
+
+Astx find patterns are just JavaScript or TypeScript code that may contain _placeholder_ wildcards or other special constructs
+like `$Or(A, B)`. Generally speaking, parts of the pattern that aren't wildcards or special constructs have to match exactly.
+
+For example, the find pattern `foo($a)` matches any call to the function `foo` with a single argument. The argument can anything
+and is _captured_ as `$a`.
+
+Replace patterns are almost identical to find patterns, except that placeholders get replaced with whatever was _captured_ into
+the placeholder name by the find pattern, and special find constructs like `$Or(A, B)` have no special meaning in replace patterns.
+
+For example, the find pattern `foo($a)` matches `foo(1 + 2)`, then the replace pattern `foo({ value: $a })` will generate the code
+`foo({ value: 1 + 2 })`.
+
+## Placeholders
+
+Generally speaking, an identifier starting with `$` is a _placeholder_ that functions like a wildcard. There are three types of placeholders:
+
+- `$<name>` matches any single node ("node placeholder")
+- `$$<name>` matches a contiguous list of nodes ("array placeholder")
+- `$$$<name>`: matches all other siblings ("rest placeholder")
+
+The `<name>` (if given) must start with a letter or number; otherwise the identifier will
+not be treated as a placeholder.
+
+Rest placeholders (`$$$`) may not be sibilings of ordered list placeholders (`$$`).
+
+Unless a placeholder is anonymous, it will "capture" the matched node(s), meaning you can use the same placeholder in the
+replacement pattern to interpolate the matched node(s) into the generated replacement. In the Node API you can also access
+the captured AST paths/nodes via the placeholder name.
+
+### Node Placeholders (`$<name>`)
+
+These placeholders match a single node. For example, the pattern `[$a, $b]` matches an array expression with two elements,
+and those elements are captured as `$a` and `$b`.
+
+### Array Placeholders (`$$<name>`)
+
+These placeholders match a contiguous list of nodes. For example, the pattern `[1, $$a, 2, $$b]` matches an array expression
+with `1` as the first element, and `2` as a succeeding element. Any elements between `1` and the first `2` is captured as `$$a`,
+and elements after the first `2` are captured as `$$b`.
+
+### Rest Placeholders (`$$$<name>`)
+
+These placeholders match the rest of the siblings that weren't matched by something else. For example, the pattern `[1, $$$a, 2]`
+matches an array expression that has elements `1` and `2` at any index. Any other elements (including additional occurrences of `1`
+and `2`) are captured as `$$$a`.
+
+### Anonymous Placeholders
+
+You can use a placeholder without a name to match node(s) without capturing them. `$` will match any single node, `$$` will match a
+contiguous list of nodes, and `$$$` will match all other siblings.
+
+### Backreferences
+
+If you use the same capture placeholder more than once, subsequent positions will have to match what was captured for the first occurrence of the placeholder.
+
+For example, the pattern `foo($a, $a, $b, $b)` will match only `foo(1, 1, {foo: 1}, {foo: 1})` in the following:
+
+```js
+foo(1, 1, { foo: 1 }, { foo: 1 }) // match
+foo(1, 2, { foo: 1 }, { foo: 1 }) // no match
+foo(1, 1, { foo: 1 }, { bar: 1 }) // no match
+```
+
+**Note**: array capture placeholders (`$$a`) and rest capture placeholders (`$$$a`) don't currently support backreferencing.
+
+## Object Matching
+
+An `ObjectExpression` (aka object literal) pattern will match any `ObjectExpression` in your code with the same properties in any order.
+It will not match if there are missing or additional properties. For example, `{ foo: 1, bar: $bar }` will match `{ foo: 1, bar: 2 }` or `{ bar: 'hello', foo: 1 }`
+but not `{ foo: 1 }` or `{ foo: 1, bar: 2, baz: 3 }`.
+
+You can match additional properties by using `...$$captureName`, for example `{ foo: 1, ...$$rest }` will match `{ foo: 1 }`, `{ foo: 1, bar: 2 }`, `{ foo: 1, bar: 2, ...props }` etc.
+The additional properties will be captured in `match.arrayCaptures`/`match.arrayPathCaptures`, and can be spread in replacement expressions. For example,
+`` astx.find`{ foo: 1, ...$$rest }`.replace`{ bar: 1, ...$$rest }` `` will transform `{ foo: 1, qux: {}, ...props }` into `{ bar: 1, qux: {}, ...props }`.
+
+A spread property that isn't of the form `/^\$\$[a-z0-9]+$/i` is not a capture placeholder, for example `{ ...foo }` will only match `{ ...foo }` and `{ ...$_$foo }` will only
+match `{ ...$$foo }` (leading `$_` is an escape for `$`).
+
+There is currently no way to match properties in a specific order, but it could be added in the future.
+
+## List Matching
+
+In many cases where there is a list of nodes in the AST you can match
+multiple elements with a placeholder starting with `$$`. For example, `[$$before, 3, $$after]` will match any array expression containing an element `3`; elements before the
+first `3` will be captured in `$$before` and elements after the first `3` will be captured in `$$after`.
+
+This works even with block statements. For example, `function foo() { $$before; throw new Error('test'); $$after; }` will match `function foo()` that contains a `throw new Error('test')`,
+and the statements before and after that throw statement will get captured in `$$before` and `$$after`, respectively.
+
+### Ordered and unordered List Matching
+
+In some cases list matching will be ordered by default, and in some cases it will be unordered. For example, `ObjectExpression` property matches are unordered by default, as shown in the table below.
+Using a `$$` placeholder or the special `$Ordered` placeholder will force ordered matching. Using a `$$$` placeholder or the special `$Unordered` placeholder will force unordered matching.
+
+If you use a placeholder starting with `$$$`, it's treated as a "rest" capture, and all other elements of the
+match expression will be matched out of order. For example, `import {a, b, $$$rest} from 'foo'` would match
+`import {c, b, d, e, a} from 'foo'`, putting specifiers `c`, `d`, and `e`, into the `$$$rest` placeholder.
+
+Rest placeholders (`$$$`) may not be sibilings of ordered list placeholders (`$$`).
+
+### Support Table
+
+Some items marked TODO probably actually work, but are untested.
+
+| Type                                                  | Supports list matching?                    | Unordered by default? | Notes                                                                      |
+| ----------------------------------------------------- | ------------------------------------------ | --------------------- | -------------------------------------------------------------------------- |
+| `ArrayExpression.elements`                            | ✅                                         |                       |                                                                            |
+| `ArrayPattern.elements`                               | ✅                                         |                       |                                                                            |
+| `BlockStatement.body`                                 | ✅                                         |                       |                                                                            |
+| `CallExpression.arguments`                            | ✅                                         |                       |                                                                            |
+| `Class(Declaration/Expression).implements`            | ✅                                         | ✅                    |                                                                            |
+| `ClassBody.body`                                      | ✅                                         | ✅                    |                                                                            |
+| `ComprehensionExpression.blocks`                      | TODO                                       |                       |                                                                            |
+| `DeclareClass.body`                                   | TODO                                       | ✅                    |                                                                            |
+| `DeclareClass.implements`                             | TODO                                       | ✅                    |                                                                            |
+| `DeclareExportDeclaration.specifiers`                 | TODO                                       | ✅                    |                                                                            |
+| `DeclareInterface.body`                               | TODO                                       |                       |                                                                            |
+| `DeclareInterface.extends`                            | TODO                                       |                       |                                                                            |
+| `DoExpression.body`                                   | TODO                                       |                       |                                                                            |
+| `ExportNamedDeclaration.specifiers`                   | ✅                                         | ✅                    |                                                                            |
+| `Function.decorators`                                 | TODO                                       |                       |                                                                            |
+| `Function.params`                                     | ✅                                         |                       |                                                                            |
+| `FunctionTypeAnnotation/TSFunctionType.params`        | ✅                                         |                       |                                                                            |
+| `GeneratorExpression.blocks`                          | TODO                                       |                       |                                                                            |
+| `ImportDeclaration.specifiers`                        | ✅                                         | ✅                    |                                                                            |
+| `(TS)InterfaceDeclaration.body`                       | TODO                                       | ✅                    |                                                                            |
+| `(TS)InterfaceDeclaration.extends`                    | TODO                                       | ✅                    |                                                                            |
+| `IntersectionTypeAnnotation/TSIntersectionType.types` | ✅                                         | ✅                    |                                                                            |
+| `JSX(Element/Fragment).children`                      | ✅                                         |                       |                                                                            |
+| `JSX(Opening)Element.attributes`                      | ✅                                         | ✅                    |                                                                            |
+| `MethodDefinition.decorators`                         | TODO                                       |                       |                                                                            |
+| `NewExpression.arguments`                             | ✅                                         |                       |                                                                            |
+| `ObjectExpression.properties`                         | ✅                                         | ✅                    |                                                                            |
+| `ObjectPattern.decorators`                            | TODO                                       |                       |                                                                            |
+| `ObjectPattern.properties`                            | ✅                                         | ✅                    |                                                                            |
+| `(ObjectTypeAnnotation/TSTypeLiteral).properties`     | ✅                                         | ✅                    | Use `$a: $` to match one property, `$$a: $` or `$$$a: $` to match multiple |
+| `Program.body`                                        | ✅                                         |                       |                                                                            |
+| `Property.decorators`                                 | TODO                                       |                       |                                                                            |
+| `SequenceExpression`                                  | ✅                                         |                       |                                                                            |
+| `SwitchCase.consequent`                               | ✅                                         |                       |                                                                            |
+| `SwitchStatement.cases`                               | TODO                                       |                       |                                                                            |
+| `TemplateLiteral.quasis/expressions`                  | ❓ not sure if I can come up with a syntax |                       |                                                                            |
+| `TryStatement.guardedHandlers`                        | TODO                                       |                       |                                                                            |
+| `TryStatement.handlers`                               | TODO                                       |                       |                                                                            |
+| `TSFunctionType.parameters`                           | ✅                                         |                       |                                                                            |
+| `TSCallSignatureDeclaration.parameters`               | TODO                                       |                       |                                                                            |
+| `TSConstructorType.parameters`                        | TODO                                       |                       |                                                                            |
+| `TSConstructSignatureDeclaration.parameters`          | TODO                                       |                       |                                                                            |
+| `TSDeclareFunction.params`                            | TODO                                       |                       |                                                                            |
+| `TSDeclareMethod.params`                              | TODO                                       |                       |                                                                            |
+| `EnumDeclaration.body/TSEnumDeclaration.members`      | TODO                                       | ✅                    |                                                                            |
+| `TSIndexSignature.parameters`                         | TODO                                       |                       |                                                                            |
+| `TSMethodSignature.parameters`                        | TODO                                       |                       |                                                                            |
+| `TSModuleBlock.body`                                  | TODO                                       |                       |                                                                            |
+| `TSTypeLiteral.members`                               | ✅                                         | ✅                    |                                                                            |
+| `TupleTypeAnnotation/TSTupleType.types`               | ✅                                         |                       |                                                                            |
+| `(TS)TypeParameterDeclaration.params`                 | ✅                                         |                       |                                                                            |
+| `(TS)TypeParameterInstantiation.params`               | ✅                                         |                       |                                                                            |
+| `UnionTypeAnnotation/TSUnionType.types`               | ✅                                         | ✅                    |                                                                            |
+| `VariableDeclaration.declarations`                    | ✅                                         |                       |                                                                            |
+| `WithStatement.body`                                  | ❌ who uses with statements...             |                       |                                                                            |
+
+## String Matching
+
+A string that's just a placeholder like `'$foo'` will match any string and capture its contents into `match.stringCaptures.$foo`.
+The same escaping rules apply as for identifiers. This also works for template literals like `` `$foo` `` and tagged template literals like `` doSomething`$foo` ``.
+
+This can be helpful for working with import statements. For example, see [Converting require statements to imports](#converting-require-statements-to-imports).
+
+## Extracting nodes
+
+An empty comment (`/**/`) in a pattern will "extract" a node for matching.
+For example the pattern `const x = { /**/ $key: $value }` will just
+match `ObjectProperty` nodes against `$key: $value`.
+
+The parser wouldn't be able to parse `$key: $value` by itself or
+know that you mean an `ObjectProperty`, as opposed to something different like the `x: number` in `const x: number = 1`, so using `/**/` enables you to work around this. You can use this to match any node type that isn't a valid expression or statement by itself. For example `type T = /**/ Array<number>`
+would match `Array<number>` type annotations.
+
+`/**/` also works in replacement patterns.
+
+## `$Optional(pattern)`
+
+Matches either the given expression or no node in its place. For example `let $a = $Optional(2)` will match `let foo = 2` and `let foo` (with no initializer), but not `let foo = 3`.
+
+## `$Or(...)`
+
+Matches nodes that match at least one of the given patterns. For example `$Or(foo($$args), {a: $value})` will match calls to `foo` and object literals with only an `a` property.
+
+## `$And(...)`
+
+Matches nodes that match all of the given patterns. This is mostly useful for narrowing down the types of nodes that can be captured into a given placeholder. For example, `let $a = $And($init, $a + $b)` will match `let` declarations where the initializer matches `$a + $b`, and capture the initializer as `$init`.
+
+## `$Optional<pattern>`
+
+Matches either the given type annotation or no node in its place. For example `let $a: $Optional<number>` will match `let foo: number` and `let foo` (with no type annotation), but not ` let foo: string``let foo: string `.
+
+## `$Or<...>`
+
+Matches nodes that match at least one of the given type annotations. For example `let $x: $Or<number[], string[]>` will match `let` declarations of type `number[]` or `string[]`.
+
+## `$And<...>`
+
+Matches nodes that match all of the given type annotations. This is mostly useful for narrowing down the types of nodes that can be captured into a given placeholder. For example, `let $a: $And<$type, $elem[]>` will match `let` declarations where the type annotation matches `$elem[]`, and capture the type annotation as `$type`.
 
 # API
 
@@ -469,201 +676,6 @@ The `NodePath[]`s captured from array placeholders in the match pattern. For exa
 The string values captured from string placeholders in the match
 pattern. For example if the pattern was `import foo from '$foo'`,
 `stringCaptures.$foo` will be the import path.
-
-# Match Patterns
-
-## Placeholders
-
-Generally speaking, an identifier starting with `$` is a _placeholder_ that functions like a wildcard. There are three types of placeholders:
-
-- `$<name>` matches any single node ("node placeholder")
-- `$$<name>` matches a contiguous list of nodes ("array placeholder")
-- `$$$<name>`: matches all other siblings ("rest placeholder")
-
-The `<name>` (if given) must start with a letter or number; otherwise the identifier will
-not be treated as a placeholder.
-
-Rest placeholders (`$$$`) may not be sibilings of ordered list placeholders (`$$`).
-
-Unless a placeholder is anonymous, it will "capture" the matched node(s), meaning you can use the same placeholder in the
-replacement pattern to interpolate the matched node(s) into the generated replacement. In the Node API you can also access
-the captured AST paths/nodes via the placeholder name.
-
-### Node Placeholders (`$<name>`)
-
-These placeholders match a single node. For example, the pattern `[$a, $b]` matches an array expression with two elements,
-and those elements are captured as `$a` and `$b`.
-
-### Array Placeholders (`$$<name>`)
-
-These placeholders match a contiguous list of nodes. For example, the pattern `[1, $$a, 2, $$b]` matches an array expression
-with `1` as the first element, and `2` as a succeeding element. Any elements between `1` and the first `2` is captured as `$$a`,
-and elements after the first `2` are captured as `$$b`.
-
-### Rest Placeholders (`$$$<name>`)
-
-These placeholders match the rest of the siblings that weren't matched by something else. For example, the pattern `[1, $$$a, 2]`
-matches an array expression that has elements `1` and `2` at any index. Any other elements (including additional occurrences of `1`
-and `2`) are captured as `$$$a`.
-
-### Anonymous Placeholders
-
-You can use a placeholder without a name to match node(s) without capturing them. `$` will match any single node, `$$` will match a
-contiguous list of nodes, and `$$$` will match all other siblings.
-
-## Object Matching
-
-An `ObjectExpression` (aka object literal) pattern will match any `ObjectExpression` in your code with the same properties in any order.
-It will not match if there are missing or additional properties. For example, `{ foo: 1, bar: $bar }` will match `{ foo: 1, bar: 2 }` or `{ bar: 'hello', foo: 1 }`
-but not `{ foo: 1 }` or `{ foo: 1, bar: 2, baz: 3 }`.
-
-You can match additional properties by using `...$$captureName`, for example `{ foo: 1, ...$$rest }` will match `{ foo: 1 }`, `{ foo: 1, bar: 2 }`, `{ foo: 1, bar: 2, ...props }` etc.
-The additional properties will be captured in `match.arrayCaptures`/`match.arrayPathCaptures`, and can be spread in replacement expressions. For example,
-`` astx.find`{ foo: 1, ...$$rest }`.replace`{ bar: 1, ...$$rest }` `` will transform `{ foo: 1, qux: {}, ...props }` into `{ bar: 1, qux: {}, ...props }`.
-
-A spread property that isn't of the form `/^\$\$[a-z0-9]+$/i` is not a capture placeholder, for example `{ ...foo }` will only match `{ ...foo }` and `{ ...$_$foo }` will only
-match `{ ...$$foo }` (leading `$_` is an escape for `$`).
-
-There is currently no way to match properties in a specific order, but it could be added in the future.
-
-## List Matching
-
-In many cases where there is a list of nodes in the AST you can match
-multiple elements with a placeholder starting with `$$`. For example, `[$$before, 3, $$after]` will match any array expression containing an element `3`; elements before the
-first `3` will be captured in `$$before` and elements after the first `3` will be captured in `$$after`.
-
-This works even with block statements. For example, `function foo() { $$before; throw new Error('test'); $$after; }` will match `function foo()` that contains a `throw new Error('test')`,
-and the statements before and after that throw statement will get captured in `$$before` and `$$after`, respectively.
-
-### Ordered and unordered List Matching
-
-In some cases list matching will be ordered by default, and in some cases it will be unordered. For example, `ObjectExpression` property matches are unordered by default, as shown in the table below.
-Using a `$$` placeholder or the special `$Ordered` placeholder will force ordered matching. Using a `$$$` placeholder or the special `$Unordered` placeholder will force unordered matching.
-
-If you use a placeholder starting with `$$$`, it's treated as a "rest" capture, and all other elements of the
-match expression will be matched out of order. For example, `import {a, b, $$$rest} from 'foo'` would match
-`import {c, b, d, e, a} from 'foo'`, putting specifiers `c`, `d`, and `e`, into the `$$$rest` placeholder.
-
-Rest placeholders (`$$$`) may not be sibilings of ordered list placeholders (`$$`).
-
-### Support Table
-
-Some items marked TODO probably actually work, but are untested.
-
-| Type                                                  | Supports list matching?                    | Unordered by default? | Notes                                                                      |
-| ----------------------------------------------------- | ------------------------------------------ | --------------------- | -------------------------------------------------------------------------- |
-| `ArrayExpression.elements`                            | ✅                                         |                       |                                                                            |
-| `ArrayPattern.elements`                               | ✅                                         |                       |                                                                            |
-| `BlockStatement.body`                                 | ✅                                         |                       |                                                                            |
-| `CallExpression.arguments`                            | ✅                                         |                       |                                                                            |
-| `Class(Declaration/Expression).implements`            | ✅                                         | ✅                    |                                                                            |
-| `ClassBody.body`                                      | ✅                                         | ✅                    |                                                                            |
-| `ComprehensionExpression.blocks`                      | TODO                                       |                       |                                                                            |
-| `DeclareClass.body`                                   | TODO                                       | ✅                    |                                                                            |
-| `DeclareClass.implements`                             | TODO                                       | ✅                    |                                                                            |
-| `DeclareExportDeclaration.specifiers`                 | TODO                                       | ✅                    |                                                                            |
-| `DeclareInterface.body`                               | TODO                                       |                       |                                                                            |
-| `DeclareInterface.extends`                            | TODO                                       |                       |                                                                            |
-| `DoExpression.body`                                   | TODO                                       |                       |                                                                            |
-| `ExportNamedDeclaration.specifiers`                   | ✅                                         | ✅                    |                                                                            |
-| `Function.decorators`                                 | TODO                                       |                       |                                                                            |
-| `Function.params`                                     | ✅                                         |                       |                                                                            |
-| `FunctionTypeAnnotation/TSFunctionType.params`        | ✅                                         |                       |                                                                            |
-| `GeneratorExpression.blocks`                          | TODO                                       |                       |                                                                            |
-| `ImportDeclaration.specifiers`                        | ✅                                         | ✅                    |                                                                            |
-| `(TS)InterfaceDeclaration.body`                       | TODO                                       | ✅                    |                                                                            |
-| `(TS)InterfaceDeclaration.extends`                    | TODO                                       | ✅                    |                                                                            |
-| `IntersectionTypeAnnotation/TSIntersectionType.types` | ✅                                         | ✅                    |                                                                            |
-| `JSX(Element/Fragment).children`                      | ✅                                         |                       |                                                                            |
-| `JSX(Opening)Element.attributes`                      | ✅                                         | ✅                    |                                                                            |
-| `MethodDefinition.decorators`                         | TODO                                       |                       |                                                                            |
-| `NewExpression.arguments`                             | ✅                                         |                       |                                                                            |
-| `ObjectExpression.properties`                         | ✅                                         | ✅                    |                                                                            |
-| `ObjectPattern.decorators`                            | TODO                                       |                       |                                                                            |
-| `ObjectPattern.properties`                            | ✅                                         | ✅                    |                                                                            |
-| `(ObjectTypeAnnotation/TSTypeLiteral).properties`     | ✅                                         | ✅                    | Use `$a: $` to match one property, `$$a: $` or `$$$a: $` to match multiple |
-| `Program.body`                                        | ✅                                         |                       |                                                                            |
-| `Property.decorators`                                 | TODO                                       |                       |                                                                            |
-| `SequenceExpression`                                  | ✅                                         |                       |                                                                            |
-| `SwitchCase.consequent`                               | ✅                                         |                       |                                                                            |
-| `SwitchStatement.cases`                               | TODO                                       |                       |                                                                            |
-| `TemplateLiteral.quasis/expressions`                  | ❓ not sure if I can come up with a syntax |                       |                                                                            |
-| `TryStatement.guardedHandlers`                        | TODO                                       |                       |                                                                            |
-| `TryStatement.handlers`                               | TODO                                       |                       |                                                                            |
-| `TSFunctionType.parameters`                           | ✅                                         |                       |                                                                            |
-| `TSCallSignatureDeclaration.parameters`               | TODO                                       |                       |                                                                            |
-| `TSConstructorType.parameters`                        | TODO                                       |                       |                                                                            |
-| `TSConstructSignatureDeclaration.parameters`          | TODO                                       |                       |                                                                            |
-| `TSDeclareFunction.params`                            | TODO                                       |                       |                                                                            |
-| `TSDeclareMethod.params`                              | TODO                                       |                       |                                                                            |
-| `EnumDeclaration.body/TSEnumDeclaration.members`      | TODO                                       | ✅                    |                                                                            |
-| `TSIndexSignature.parameters`                         | TODO                                       |                       |                                                                            |
-| `TSMethodSignature.parameters`                        | TODO                                       |                       |                                                                            |
-| `TSModuleBlock.body`                                  | TODO                                       |                       |                                                                            |
-| `TSTypeLiteral.members`                               | ✅                                         | ✅                    |                                                                            |
-| `TupleTypeAnnotation/TSTupleType.types`               | ✅                                         |                       |                                                                            |
-| `(TS)TypeParameterDeclaration.params`                 | ✅                                         |                       |                                                                            |
-| `(TS)TypeParameterInstantiation.params`               | ✅                                         |                       |                                                                            |
-| `UnionTypeAnnotation/TSUnionType.types`               | ✅                                         | ✅                    |                                                                            |
-| `VariableDeclaration.declarations`                    | ✅                                         |                       |                                                                            |
-| `WithStatement.body`                                  | ❌ who uses with statements...             |                       |                                                                            |
-
-## String Matching
-
-A string that's just a placeholder like `'$foo'` will match any string and capture its contents into `match.stringCaptures.$foo`.
-The same escaping rules apply as for identifiers. This also works for template literals like `` `$foo` `` and tagged template literals like `` doSomething`$foo` ``.
-
-This can be helpful for working with import statements. For example, see [Converting require statements to imports](#converting-require-statements-to-imports).
-
-## Extracting nodes
-
-An empty comment (`/**/`) in a pattern will "extract" a node for matching.
-For example the pattern `const x = { /**/ $key: $value }` will just
-match `ObjectProperty` nodes against `$key: $value`.
-
-The parser wouldn't be able to parse `$key: $value` by itself or
-know that you mean an `ObjectProperty`, as opposed to something different like the `x: number` in `const x: number = 1`, so using `/**/` enables you to work around this. You can use this to match any node type that isn't a valid expression or statement by itself. For example `type T = /**/ Array<number>`
-would match `Array<number>` type annotations.
-
-`/**/` also works in replacement patterns.
-
-## `$Optional(pattern)`
-
-Matches either the given expression or no node in its place. For example `let $a = $Optional(2)` will match `let foo = 2` and `let foo` (with no initializer), but not `let foo = 3`.
-
-## `$Or(...)`
-
-Matches nodes that match at least one of the given patterns. For example `$Or(foo($$args), {a: $value})` will match calls to `foo` and object literals with only an `a` property.
-
-## `$And(...)`
-
-Matches nodes that match all of the given patterns. This is mostly useful for narrowing down the types of nodes that can be captured into a given placeholder. For example, `let $a = $And($init, $a + $b)` will match `let` declarations where the initializer matches `$a + $b`, and capture the initializer as `$init`.
-
-## `$Optional<pattern>`
-
-Matches either the given type annotation or no node in its place. For example `let $a: $Optional<number>` will match `let foo: number` and `let foo` (with no type annotation), but not ` let foo: string``let foo: string `.
-
-## `$Or<...>`
-
-Matches nodes that match at least one of the given type annotations. For example `let $x: $Or<number[], string[]>` will match `let` declarations of type `number[]` or `string[]`.
-
-## `$And<...>`
-
-Matches nodes that match all of the given type annotations. This is mostly useful for narrowing down the types of nodes that can be captured into a given placeholder. For example, `let $a: $And<$type, $elem[]>` will match `let` declarations where the type annotation matches `$elem[]`, and capture the type annotation as `$type`.
-
-## Backreferences
-
-If you use the same capture placeholder more than once, subsequent positions will have to match what was captured for the first occurrence of the placeholder.
-
-For example, the pattern `foo($a, $a, $b, $b)` will match only `foo(1, 1, {foo: 1}, {foo: 1})` in the following:
-
-```js
-foo(1, 1, { foo: 1 }, { foo: 1 }) // match
-foo(1, 2, { foo: 1 }, { foo: 1 }) // no match
-foo(1, 1, { foo: 1 }, { bar: 1 }) // no match
-```
-
-**Note**: array capture placeholders (like `$$a`) don't currently support backreferencing.
 
 # Transform files
 
