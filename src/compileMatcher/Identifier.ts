@@ -1,6 +1,6 @@
 import { Identifier, NodePath } from '../types'
 import compileMatcher, { CompiledMatcher, CompileOptions, MatchResult } from '.'
-import compileCaptureMatcher, { unescapeIdentifier } from './Capture'
+import compilePlaceholderMatcher, { unescapeIdentifier } from './Placeholder'
 
 export default function compileIdentifierMatcher(
   path: NodePath<Identifier, Identifier>,
@@ -11,7 +11,7 @@ export default function compileIdentifierMatcher(
 
   const typeAnnotation = path.get('typeAnnotation')
 
-  const captureMatcher = compileCaptureMatcher(
+  const placeholderMatcher = compilePlaceholderMatcher(
     path,
     pattern.name,
     compileOptions,
@@ -49,8 +49,8 @@ export default function compileIdentifierMatcher(
     }
   )
 
-  if (captureMatcher) {
-    const { captureAs } = captureMatcher
+  if (placeholderMatcher) {
+    const { placeholder } = placeholderMatcher
 
     if (typeAnnotation && typeAnnotation.value) {
       const typeAnnotationMatcher = compileMatcher(
@@ -59,14 +59,16 @@ export default function compileIdentifierMatcher(
       )
 
       return {
-        ...captureMatcher,
+        ...placeholderMatcher,
 
         match: (path: NodePath, matchSoFar: MatchResult): MatchResult => {
-          matchSoFar = captureMatcher.match(path, matchSoFar)
+          matchSoFar = placeholderMatcher.match(path, matchSoFar)
 
           if (matchSoFar == null) return null
 
-          const captured = captureAs ? matchSoFar.captures?.[captureAs] : null
+          const captured = placeholder
+            ? matchSoFar.captures?.[placeholder]
+            : null
 
           if (captured) {
             ;(captured.node as any).astx = {
@@ -82,7 +84,7 @@ export default function compileIdentifierMatcher(
       }
     }
 
-    return captureMatcher
+    return placeholderMatcher
   }
 
   pattern.name = unescapeIdentifier(pattern.name)

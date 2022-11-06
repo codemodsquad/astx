@@ -1,6 +1,6 @@
 import { TSPropertySignature, NodePath } from '../types'
 import { CompiledMatcher, CompileOptions } from '.'
-import compileCaptureMatcher from './Capture'
+import compilePlaceholderMatcher from './Placeholder'
 
 export default function compileTSPropertySignatureMatcher(
   path: NodePath<TSPropertySignature, TSPropertySignature>,
@@ -16,14 +16,14 @@ export default function compileTSPropertySignatureMatcher(
       (pattern.typeAnnotation == null ||
         n.TSAnyKeyword.check(pattern.typeAnnotation?.typeAnnotation))
     ) {
-      const captureMatcher = compileCaptureMatcher(
+      const placeholderMatcher = compilePlaceholderMatcher(
         path,
         pattern.key.name,
         compileOptions,
         { nodeType: 'TSTypeElement' }
       )
 
-      if (captureMatcher) return captureMatcher
+      if (placeholderMatcher) return placeholderMatcher
     }
   }
 }

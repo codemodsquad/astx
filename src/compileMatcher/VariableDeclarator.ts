@@ -1,6 +1,6 @@
 import { VariableDeclarator, NodePath } from '../types'
 import { CompiledMatcher, CompileOptions } from '.'
-import compileCaptureMatcher from './Capture'
+import compilePlaceholderMatcher from './Placeholder'
 
 export default function compileVariableDeclaratorMatcher(
   path: NodePath<VariableDeclarator, VariableDeclarator>,
@@ -11,14 +11,14 @@ export default function compileVariableDeclaratorMatcher(
 
   if (n.Identifier.check(pattern.id) && pattern.id.typeAnnotation == null) {
     if (pattern.init == null) {
-      const captureMatcher = compileCaptureMatcher(
+      const placeholderMatcher = compilePlaceholderMatcher(
         path,
         pattern.id.name,
         compileOptions,
         { nodeType: 'VariableDeclarator' }
       )
 
-      if (captureMatcher) return captureMatcher
+      if (placeholderMatcher) return placeholderMatcher
     }
   }
 }

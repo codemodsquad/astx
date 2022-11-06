@@ -1,6 +1,6 @@
 import { NodePath, ClassImplements } from '../types'
 import { CompiledMatcher, CompileOptions } from '.'
-import compileCaptureMatcher from './Capture'
+import compilePlaceholderMatcher from './Placeholder'
 
 export default function compileClassImplementsMatcher(
   path: NodePath<ClassImplements, ClassImplements>,
@@ -11,14 +11,14 @@ export default function compileClassImplementsMatcher(
 
   if (n.Identifier.check(pattern.id)) {
     if (pattern.typeParameters == null) {
-      const captureMatcher = compileCaptureMatcher(
+      const placeholderMatcher = compilePlaceholderMatcher(
         path,
         pattern.id.name,
         compileOptions,
         { nodeType: 'ClassImplements' }
       )
 
-      if (captureMatcher) return captureMatcher
+      if (placeholderMatcher) return placeholderMatcher
     }
   }
 }

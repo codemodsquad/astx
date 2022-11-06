@@ -1,6 +1,9 @@
 import { TemplateLiteral, NodePath } from '../types'
 import { CompileOptions, CompiledMatcher } from '.'
-import { compileStringCaptureMatcher, unescapeIdentifier } from './Capture'
+import {
+  compileStringPlaceholderMatcher,
+  unescapeIdentifier,
+} from './Placeholder'
 
 function generateValue(cooked: string): { raw: string; cooked: string } {
   return { raw: cooked.replace(/\\|`|\${/g, '\\$&'), cooked }
@@ -12,7 +15,7 @@ export default function matchTemplateLiteral(
 ): CompiledMatcher | void {
   const pattern: TemplateLiteral = path.value
 
-  const captureMatcher = compileStringCaptureMatcher(
+  const placeholderMatcher = compileStringPlaceholderMatcher(
     path,
     (node: TemplateLiteral) =>
       node.quasis.length === 1 ? node.quasis[0].value.cooked ?? null : null,
@@ -20,7 +23,7 @@ export default function matchTemplateLiteral(
     { nodeType: 'TemplateLiteral' }
   )
 
-  if (captureMatcher) return captureMatcher
+  if (placeholderMatcher) return placeholderMatcher
 
   if (pattern.quasis.length === 1) {
     const [quasi] = pattern.quasis

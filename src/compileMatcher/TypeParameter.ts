@@ -1,6 +1,6 @@
 import { TypeParameter, NodePath } from '../types'
 import { CompiledMatcher, CompileOptions } from '.'
-import compileCaptureMatcher from './Capture'
+import compilePlaceholderMatcher from './Placeholder'
 
 export default function compileTypeParameterMatcher(
   path: NodePath<TypeParameter, TypeParameter>,
@@ -9,13 +9,13 @@ export default function compileTypeParameterMatcher(
   const pattern: TypeParameter = path.value
 
   if (pattern.variance == null && pattern.bound == null) {
-    const captureMatcher = compileCaptureMatcher(
+    const placeholderMatcher = compilePlaceholderMatcher(
       path,
       pattern.name,
       compileOptions,
       { nodeType: 'TypeParameter' }
     )
 
-    if (captureMatcher) return captureMatcher
+    if (placeholderMatcher) return placeholderMatcher
   }
 }

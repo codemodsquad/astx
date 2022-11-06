@@ -1,7 +1,7 @@
 import { StringLiteral, NodePath } from '../types'
-import { getCaptureAs } from '../compileMatcher/Capture'
+import { getPlaceholder } from '../compileMatcher/Placeholder'
 import { CompiledReplacement, ReplaceableMatch } from './'
-import { unescapeIdentifier } from './Capture'
+import { unescapeIdentifier } from './Placeholder'
 import cloneNode from '../util/cloneNode'
 import * as t from '@babel/types'
 
@@ -9,11 +9,11 @@ export default function compileStringLiteralReplacement(
   path: NodePath<StringLiteral>
 ): CompiledReplacement | void {
   const pattern = path.value
-  const captureAs = getCaptureAs(pattern.value)
-  if (captureAs) {
+  const placeholder = getPlaceholder(pattern.value)
+  if (placeholder) {
     return {
       generate: (match: ReplaceableMatch): StringLiteral => {
-        const captured = match.stringCaptures?.[captureAs]
+        const captured = match.stringCaptures?.[placeholder]
         return captured ? t.stringLiteral(captured) : cloneNode(pattern)
       },
     }

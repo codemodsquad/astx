@@ -1,6 +1,6 @@
 import { JSXExpressionContainer, NodePath } from '../types'
 import { CompiledReplacement, CompileReplacementOptions } from '.'
-import compileCaptureReplacement from './Capture'
+import compilePlaceholderReplacement from './Placeholder'
 
 export default function compileJSXExpressionContainerReplacement(
   path: NodePath<JSXExpressionContainer, JSXExpressionContainer>,
@@ -9,7 +9,7 @@ export default function compileJSXExpressionContainerReplacement(
   const n = compileOptions.backend.t.namedTypes
   const pattern = path.value
   if (n.Identifier.check(pattern.expression)) {
-    const captureReplacement = compileCaptureReplacement(
+    const captureReplacement = compilePlaceholderReplacement(
       path,
       pattern.expression.name,
       compileOptions

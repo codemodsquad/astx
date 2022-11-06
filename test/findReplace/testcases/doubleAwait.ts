@@ -4,7 +4,7 @@ async function foo() {
 }
 `
 
-export const find = `await (await browser.$($a)).$b()`
+export const find = `await (await browser.$_($a)).$b()`
 
 export const expectedFind = [
   {

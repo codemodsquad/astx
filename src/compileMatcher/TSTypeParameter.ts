@@ -1,6 +1,6 @@
 import { TSTypeParameter, NodePath } from '../types'
 import { CompiledMatcher, CompileOptions } from '.'
-import compileCaptureMatcher from './Capture'
+import compilePlaceholderMatcher from './Placeholder'
 
 export default function compileTSTypeParameterMatcher(
   path: NodePath<TSTypeParameter, TSTypeParameter>,
@@ -9,13 +9,13 @@ export default function compileTSTypeParameterMatcher(
   const pattern: TSTypeParameter = path.value
 
   if (pattern.constraint == null && pattern.default == null) {
-    const captureMatcher = compileCaptureMatcher(
+    const placeholderMatcher = compilePlaceholderMatcher(
       path,
       pattern.name,
       compileOptions,
       { nodeType: 'TSTypeParameter' }
     )
 
-    if (captureMatcher) return captureMatcher
+    if (placeholderMatcher) return placeholderMatcher
   }
 }

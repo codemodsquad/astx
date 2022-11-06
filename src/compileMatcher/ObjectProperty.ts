@@ -1,6 +1,6 @@
 import { ObjectProperty, NodePath, NodeType } from '../types'
 import compileMatcher, { CompiledMatcher, CompileOptions, MatchResult } from '.'
-import compileCaptureMatcher from './Capture'
+import compilePlaceholderMatcher from './Placeholder'
 import indentDebug from './indentDebug'
 
 const nodeTypes: NodeType[] = ['ObjectProperty']
@@ -23,14 +23,14 @@ export default function compileObjectPropertyMatcher(
       !pattern.computed &&
       backend.t.astNodesAreEquivalent(pattern.key, pattern.value)
     ) {
-      const captureMatcher = compileCaptureMatcher(
+      const placeholderMatcher = compilePlaceholderMatcher(
         path,
         pattern.key.name,
         compileOptions,
         { nodeType: 'ObjectMember' }
       )
 
-      if (captureMatcher) return captureMatcher
+      if (placeholderMatcher) return placeholderMatcher
     }
   }
   if (!pattern.computed) {

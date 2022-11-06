@@ -1,6 +1,9 @@
 import { NodePath, StringLiteral } from '../types'
 import { CompileOptions, convertPredicateMatcher, CompiledMatcher } from '.'
-import { compileStringCaptureMatcher, unescapeIdentifier } from './Capture'
+import {
+  compileStringPlaceholderMatcher,
+  unescapeIdentifier,
+} from './Placeholder'
 
 export default function matchStringLiteral(
   path: NodePath<StringLiteral, StringLiteral>,
@@ -8,14 +11,14 @@ export default function matchStringLiteral(
 ): CompiledMatcher {
   const pattern: StringLiteral = path.value
   const n = compileOptions.backend.t.namedTypes
-  const captureMatcher = compileStringCaptureMatcher(
+  const placeholderMatcher = compileStringPlaceholderMatcher(
     path,
     (pattern) => pattern.value,
     compileOptions,
     { nodeType: 'StringLiteral' }
   )
 
-  if (captureMatcher) return captureMatcher
+  if (placeholderMatcher) return placeholderMatcher
 
   pattern.value = unescapeIdentifier(pattern.value)
 

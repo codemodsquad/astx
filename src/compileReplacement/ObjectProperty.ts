@@ -1,6 +1,6 @@
 import { ObjectProperty, NodePath } from '../types'
 import { CompiledReplacement, CompileReplacementOptions } from '.'
-import compileCaptureReplacement from './Capture'
+import compilePlaceholderReplacement from './Placeholder'
 
 export default function compileObjectPropertyReplacement(
   path: NodePath<ObjectProperty, ObjectProperty>,
@@ -10,7 +10,7 @@ export default function compileObjectPropertyReplacement(
   const pattern = path.value
   if (n.Identifier.check(pattern.key)) {
     if (pattern.shorthand && !pattern.computed) {
-      const captureReplacement = compileCaptureReplacement(
+      const captureReplacement = compilePlaceholderReplacement(
         path,
         pattern.key.name,
         compileOptions

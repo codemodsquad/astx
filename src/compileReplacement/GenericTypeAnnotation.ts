@@ -1,6 +1,6 @@
 import { GenericTypeAnnotation, NodePath } from '../types'
 import { CompiledReplacement, CompileReplacementOptions } from '.'
-import compileCaptureReplacement from './Capture'
+import compilePlaceholderReplacement from './Placeholder'
 
 export default function compileGenericTypeAnnotationReplacement(
   path: NodePath<GenericTypeAnnotation, GenericTypeAnnotation>,
@@ -10,7 +10,7 @@ export default function compileGenericTypeAnnotationReplacement(
   const n = compileOptions.backend.t.namedTypes
   if (n.Identifier.check(pattern.id)) {
     if (pattern.typeParameters == null) {
-      const captureReplacement = compileCaptureReplacement(
+      const captureReplacement = compilePlaceholderReplacement(
         path,
         pattern.id.name,
         compileOptions

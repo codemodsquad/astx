@@ -79,12 +79,12 @@ export default function compileGenericArrayMatcher(
   assertArrayMatchersValid(matchers)
 
   const unordered =
-    matchers.some((m) => m.restCaptureAs || m.captureAs === '$Unordered') ||
+    matchers.some((m) => m.restPlaceholder || m.placeholder === '$Unordered') ||
     (defaultUnordered &&
-      !matchers.some((m) => m.captureAs === '$Ordered' || m.arrayCaptureAs))
+      !matchers.some((m) => m.placeholder === '$Ordered' || m.arrayPlaceholder))
 
   matchers = matchers.filter(
-    (m) => m.captureAs !== '$Ordered' && m.captureAs !== '$Unordered'
+    (m) => m.placeholder !== '$Ordered' && m.placeholder !== '$Unordered'
   )
 
   if (unordered) {
@@ -93,7 +93,7 @@ export default function compileGenericArrayMatcher(
     })
   }
 
-  if (matchers.some((m) => m.captureAs || m.arrayCaptureAs)) {
+  if (matchers.some((m) => m.placeholder || m.arrayPlaceholder)) {
     return compileOrderedArrayMatcher(paths, compileOptions, {
       matchers,
       skipElement,
@@ -111,7 +111,7 @@ function assertArrayMatchersValid(matchers: CompiledMatcher[]) {
   let arrayMatcherCount = 0
   let restMatcher
   for (let i = 0; i < matchers.length; i++) {
-    if (matchers[i].restCaptureAs) {
+    if (matchers[i].restPlaceholder) {
       if (restMatcher) {
         throw new CompilePathError(
           `can't have two or more rest matchers as siblings`,
@@ -125,7 +125,7 @@ function assertArrayMatchersValid(matchers: CompiledMatcher[]) {
       } else {
         restMatcher = matchers[i]
       }
-    } else if (matchers[i].arrayCaptureAs) {
+    } else if (matchers[i].arrayPlaceholder) {
       if (restMatcher) {
         throw new CompilePathError(
           `can't mix array and rest matchers`,
@@ -155,7 +155,7 @@ function compileOrderedArrayMatcher(
   function remainingElements(matcherIndex: number): number {
     let count = 0
     for (let i = matcherIndex; i < matchers.length; i++) {
-      if (!matchers[i].arrayCaptureAs) count++
+      if (!matchers[i].arrayPlaceholder) count++
     }
     return count
   }
@@ -178,13 +178,13 @@ function compileOrderedArrayMatcher(
 
     const matcher = matchers[matcherIndex]
 
-    const { arrayCaptureAs } = matcher
+    const { arrayPlaceholder } = matcher
 
-    if (arrayCaptureAs) {
+    if (arrayPlaceholder) {
       if (matcherIndex === matchers.length - 1) {
         return mergeCaptures(matchSoFar, {
           arrayCaptures: {
-            [arrayCaptureAs]: paths.slice(sliceStart),
+            [arrayPlaceholder]: paths.slice(sliceStart),
           },
         })
       }
@@ -198,8 +198,8 @@ function compileOrderedArrayMatcher(
       )
     } else {
       const origMatchSoFar = matchSoFar
-      const prevArrayCaptureAs = matchers[matcherIndex - 1]?.arrayCaptureAs
-      const end = prevArrayCaptureAs
+      const prevArrayPlaceholder = matchers[matcherIndex - 1]?.arrayPlaceholder
+      const end = prevArrayPlaceholder
         ? paths.length - remainingElements(matcherIndex + 1)
         : arrayIndex + 1
 
@@ -212,10 +212,10 @@ function compileOrderedArrayMatcher(
 
         if (!matchSoFar) continue
 
-        if (prevArrayCaptureAs) {
+        if (prevArrayPlaceholder) {
           matchSoFar = mergeCaptures(matchSoFar, {
             arrayCaptures: {
-              [prevArrayCaptureAs]: paths.slice(sliceStart, i),
+              [prevArrayPlaceholder]: paths.slice(sliceStart, i),
             },
           })
         }
@@ -250,11 +250,11 @@ function compileOrderedArrayMatcher(
       // (if there are more than one adjacent *, all captured paths will be in the
       // last one and the rest will be empty)
       for (const matcher of matchers) {
-        const { arrayCaptureAs } = matcher
-        if (!arrayCaptureAs) continue
-        if (!result?.arrayCaptures?.[arrayCaptureAs])
+        const { arrayPlaceholder } = matcher
+        if (!arrayPlaceholder) continue
+        if (!result?.arrayCaptures?.[arrayPlaceholder])
           result = mergeCaptures(result, {
-            arrayCaptures: { [arrayCaptureAs]: [] },
+            arrayCaptures: { [arrayPlaceholder]: [] },
           })
       }
       return result
@@ -275,9 +275,9 @@ function compileUnorderedArrayMatcher(
 ): CompiledMatcher {
   const { debug } = compileOptions
 
-  const restMatcher = matchers.find((m) => m.restCaptureAs)
-  matchers = matchers.filter((m) => !m.restCaptureAs)
-  const restCaptureAs = restMatcher?.restCaptureAs
+  const restMatcher = matchers.find((m) => m.restPlaceholder)
+  matchers = matchers.filter((m) => !m.restPlaceholder)
+  const restPlaceholder = restMatcher?.restPlaceholder
 
   return {
     pattern: paths,
@@ -307,9 +307,9 @@ function compileUnorderedArrayMatcher(
           return null
         }
       }
-      if (restCaptureAs) {
+      if (restPlaceholder) {
         return mergeCaptures(result, {
-          arrayCaptures: { [restCaptureAs]: paths },
+          arrayCaptures: { [restPlaceholder]: paths },
         })
       } else {
         if (paths.length) {

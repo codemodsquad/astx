@@ -1,6 +1,6 @@
 import { NodePath, SpreadElement } from '../types'
 import { CompiledMatcher, CompileOptions, MatchResult } from '.'
-import compileCaptureMatcher from './Capture'
+import compilePlaceholderMatcher from './Placeholder'
 
 export default function compileSpreadElementMatcher(
   path: NodePath<SpreadElement, SpreadElement>,
@@ -9,18 +9,24 @@ export default function compileSpreadElementMatcher(
   const n = compileOptions.backend.t.namedTypes
   const { argument } = path.value
   if (n.Identifier.check(argument)) {
-    const capture = compileCaptureMatcher(path, argument.name, compileOptions, {
-      nodeType: 'ObjectMember',
-    })
+    const capture = compilePlaceholderMatcher(
+      path,
+      argument.name,
+      compileOptions,
+      {
+        nodeType: 'ObjectMember',
+      }
+    )
     if (capture) {
-      const restCaptureAs = capture.arrayCaptureAs || capture.restCaptureAs
-      if (restCaptureAs) {
+      const restPlaceholder =
+        capture.arrayPlaceholder || capture.restPlaceholder
+      if (restPlaceholder) {
         return {
           pattern: path,
-          restCaptureAs,
+          restPlaceholder,
           match: (): MatchResult => {
             throw new Error(
-              `rest capture placeholder ${restCaptureAs} is in an invalid position`
+              `rest capture placeholder ${restPlaceholder} is in an invalid position`
             )
           },
         }

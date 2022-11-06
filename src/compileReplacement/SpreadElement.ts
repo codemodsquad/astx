@@ -1,6 +1,6 @@
 import { SpreadElement, NodePath } from '../types'
 import { CompiledReplacement, CompileReplacementOptions } from '.'
-import { compileArrayCaptureReplacement } from './Capture'
+import { compileArrayPlaceholderReplacement } from './Placeholder'
 
 export default function compileSpreadElementReplacement(
   path: NodePath<SpreadElement, SpreadElement>,
@@ -10,7 +10,7 @@ export default function compileSpreadElementReplacement(
   const pattern = path.value
   const { argument } = pattern
   if (n.Identifier.check(argument)) {
-    const captureReplacement = compileArrayCaptureReplacement(
+    const captureReplacement = compileArrayPlaceholderReplacement(
       path,
       argument.name,
       compileOptions

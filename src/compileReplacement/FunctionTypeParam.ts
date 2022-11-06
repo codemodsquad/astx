@@ -1,6 +1,6 @@
 import { FunctionTypeParam, NodePath } from '../types'
 import { CompiledReplacement, CompileReplacementOptions } from '.'
-import compileCaptureReplacement from './Capture'
+import compilePlaceholderReplacement from './Placeholder'
 
 export default function compileFunctionTypeParamReplacement(
   path: NodePath<FunctionTypeParam, FunctionTypeParam>,
@@ -14,7 +14,7 @@ export default function compileFunctionTypeParamReplacement(
     n.Identifier.check(pattern.typeAnnotation.id)
   ) {
     if (pattern.typeAnnotation.typeParameters == null) {
-      const captureReplacement = compileCaptureReplacement(
+      const captureReplacement = compilePlaceholderReplacement(
         path,
         pattern.typeAnnotation.id.name,
         compileOptions

@@ -1,6 +1,6 @@
 import { ImportSpecifier, NodePath } from '../types'
 import { CompiledMatcher, CompileOptions } from '.'
-import compileCaptureMatcher from './Capture'
+import compilePlaceholderMatcher from './Placeholder'
 
 export default function compileImportSpecifierMatcher(
   path: NodePath<ImportSpecifier, ImportSpecifier>,
@@ -16,7 +16,7 @@ export default function compileImportSpecifierMatcher(
     (!local || local.name === imported.name)
   ) {
     if (importKind == null || importKind === 'value') {
-      const captureMatcher = compileCaptureMatcher(
+      const placeholderMatcher = compilePlaceholderMatcher(
         path,
         imported.name,
         compileOptions,
@@ -29,7 +29,7 @@ export default function compileImportSpecifierMatcher(
         }
       )
 
-      if (captureMatcher) return captureMatcher
+      if (placeholderMatcher) return placeholderMatcher
     }
   }
 }

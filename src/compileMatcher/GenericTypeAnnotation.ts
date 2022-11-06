@@ -1,6 +1,6 @@
 import { GenericTypeAnnotation, NodePath, pathIs } from '../types'
 import { CompiledMatcher, CompileOptions } from '.'
-import compileCaptureMatcher from './Capture'
+import compilePlaceholderMatcher from './Placeholder'
 import compileSpecialMatcher from './SpecialMatcher'
 
 export default function compileGenericTypeAnnotationMatcher(
@@ -12,14 +12,14 @@ export default function compileGenericTypeAnnotationMatcher(
 
   if (n.Identifier.check(id)) {
     if (typeParameters == null) {
-      const captureMatcher = compileCaptureMatcher(
+      const placeholderMatcher = compilePlaceholderMatcher(
         path,
         id.name,
         compileOptions,
         { nodeType: 'FlowType' }
       )
 
-      if (captureMatcher) return captureMatcher
+      if (placeholderMatcher) return placeholderMatcher
     } else {
       const typeParametersPath = path.get('typeParameters')
       if (pathIs(typeParametersPath, n.TypeParameterInstantiation)) {

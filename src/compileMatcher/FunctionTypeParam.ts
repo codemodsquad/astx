@@ -1,6 +1,6 @@
 import { FunctionTypeParam, NodePath } from '../types'
 import { CompiledMatcher, CompileOptions } from '.'
-import compileCaptureMatcher from './Capture'
+import compilePlaceholderMatcher from './Placeholder'
 
 export default function compileFunctionTypeParamMatcher(
   path: NodePath<FunctionTypeParam, FunctionTypeParam>,
@@ -13,14 +13,14 @@ export default function compileFunctionTypeParamMatcher(
     n.Identifier.check(pattern.typeAnnotation.id)
   ) {
     if (pattern.typeAnnotation.typeParameters == null) {
-      const captureMatcher = compileCaptureMatcher(
+      const placeholderMatcher = compilePlaceholderMatcher(
         path,
         pattern.typeAnnotation.id.name,
         compileOptions,
         { nodeType: 'FunctionTypeParam' }
       )
 
-      if (captureMatcher) return captureMatcher
+      if (placeholderMatcher) return placeholderMatcher
     }
   }
 }

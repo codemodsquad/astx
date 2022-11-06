@@ -1,7 +1,7 @@
 import { TemplateLiteral, NodePath } from '../types'
-import { getCaptureAs } from '../compileMatcher/Capture'
+import { getPlaceholder } from '../compileMatcher/Placeholder'
 import { CompiledReplacement, ReplaceableMatch } from './'
-import { unescapeIdentifier } from './Capture'
+import { unescapeIdentifier } from './Placeholder'
 import cloneNode from '../util/cloneNode'
 import * as t from '@babel/types'
 
@@ -16,11 +16,11 @@ export default function compileTemplateLiteralReplacement(
   if (pattern.quasis.length === 1) {
     const [quasi] = pattern.quasis
     if (quasi.value.cooked) {
-      const captureAs = getCaptureAs(quasi.value.cooked)
-      if (captureAs) {
+      const placeholder = getPlaceholder(quasi.value.cooked)
+      if (placeholder) {
         return {
           generate: (match: ReplaceableMatch): TemplateLiteral => {
-            const captured = match.stringCaptures?.[captureAs]
+            const captured = match.stringCaptures?.[placeholder]
             return captured
               ? t.templateLiteral(
                   [t.templateElement(generateValue(captured), true)],

@@ -4,9 +4,9 @@ import {
   CompileReplacementOptions,
   ReplaceableMatch,
 } from './'
-import compileCaptureReplacement from './Capture'
+import compilePlaceholderReplacement from './Placeholder'
 import compileGenericNodeReplacement from './GenericNodeReplacement'
-import { unescapeIdentifier } from '../compileReplacement/Capture'
+import { unescapeIdentifier } from './Placeholder'
 
 export default function compileIdentifierReplacement(
   path: NodePath<Identifier, Identifier>,
@@ -16,7 +16,7 @@ export default function compileIdentifierReplacement(
 
   const typeAnnotation = path.get('typeAnnotation')
 
-  const captureReplacement = compileCaptureReplacement(
+  const captureReplacement = compilePlaceholderReplacement(
     path,
     pattern.name,
     compileOptions

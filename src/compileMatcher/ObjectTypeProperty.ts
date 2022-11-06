@@ -1,6 +1,6 @@
 import { ObjectTypeProperty, NodePath } from '../types'
 import { CompiledMatcher, CompileOptions } from '.'
-import compileCaptureMatcher from './Capture'
+import compilePlaceholderMatcher from './Placeholder'
 
 export default function compileObjectTypePropertyMatcher(
   path: NodePath<ObjectTypeProperty, ObjectTypeProperty>,
@@ -18,7 +18,7 @@ export default function compileObjectTypePropertyMatcher(
       n.AnyTypeAnnotation.check(pattern.value) &&
       pattern.variance == null
     ) {
-      const captureMatcher = compileCaptureMatcher(
+      const placeholderMatcher = compilePlaceholderMatcher(
         path,
         pattern.key.name,
         compileOptions,
@@ -29,7 +29,7 @@ export default function compileObjectTypePropertyMatcher(
         }
       )
 
-      if (captureMatcher) return captureMatcher
+      if (placeholderMatcher) return placeholderMatcher
     }
   }
 }

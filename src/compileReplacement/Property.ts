@@ -1,6 +1,6 @@
 import { NodePath } from '../types'
 import { CompiledReplacement, CompileReplacementOptions } from '.'
-import compileCaptureReplacement from './Capture'
+import compilePlaceholderReplacement from './Placeholder'
 import * as t from 'ast-types'
 
 export default function compilePropertyReplacement(
@@ -11,7 +11,7 @@ export default function compilePropertyReplacement(
   const pattern = path.value
   if (n.Identifier.check(pattern.key)) {
     if (pattern.shorthand && !pattern.computed) {
-      const captureReplacement = compileCaptureReplacement(
+      const captureReplacement = compilePlaceholderReplacement(
         path,
         pattern.key.name,
         compileOptions

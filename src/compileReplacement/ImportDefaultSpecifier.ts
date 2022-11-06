@@ -1,6 +1,6 @@
 import { ImportDefaultSpecifier, NodePath, ImportDeclaration } from '../types'
 import { CompiledReplacement, CompileReplacementOptions } from '.'
-import compileCaptureReplacement from './Capture'
+import compilePlaceholderReplacement from './Placeholder'
 
 export default function compileImportDefaultSpecifierReplacement(
   path: NodePath<ImportDefaultSpecifier, ImportDefaultSpecifier>,
@@ -11,7 +11,7 @@ export default function compileImportDefaultSpecifierReplacement(
   if (local != null) {
     const { importKind } = (path.parentPath as NodePath<ImportDeclaration>).node
     if (importKind == null || importKind === 'value') {
-      const captureReplacement = compileCaptureReplacement(
+      const captureReplacement = compilePlaceholderReplacement(
         path,
         local.name,
         compileOptions

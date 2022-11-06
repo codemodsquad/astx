@@ -1,6 +1,6 @@
 import { ExpressionStatement, NodePath } from '../types'
 import { CompiledMatcher, CompileOptions } from '.'
-import compileCaptureMatcher from './Capture'
+import compilePlaceholderMatcher from './Placeholder'
 
 export default function compileExpressionStatementMatcher(
   path: NodePath<ExpressionStatement, ExpressionStatement>,
@@ -10,13 +10,13 @@ export default function compileExpressionStatementMatcher(
   const n = compileOptions.backend.t.namedTypes
 
   if (n.Identifier.check(pattern.expression)) {
-    const captureMatcher = compileCaptureMatcher(
+    const placeholderMatcher = compilePlaceholderMatcher(
       path,
       pattern.expression.name,
       compileOptions,
       { nodeType: 'Statement' }
     )
 
-    if (captureMatcher) return captureMatcher
+    if (placeholderMatcher) return placeholderMatcher
   }
 }

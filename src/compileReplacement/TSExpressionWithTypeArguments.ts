@@ -1,6 +1,6 @@
 import { TSExpressionWithTypeArguments, NodePath } from '../types'
 import { CompiledReplacement, CompileReplacementOptions } from '.'
-import compileCaptureReplacement from './Capture'
+import compilePlaceholderReplacement from './Placeholder'
 
 export default function compileTSExpressionWithTypeArgumentsReplacement(
   path: NodePath<TSExpressionWithTypeArguments, TSExpressionWithTypeArguments>,
@@ -10,7 +10,7 @@ export default function compileTSExpressionWithTypeArgumentsReplacement(
   const pattern = path.value
   if (n.Identifier.check(pattern.expression)) {
     if (pattern.typeParameters == null) {
-      const captureReplacement = compileCaptureReplacement(
+      const captureReplacement = compilePlaceholderReplacement(
         path,
         pattern.expression.name,
         compileOptions

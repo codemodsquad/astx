@@ -1,6 +1,6 @@
 import { TSTypeReference, NodePath } from '../types'
 import { CompiledMatcher, CompileOptions } from '.'
-import compileCaptureMatcher from './Capture'
+import compilePlaceholderMatcher from './Placeholder'
 import compileSpecialMatcher from './SpecialMatcher'
 
 export default function compileTSTypeReferenceMatcher(
@@ -12,14 +12,14 @@ export default function compileTSTypeReferenceMatcher(
 
   if (n.Identifier.check(typeName)) {
     if (typeParameters == null) {
-      const captureMatcher = compileCaptureMatcher(
+      const placeholderMatcher = compilePlaceholderMatcher(
         path,
         typeName.name,
         compileOptions,
         { nodeType: 'TSType' }
       )
 
-      if (captureMatcher) return captureMatcher
+      if (placeholderMatcher) return placeholderMatcher
     } else {
       const typeParametersPath = path.get('typeParameters')
       if (typeParametersPath.value) {

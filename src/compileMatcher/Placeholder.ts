@@ -7,23 +7,23 @@ export function unescapeIdentifier(identifier: string): string {
   return identifier.replace(/^\$_/, '$')
 }
 
-export function getCaptureAs(identifier: string): string | undefined {
-  return /^\$[a-z0-9]+.*/i.exec(identifier)?.[0]
+export function getPlaceholder(identifier: string): string | undefined {
+  return /^\$([a-z0-9]+.*)?$/i.exec(identifier)?.[0]
 }
 
-export function getArrayCaptureAs(identifier: string): string | undefined {
-  return /^\${2}[a-z0-9]+.*/i.exec(identifier)?.[0]
+export function getArrayPlaceholder(identifier: string): string | undefined {
+  return /^\${2}([a-z0-9]+.*)?$/i.exec(identifier)?.[0]
 }
 
-export function getRestCaptureAs(identifier: string): string | undefined {
-  return /^\${3}[a-z0-9]+.*/i.exec(identifier)?.[0]
+export function getRestPlaceholder(identifier: string): string | undefined {
+  return /^\${3}([a-z0-9]+.*)?$/i.exec(identifier)?.[0]
 }
 
-export function getAnyCaptureAs(identifier: string): string | undefined {
-  return /^\${1,3}[a-z0-9]+.*/i.exec(identifier)?.[0]
+export function isCapturePlaceholder(identifier: string): boolean {
+  return /[^$]/.test(identifier)
 }
 
-export function compileArrayCaptureMatcher(
+export function compileArrayPlaceholderMatcher(
   pattern: NodePath,
   identifier: string,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -33,22 +33,22 @@ export function compileArrayCaptureMatcher(
     condition?: (path: NodePath) => boolean
   }
 ): CompiledMatcher | void {
-  const arrayCaptureAs = getArrayCaptureAs(identifier)
-  if (arrayCaptureAs) {
+  const arrayPlaceholder = getArrayPlaceholder(identifier)
+  if (arrayPlaceholder) {
     return {
       pattern,
-      arrayCaptureAs,
+      arrayPlaceholder,
       nodeType: otherOptions?.nodeType,
       match: (): MatchResult => {
         throw new Error(
-          `array capture placeholder ${arrayCaptureAs} is in an invalid position`
+          `array capture placeholder ${arrayPlaceholder} is in an invalid position`
         )
       },
     }
   }
 }
 
-export function compileRestCaptureMatcher(
+export function compileRestPlaceholderMatcher(
   pattern: NodePath,
   identifier: string,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -58,15 +58,15 @@ export function compileRestCaptureMatcher(
     condition?: (path: NodePath) => boolean
   }
 ): CompiledMatcher | void {
-  const restCaptureAs = getRestCaptureAs(identifier)
-  if (restCaptureAs) {
+  const restPlaceholder = getRestPlaceholder(identifier)
+  if (restPlaceholder) {
     return {
       pattern,
-      restCaptureAs,
+      restPlaceholder,
       nodeType: otherOptions?.nodeType,
       match: (): MatchResult => {
         throw new Error(
-          `rest capture placeholder ${restCaptureAs} is in an invalid position`
+          `rest capture placeholder ${restPlaceholder} is in an invalid position`
         )
       },
     }
@@ -84,7 +84,7 @@ export function capturesAreEquivalent(
   return aIdent ? aIdent === bIdent : false
 }
 
-export default function compileCaptureMatcher(
+export default function compilePlaceholderMatcher(
   pattern: NodePath,
   identifier: string,
   compileOptions: CompileOptions,
@@ -94,23 +94,25 @@ export default function compileCaptureMatcher(
   }
 ): CompiledMatcher | void {
   const { debug } = compileOptions
-  const captureAs = getCaptureAs(identifier)
-  if (captureAs) {
-    const whereCondition = compileOptions?.where?.[captureAs]
+  const placeholder = getPlaceholder(identifier)
+  if (placeholder) {
+    const whereCondition =
+      placeholder === '$' ? undefined : compileOptions?.where?.[placeholder]
     const condition = otherOptions?.getCondition?.() || (() => true)
     const nodeType = otherOptions?.nodeType
     return {
       pattern,
-      captureAs,
+      placeholder,
       nodeType,
       match: (path: NodePath, matchSoFar: MatchResult): MatchResult => {
         if (path.value == null) return null
-        debug('Capture', captureAs)
+        debug('Placeholder', placeholder)
         if (!condition(path)) {
           debug('  condition returned false')
           return null
         }
-        const existingCapture = matchSoFar?.captures?.[captureAs]
+        if (placeholder === '$') return matchSoFar || {}
+        const existingCapture = matchSoFar?.captures?.[placeholder]
         if (existingCapture) {
           return capturesAreEquivalent(
             compileOptions.backend,
@@ -124,23 +126,28 @@ export default function compileCaptureMatcher(
           debug('  where condition returned false')
           return null
         }
-        debug('  captured as %s', captureAs)
-        return mergeCaptures(matchSoFar, { captures: { [captureAs]: path } })
+        debug('  captured as %s', placeholder)
+        return mergeCaptures(matchSoFar, { captures: { [placeholder]: path } })
       },
     }
   }
   return (
-    compileArrayCaptureMatcher(
+    compileArrayPlaceholderMatcher(
       pattern,
       identifier,
       compileOptions,
       otherOptions
     ) ||
-    compileRestCaptureMatcher(pattern, identifier, compileOptions, otherOptions)
+    compileRestPlaceholderMatcher(
+      pattern,
+      identifier,
+      compileOptions,
+      otherOptions
+    )
   )
 }
 
-export function compileStringCaptureMatcher<N extends Node>(
+export function compileStringPlaceholderMatcher<N extends Node>(
   pattern: NodePath<N>,
   getString: (node: N) => string | null,
   compileOptions: CompileOptions,
@@ -151,25 +158,25 @@ export function compileStringCaptureMatcher<N extends Node>(
   const { debug } = compileOptions
   const string = getString(pattern.value)
   if (!string) return
-  const captureAs = getCaptureAs(string)
+  const placeholder = getPlaceholder(string)
   const nodeType = otherOptions?.nodeType
-  if (captureAs) {
+  if (placeholder) {
     return {
       pattern,
-      captureAs,
+      placeholder,
       nodeType,
       match: (path: NodePath, matchSoFar: MatchResult): MatchResult => {
         if (path.value?.type !== pattern.value.type) return null
-        debug('String Capture', captureAs)
+        debug('String Placeholder', placeholder)
         const string = getString((path as NodePath<N>).value)
         if (!string) return null
-        const existingCapture = matchSoFar?.stringCaptures?.[captureAs]
+        const existingCapture = matchSoFar?.stringCaptures?.[placeholder]
         if (existingCapture) {
           return string === existingCapture ? matchSoFar : null
         }
-        debug('  captured as %s', captureAs)
+        debug('  captured as %s', placeholder)
         return mergeCaptures(matchSoFar, {
-          stringCaptures: { [captureAs]: string },
+          stringCaptures: { [placeholder]: string },
         })
       },
     }

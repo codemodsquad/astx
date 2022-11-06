@@ -121,7 +121,9 @@ function findStatements(
     compileMatcher(queryElem, options)
   )
 
-  const firstNonArrayCaptureIndex = matchers.findIndex((m) => !m.arrayCaptureAs)
+  const firstNonArrayCaptureIndex = matchers.findIndex(
+    (m) => !m.arrayPlaceholder
+  )
 
   if (firstNonArrayCaptureIndex < 0) {
     throw new Error(
@@ -132,7 +134,7 @@ function findStatements(
   function remainingElements(matcherIndex: number): number {
     let count = 0
     for (let i = matcherIndex; i < matchers.length; i++) {
-      if (!matchers[i].arrayCaptureAs) count++
+      if (!matchers[i].arrayPlaceholder) count++
     }
     return count
   }
@@ -151,13 +153,13 @@ function findStatements(
     }
 
     const matcher = matchers[matcherIndex]
-    const { arrayCaptureAs } = matcher
-    if (arrayCaptureAs) {
+    const { arrayPlaceholder } = matcher
+    if (arrayPlaceholder) {
       if (matcherIndex === matchers.length - 1) {
         return [
           mergeCaptures(matchSoFar, {
             arrayCaptures: {
-              [arrayCaptureAs]: paths.slice(sliceStart),
+              [arrayPlaceholder]: paths.slice(sliceStart),
             },
           }),
           [sliceStart, paths.length],
@@ -172,18 +174,18 @@ function findStatements(
       )
     } else {
       const origMatchSoFar = matchSoFar
-      const prevArrayCaptureAs = matchers[matcherIndex - 1]?.arrayCaptureAs
+      const prevArrayPlaceholder = matchers[matcherIndex - 1]?.arrayPlaceholder
       const end =
-        prevArrayCaptureAs && matcherIndex !== firstNonArrayCaptureIndex
+        prevArrayPlaceholder && matcherIndex !== firstNonArrayCaptureIndex
           ? paths.length - remainingElements(matcherIndex + 1)
           : arrayIndex + 1
       for (let i = arrayIndex; i < end; i++) {
         matchSoFar = matcher.match(paths[i], origMatchSoFar)
         if (!matchSoFar) continue
-        if (prevArrayCaptureAs) {
+        if (prevArrayPlaceholder) {
           matchSoFar = mergeCaptures(matchSoFar, {
             arrayCaptures: {
-              [prevArrayCaptureAs]: paths.slice(sliceStart, i),
+              [prevArrayPlaceholder]: paths.slice(sliceStart, i),
             },
           })
         }
@@ -232,11 +234,11 @@ function findStatements(
         // (if there are more than one adjacent *, all captured paths will be in the
         // last one and the rest will be empty)
         for (const matcher of matchers) {
-          const { arrayCaptureAs } = matcher
-          if (!arrayCaptureAs) continue
-          if (!result?.arrayCaptures?.[arrayCaptureAs])
+          const { arrayPlaceholder } = matcher
+          if (!arrayPlaceholder) continue
+          if (!result?.arrayCaptures?.[arrayPlaceholder])
             result = mergeCaptures(result, {
-              arrayCaptures: { [arrayCaptureAs]: [] },
+              arrayCaptures: { [arrayPlaceholder]: [] },
             })
         }
 

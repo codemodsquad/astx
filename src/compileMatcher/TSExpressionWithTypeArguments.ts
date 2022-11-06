@@ -1,6 +1,6 @@
 import { TSExpressionWithTypeArguments, NodePath } from '../types'
 import { CompiledMatcher, CompileOptions } from '.'
-import compileCaptureMatcher from './Capture'
+import compilePlaceholderMatcher from './Placeholder'
 
 export default function compileTSExpressionWithTypeArgumentsMatcher(
   path: NodePath<TSExpressionWithTypeArguments, TSExpressionWithTypeArguments>,
@@ -11,14 +11,14 @@ export default function compileTSExpressionWithTypeArgumentsMatcher(
 
   if (n.Identifier.check(pattern.expression)) {
     if (pattern.typeParameters == null) {
-      const captureMatcher = compileCaptureMatcher(
+      const placeholderMatcher = compilePlaceholderMatcher(
         path,
         pattern.expression.name,
         compileOptions,
         { nodeType: 'TSExpressionWithTypeArguments' }
       )
 
-      if (captureMatcher) return captureMatcher
+      if (placeholderMatcher) return placeholderMatcher
     }
   }
 }

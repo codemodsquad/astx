@@ -1,6 +1,6 @@
 import { ClassProperty, NodePath } from '../types'
 import { CompiledMatcher, CompileOptions } from '.'
-import compileCaptureMatcher from './Capture'
+import compilePlaceholderMatcher from './Placeholder'
 
 export default function compileClassPropertyMatcher(
   path: NodePath<ClassProperty, ClassProperty>,
@@ -16,7 +16,7 @@ export default function compileClassPropertyMatcher(
       pattern.variance == null &&
       pattern.value == null
     ) {
-      const captureMatcher = compileCaptureMatcher(
+      const placeholderMatcher = compilePlaceholderMatcher(
         path,
         pattern.key.name,
         compileOptions,
@@ -26,7 +26,7 @@ export default function compileClassPropertyMatcher(
         }
       )
 
-      if (captureMatcher) return captureMatcher
+      if (placeholderMatcher) return placeholderMatcher
     }
   }
 }

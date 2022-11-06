@@ -1,6 +1,6 @@
 import { TSPropertySignature, NodePath } from '../types'
 import { CompiledReplacement, CompileReplacementOptions } from '.'
-import compileCaptureReplacement from './Capture'
+import compilePlaceholderReplacement from './Placeholder'
 
 export default function compileTSPropertySignatureReplacement(
   path: NodePath<TSPropertySignature, TSPropertySignature>,
@@ -15,7 +15,7 @@ export default function compileTSPropertySignatureReplacement(
       (pattern.typeAnnotation == null ||
         pattern.typeAnnotation?.typeAnnotation?.type === 'TSAnyKeyword')
     ) {
-      const captureReplacement = compileCaptureReplacement(
+      const captureReplacement = compilePlaceholderReplacement(
         path,
         pattern.key.name,
         compileOptions

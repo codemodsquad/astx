@@ -1,6 +1,6 @@
 import { JSXAttribute, NodePath } from '../types'
 import { CompiledMatcher, CompileOptions } from '.'
-import compileCaptureMatcher from './Capture'
+import compilePlaceholderMatcher from './Placeholder'
 
 export default function compileJSXAttributeMatcher(
   path: NodePath<JSXAttribute, JSXAttribute>,
@@ -11,7 +11,7 @@ export default function compileJSXAttributeMatcher(
 
   if (n.JSXIdentifier.check(pattern.name)) {
     if (pattern.value == null) {
-      const captureMatcher = compileCaptureMatcher(
+      const placeholderMatcher = compilePlaceholderMatcher(
         path,
         pattern.name.name,
         compileOptions,
@@ -23,7 +23,7 @@ export default function compileJSXAttributeMatcher(
         }
       )
 
-      if (captureMatcher) return captureMatcher
+      if (placeholderMatcher) return placeholderMatcher
     }
   }
 }

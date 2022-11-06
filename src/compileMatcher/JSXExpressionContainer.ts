@@ -1,6 +1,6 @@
 import { JSXExpressionContainer, NodePath } from '../types'
 import { CompiledMatcher, CompileOptions } from '.'
-import compileCaptureMatcher from './Capture'
+import compilePlaceholderMatcher from './Placeholder'
 
 export default function compileJSXExpressionContainerMatcher(
   path: NodePath<JSXExpressionContainer, JSXExpressionContainer>,
@@ -10,7 +10,7 @@ export default function compileJSXExpressionContainerMatcher(
   const n = compileOptions.backend.t.namedTypes
 
   if (n.Identifier.check(pattern.expression)) {
-    const captureMatcher = compileCaptureMatcher(
+    const placeholderMatcher = compilePlaceholderMatcher(
       path,
       pattern.expression.name,
       compileOptions,
@@ -35,6 +35,6 @@ export default function compileJSXExpressionContainerMatcher(
       }
     )
 
-    if (captureMatcher) return captureMatcher
+    if (placeholderMatcher) return placeholderMatcher
   }
 }

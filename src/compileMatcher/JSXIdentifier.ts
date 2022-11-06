@@ -1,6 +1,6 @@
 import { JSXIdentifier, NodePath } from '../types'
 import { CompiledMatcher, CompileOptions } from '.'
-import compileCaptureMatcher, { unescapeIdentifier } from './Capture'
+import compilePlaceholderMatcher, { unescapeIdentifier } from './Placeholder'
 
 export default function compileJSXIdentifierMatcher(
   path: NodePath<JSXIdentifier, JSXIdentifier>,
@@ -8,7 +8,7 @@ export default function compileJSXIdentifierMatcher(
 ): CompiledMatcher | void {
   const pattern: JSXIdentifier = path.value
   const n = compileOptions.backend.t.namedTypes
-  const captureMatcher = compileCaptureMatcher(
+  const placeholderMatcher = compilePlaceholderMatcher(
     path,
     pattern.name,
     compileOptions,
@@ -34,7 +34,7 @@ export default function compileJSXIdentifierMatcher(
     }
   )
 
-  if (captureMatcher) return captureMatcher
+  if (placeholderMatcher) return placeholderMatcher
 
   pattern.name = unescapeIdentifier(pattern.name)
 }

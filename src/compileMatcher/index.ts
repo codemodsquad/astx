@@ -34,6 +34,7 @@ import TSTypeReference from './TSTypeReference'
 import TypeAnnotation from './TypeAnnotation'
 import TypeParameter from './TypeParameter'
 import VariableDeclarator from './VariableDeclarator'
+import { isCapturePlaceholder } from './Placeholder'
 
 const _debug = __debug('astx:match')
 
@@ -59,19 +60,30 @@ export type MatchResult = {
   stringCaptures?: StringCaptures
 } | null
 
+function hasCapturePlaceholder(captures?: Captures | ArrayCaptures): boolean {
+  for (const key in captures) {
+    if (isCapturePlaceholder(key)) return true
+  }
+  return false
+}
+
 export function mergeCaptures(...results: MatchResult[]): MatchResult {
   let current: MatchResult = null
   for (const result of results) {
     if (!result) continue
-    if (result.captures) {
+    if (result.captures && hasCapturePlaceholder(result.captures)) {
       if (!current) current = {}
       if (!current.captures) current.captures = {}
-      Object.assign(current.captures, result.captures)
+      for (const [key, value] of Object.entries(result.captures)) {
+        if (isCapturePlaceholder(key)) current.captures[key] = value
+      }
     }
-    if (result.arrayCaptures) {
+    if (result.arrayCaptures && hasCapturePlaceholder(result.arrayCaptures)) {
       if (!current) current = {}
       if (!current.arrayCaptures) current.arrayCaptures = {}
-      Object.assign(current.arrayCaptures, result.arrayCaptures)
+      for (const [key, value] of Object.entries(result.arrayCaptures)) {
+        if (isCapturePlaceholder(key)) current.arrayCaptures[key] = value
+      }
     }
     if (result.stringCaptures) {
       if (!current) current = {}
@@ -90,9 +102,9 @@ export type PredicateMatcher = {
 export interface CompiledMatcher {
   pattern: NodePath<Node, Node> | NodePath<Node, Node>[]
   optional?: true
-  captureAs?: string
-  arrayCaptureAs?: string
-  restCaptureAs?: string
+  placeholder?: string
+  arrayPlaceholder?: string
+  restPlaceholder?: string
   flag?: '$Ordered' | '$Unordered'
   match: (path: NodePath, matchSoFar: MatchResult) => MatchResult
   nodeType?: NodeType | NodeType[]

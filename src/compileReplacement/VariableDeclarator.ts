@@ -1,6 +1,6 @@
 import { VariableDeclarator, NodePath } from '../types'
 import { CompiledReplacement, CompileReplacementOptions } from '.'
-import compileCaptureReplacement from './Capture'
+import compilePlaceholderReplacement from './Placeholder'
 
 export default function compileVariableDeclaratorReplacement(
   path: NodePath<VariableDeclarator, VariableDeclarator>,
@@ -10,7 +10,7 @@ export default function compileVariableDeclaratorReplacement(
   const pattern = path.value
   if (n.Identifier.check(pattern.id)) {
     if (pattern.init == null) {
-      const captureReplacement = compileCaptureReplacement(
+      const captureReplacement = compilePlaceholderReplacement(
         path,
         pattern.id.name,
         compileOptions

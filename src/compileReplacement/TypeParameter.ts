@@ -1,6 +1,6 @@
 import { TypeParameter, NodePath } from '../types'
 import { CompiledReplacement, CompileReplacementOptions } from '.'
-import compileCaptureReplacement from './Capture'
+import compilePlaceholderReplacement from './Placeholder'
 
 export default function compileTypeParameterReplacement(
   path: NodePath<TypeParameter, TypeParameter>,
@@ -8,7 +8,7 @@ export default function compileTypeParameterReplacement(
 ): CompiledReplacement | void {
   const pattern = path.value
   if (pattern.variance == null && pattern.bound == null) {
-    const captureReplacement = compileCaptureReplacement(
+    const captureReplacement = compilePlaceholderReplacement(
       path,
       pattern.name,
       compileOptions
