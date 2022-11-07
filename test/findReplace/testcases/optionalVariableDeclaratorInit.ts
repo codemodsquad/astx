@@ -4,7 +4,7 @@ let bar = 2
 `
 
 export const find = `
-let $a = $Optional($b)
+let $a = $Maybe($b)
 `
 
 export const expectedFind = [

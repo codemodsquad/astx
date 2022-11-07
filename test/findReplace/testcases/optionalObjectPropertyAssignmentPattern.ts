@@ -5,7 +5,7 @@ let {baz} = foo
 `
 
 export const find = `
-let /**/ {$a = $Optional($b)} = $c
+let /**/ {$a = $Maybe($b)} = $c
 `
 
 export const expectedFind = [

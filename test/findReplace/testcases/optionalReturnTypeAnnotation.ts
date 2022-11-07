@@ -4,7 +4,7 @@ function bar(): number { }
 `
 
 export const find = `
-function $fn(): $Optional<$ret> { }
+function $fn(): $Maybe<$ret> { }
 `
 
 export const expectedFind = [

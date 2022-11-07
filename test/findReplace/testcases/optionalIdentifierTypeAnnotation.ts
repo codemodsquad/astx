@@ -4,7 +4,7 @@ const bar: number = 1
 `
 
 export const find = `
-const $a: $Optional<$type> = $init
+const $a: $Maybe<$type> = $init
 `
 
 export const expectedFind = [

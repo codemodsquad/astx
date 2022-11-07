@@ -6,7 +6,7 @@ function w(bar = 2, baz) { }
 `
 
 export const find = `
-function $f($a: $Optional<$T> = $Optional($b)) { }
+function $f($a: $Maybe<$T> = $Maybe($b)) { }
 `
 
 export const expectedFind = [

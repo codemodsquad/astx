@@ -24,6 +24,7 @@ These are docs for the version 2 beta branch.
   - [Fixing eslint errors](#fixing-eslint-errors)
   - [Converting require statements to imports](#converting-require-statements-to-imports)
   - [Making code DRY](#making-code-dry)
+- [Roadmap](#roadmap)
 - [Prior art and philosophy](#prior-art-and-philosophy)
 - [Pattern Language](#pattern-language)
   - [Placeholders](#placeholders)
@@ -39,10 +40,10 @@ These are docs for the version 2 beta branch.
   - [String Matching](#string-matching)
   - [Extracting nodes](#extracting-nodes)
   - [Special Constructs](#special-constructs)
-    - [`$Optional(pattern)`](#optionalpattern)
+    - [`$Maybe(pattern)`](#optionalpattern)
     - [`$Or(...)`](#or)
     - [`$And(...)`](#and)
-    - [`$Optional<pattern>`](#optionalpattern-1)
+    - [`$Maybe<pattern>`](#optionalpattern-1)
     - [`$Or<...>`](#or-1)
     - [`$And<...>`](#and-1)
     - [`$Ordered`](#ordered)
@@ -206,6 +207,11 @@ testCase({
 })
 `
 ```
+
+# Roadmap
+
+I'm working on a [VSCode Extension](https://github.com/codemodsquad/vscode-astx), but I'm still making changes to the API for the extension's
+needs, and still finalizing some aspects of the API and pattern language for the version 2 release.
 
 # Prior art and philosophy
 
@@ -412,9 +418,9 @@ would match `Array<number>` type annotations.
 
 ## Special Constructs
 
-### `$Optional(pattern)`
+### `$Maybe(pattern)`
 
-Matches either the given expression or no node in its place. For example `let $a = $Optional(2)` will match `let foo = 2` and `let foo` (with no initializer), but not `let foo = 3`.
+Matches either the given expression or no node in its place. For example `let $a = $Maybe(2)` will match `let foo = 2` and `let foo` (with no initializer), but not `let foo = 3`.
 
 ### `$Or(...)`
 
@@ -424,9 +430,9 @@ Matches nodes that match at least one of the given patterns. For example `$Or(fo
 
 Matches nodes that match all of the given patterns. This is mostly useful for narrowing down the types of nodes that can be captured into a given placeholder. For example, `let $a = $And($init, $a + $b)` will match `let` declarations where the initializer matches `$a + $b`, and capture the initializer as `$init`.
 
-### `$Optional<pattern>`
+### `$Maybe<pattern>`
 
-Matches either the given type annotation or no node in its place. For example `let $a: $Optional<number>` will match `let foo: number` and `let foo` (with no type annotation), but not ` let foo: string``let foo: string `.
+Matches either the given type annotation or no node in its place. For example `let $a: $Maybe<number>` will match `let foo: number` and `let foo` (with no type annotation), but not ` let foo: string``let foo: string `.
 
 ### `$Or<...>`
 

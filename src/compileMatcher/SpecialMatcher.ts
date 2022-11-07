@@ -12,10 +12,10 @@ export default function compileSpecialMatcher(
   compileOptions: CompileOptions
 ): CompiledMatcher | void {
   switch (name) {
-    case '$Optional':
+    case '$Maybe':
       if (params.value.length !== 1) {
         throw new CompilePathError(
-          `$Optional must be used with 1 type parameter`,
+          `$Maybe must be used with 1 type parameter`,
           path
         )
       }
