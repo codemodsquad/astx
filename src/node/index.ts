@@ -11,3 +11,4 @@ export {
 } from './ipc'
 export { astxCosmiconfig } from './astxCosmiconfig'
 export { default as astxGlob, AstxGlobOptions } from './astxGlob'
+export { default as loadFile } from './loadFile'
