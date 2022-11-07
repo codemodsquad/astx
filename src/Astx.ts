@@ -90,26 +90,10 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
           return (target as any)[prop]
         const matches: Match[] = []
         for (const { arrayPathCaptures, pathCaptures } of target._matches) {
-          const arrayPaths = arrayPathCaptures?.[prop]
-          if (arrayPaths) {
-            matches.push({
-              type: 'nodes',
-              path: arrayPaths[0],
-              node: arrayPaths[0].node,
-              paths: arrayPaths,
-              nodes: arrayPaths.map((p: NodePath) => p.node),
-            })
-          }
           const path = pathCaptures?.[prop]
-          if (path) {
-            matches.push({
-              type: 'node',
-              path,
-              node: path.node,
-              paths: [path],
-              nodes: [path.node],
-            })
-          }
+          const arrayPaths = arrayPathCaptures?.[prop]
+          if (path) matches.push(createMatch(path, {}))
+          if (arrayPaths) matches.push(createMatch(arrayPaths, {}))
         }
         return new Astx(target.backend, matches)
       },
@@ -118,13 +102,7 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
     const { NodePath } = backend.t
     this._matches =
       paths[0] instanceof NodePath
-        ? (paths as NodePath[]).map((path) => ({
-            type: 'node',
-            path,
-            node: path.node,
-            paths: [path],
-            nodes: [path.node],
-          }))
+        ? (paths as NodePath[]).map((path) => createMatch(path, {}))
         : (paths as Match[])
     this._withCaptures = withCaptures
   }
