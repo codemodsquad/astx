@@ -26,3 +26,11 @@ jobs:
       - run:
           name: release
           command: pnpm semantic-release
+workflows:
+  version: 2
+  build:
+    jobs:
+      - build:
+          context:
+            - github-release
+            - npm-release
