@@ -12,6 +12,8 @@ export default class PushPullIterable<T> implements AsyncIterable<T> {
   private producing = true
   private consuming = true
   private iterating = false
+  private consumeError: any
+  private produceError: any
 
   constructor(capacity: number) {
     if (
@@ -53,6 +55,7 @@ export default class PushPullIterable<T> implements AsyncIterable<T> {
       throw new Error(`can't push after returning or throwing`)
     }
     if (!this.consuming) return false
+    if (this.consumeError) throw this.consumeError
     const waitingPull = this.pullQueue.shift()
     if (waitingPull) {
       waitingPull.resolve({ value, done: false })
@@ -77,6 +80,7 @@ export default class PushPullIterable<T> implements AsyncIterable<T> {
     if (!this.consuming) {
       throw new Error(`can't call next after returning or throwing`)
     }
+    if (this.produceError) throw this.produceError
     if (this.queue.size) {
       const pulled: T = this.queue.pull() as any
       this.pushQueue.shift()?.resolve(true)
@@ -104,6 +108,7 @@ export default class PushPullIterable<T> implements AsyncIterable<T> {
   throw(error?: any): void {
     if (!this.producing) return
     this.producing = false
+    this.produceError = error
     const { pullQueue } = this
     this.pullQueue = []
     for (const pull of pullQueue) {
@@ -124,6 +129,7 @@ export default class PushPullIterable<T> implements AsyncIterable<T> {
   private iteratorThrow(error?: any): void {
     if (!this.consuming) return
     this.consuming = false
+    this.consumeError = error
     const { pushQueue } = this
     this.pushQueue = []
     for (const push of pushQueue) {

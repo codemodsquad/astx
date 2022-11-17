@@ -233,6 +233,11 @@ const transform: CommandModule<Options> = {
           reports?.forEach((r: any) => console.error(r))
         }
       }
+    } catch (error) {
+      console.error(
+        chalk.red(error instanceof Error ? error.stack : String(error))
+      )
+      process.exit(1)
     } finally {
       if (spinnerInterval != null) clearInterval(spinnerInterval)
       clearProgress()

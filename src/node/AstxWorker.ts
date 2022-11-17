@@ -1,11 +1,9 @@
 #!/usr/bin/env node
 
 import { ChildProcess, fork } from 'child_process'
-import runTransformOnFile, {
-  RunTransformOnFileOptions,
-} from './runTransformOnFile'
+import { RunTransformOnFileOptions } from './runTransformOnFile'
 import emitted from 'p-event'
-import { IpcTransformResult, makeIpcTransformResult } from './ipc'
+import { IpcTransformResult } from './ipc'
 
 export default class AstxWorker {
   child: ChildProcess | undefined
@@ -33,8 +31,8 @@ export default class AstxWorker {
     if (this.ended) return
     const child = fork(
       __filename.endsWith('.ts')
-        ? require.resolve('./AstxWorker.babel.js')
-        : __filename
+        ? require.resolve('./AstxWorkerEntry.babel.js')
+        : __filename.replace(/(\.[^.]+)$/, 'Entry$1')
     )
     this.child = child
     child.once('close', async () => {
@@ -99,8 +97,8 @@ export default class AstxWorker {
       const message = await promise
       switch (message.type) {
         case 'error': {
-          const error = new Error(message.message)
-          error.stack = message.stack
+          const error = new Error(message.error.message)
+          error.stack = message.error.stack
           throw error
         }
         case 'transformResult': {
@@ -121,52 +119,3 @@ export default class AstxWorker {
     }
   }
 }
-
-export function workerProcess(): void {
-  const abortControllers: Map<number, AbortController> = new Map()
-  process.on('message', async (message: any) => {
-    switch (message.type) {
-      case 'abort': {
-        abortControllers.get(message.seq)?.abort()
-        return
-      }
-      case 'runTransformOnFile': {
-        const { seq, file, transform, transformFile, config } =
-          message as RunTransformOnFileOptions & {
-            seq: number
-          }
-        let result
-        try {
-          const abortController = new AbortController()
-          abortControllers.set(seq, abortController)
-          const { signal } = abortController
-          result = await runTransformOnFile({
-            file,
-            transform,
-            transformFile,
-            config,
-            signal,
-            forWorker: true,
-          })
-        } catch (error: any) {
-          process.send?.({
-            type: 'error',
-            seq,
-            error: { message: error.message, stack: error.stack },
-          })
-          return
-        } finally {
-          abortControllers.delete(seq)
-        }
-        process.send?.({
-          type: 'transformResult',
-          seq,
-          result: makeIpcTransformResult(result),
-        })
-        return
-      }
-    }
-  })
-}
-
-if (require.main === module) workerProcess()
