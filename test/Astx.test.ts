@@ -78,9 +78,9 @@ describe(`Astx`, function () {
       })
       it(`.filter()`, function () {
         const astx = createAstx(`foo + bar; baz + qux, qlomb`).find`$a + $b`()
-        expect(
-          astx.filter((m) => (m.captures?.$a as any)?.name === 'baz').matches
-        ).to.deep.equal(astx.at(1).matches)
+        expect(astx.filter((m) => m.$a.code === 'baz').matches).to.deep.equal(
+          astx.at(1).matches
+        )
       })
       it(`.nodes`, function () {
         const astx = createAstx(`foo + bar; baz + qux, qlomb`).find`$a + $b`()
