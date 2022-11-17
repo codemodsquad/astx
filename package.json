@@ -19,9 +19,11 @@
     "tsc": "tsc",
     "tsc:watch": "npm run tsc -- --watch",
     "clean": "rimraf es lib $(cd src; ls) *.js *.d.ts *.js.flow",
-    "build": "npm run clean && npm run build:types && npm run build:js",
+    "build": "npm run clean && npm run build:types && npm run build:mjs && npm run check:mjs && npm run build:cjs",
     "build:types": "tsc -p tsconfig.build.json && tsc -p tsconfig.build.json --outDir es && copy 'src/**/*.js.flow' . && copy 'src/**/*.js.flow' es",
-    "build:js": "babel src --out-dir es --extensions \".ts\" --source-maps inline && cross-env BABEL_ENV=es5 babel src --out-dir . --extensions \".ts\"",
+    "build:mjs": "cross-env OUTPUT_ESM=1 babel src --out-dir es --out-file-extension .mjs --extensions .ts --source-maps inline && babel-node --extensions .ts src/cli/index.ts -t convertImportsToMjs.ts --parser babel --no-gitignore -y 'es/**/*.mjs'",
+    "check:mjs": "node es/index.mjs && node es/node/index.mjs && node es/cli/index.mjs --help",
+    "build:cjs": "cross-env BABEL_ENV=es5 babel src --out-dir . --extensions \".ts\"",
     "test": "cross-env NODE_ENV=test BABEL_ENV=coverage nyc --reporter=lcov --reporter=text mocha $npm_package_config_mocha",
     "test:watch": "cross-env NODE_ENV=test BABEL_ENV=test mocha $npm_package_config_mocha --watch",
     "test:debug": "cross-env NODE_ENV=test BABEL_ENV=test mocha --inspect-brk $npm_package_config_mocha",
@@ -132,7 +134,7 @@
     "@types/prettier": "^2.2.2",
     "@types/resolve": "^1.17.1",
     "@types/shallowequal": "^1.1.1",
-    "@types/yargs": "^15.0.12",
+    "@types/yargs": "^17.0.13",
     "@typescript-eslint/eslint-plugin": "^4.14.1",
     "@typescript-eslint/parser": "^4.14.1",
     "@typescript-eslint/typescript-estree": "^4.14.1",
@@ -174,9 +176,10 @@
     "dedent-js": "^1.0.1",
     "diff": "^5.0.0",
     "fs-extra": "^9.0.1",
-    "gitignore-fs": "^2.1.0",
+    "gitignore-fs": "^2.2.0",
     "inquirer": "^7.3.3",
     "lodash": "^4.17.20",
+    "lodash-es": "^4.17.21",
     "minimatch": "^5.1.0",
     "p-event": "^4.0.0",
     "recast": "^0.21.2",
@@ -184,6 +187,6 @@
     "shallowequal": "^1.1.0",
     "tiny-typed-emitter": "^2.1.0",
     "typed-validators": "^4.5.1",
-    "yargs": "^16.2.0"
+    "yargs": "^17.6.2"
   }
 }

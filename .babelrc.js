@@ -1,11 +1,15 @@
 module.exports = function (api) {
   const plugins = []
+  api.cache.using(() => process.env.OUTPUT_ESM)
   const presets = [
     [
       '@babel/preset-env',
       api.env('es5')
         ? { forceAllTransforms: true }
-        : { targets: { node: '12' } },
+        : {
+            modules: process.env.OUTPUT_ESM ? false : undefined,
+            targets: { node: '12' },
+          },
     ],
     ['@babel/preset-typescript', { allowDeclareFields: true }],
   ]

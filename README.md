@@ -96,8 +96,8 @@ These are docs for the version 2 beta branch.
   - [`exports.replace` (optional)](#exportsreplace-optional)
   - [`exports.astx` (optional)](#exportsastx-optional)
 - [Configuration](#configuration)
-  - [Config option: `parser`](#config-option-parser)
-  - [Config option: `parserOptions`](#config-option-parseroptions)
+    - [Config option: `parser`](#config-option-parser)
+    - [Config option: `parserOptions`](#config-option-parseroptions)
 - [CLI](#cli)
 
 <!-- tocstop -->
@@ -819,4 +819,5 @@ Options:
   -r, --replace        replace pattern                                  [string]
   -y, --yes            don't ask for confirmation before writing changes
                                                                        [boolean]
+      --gitignore      ignore gitignored files         [boolean] [default: true]
 ```

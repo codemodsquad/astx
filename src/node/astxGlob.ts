@@ -50,14 +50,3 @@ export default async function* astxGlob(
     }
   }
 }
-
-if (require.main === module) {
-  ;(async () => {
-    for await (const entry of astxGlob({
-      include: process.argv[2],
-    })) {
-      // eslint-disable-next-line no-console
-      console.log(entry)
-    }
-  })()
-}

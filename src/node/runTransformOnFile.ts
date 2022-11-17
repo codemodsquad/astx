@@ -1,6 +1,6 @@
 import fs from 'fs-extra'
 import Path from 'path'
-import memoize from 'lodash/memoize'
+import { memoize } from 'lodash'
 import { promisify } from 'util'
 import _resolve from 'resolve'
 import { Match } from '../find'
@@ -17,9 +17,11 @@ const resolve = promisify(_resolve) as any
 const getPrettier = memoize(async (path: string): Promise<any> => {
   try {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const prettier = require(await resolve('prettier', {
-      basedir: path,
-    }))
+    const prettier = await import(
+      await resolve('prettier', {
+        basedir: path,
+      })
+    )
     if (
       typeof prettier.format === 'function' &&
       typeof prettier.resolveConfig === 'function'
