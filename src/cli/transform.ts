@@ -27,6 +27,7 @@ type Options = {
   replace?: string
   filesAndDirectories?: string[]
   yes?: boolean
+  gitignore?: boolean
 }
 
 const transform: CommandModule<Options> = {
@@ -65,6 +66,11 @@ const transform: CommandModule<Options> = {
         alias: 'y',
         describe: `don't ask for confirmation before writing changes`,
         type: 'boolean',
+      })
+      .option('gitignore', {
+        type: 'boolean',
+        describe: `ignore gitignored files`,
+        default: true,
       }),
 
   handler: async (argv: Arguments<Options>) => {
@@ -103,7 +109,7 @@ const transform: CommandModule<Options> = {
         throw new Error(`missing transform file: ${files.join(' or ')}`)
       }
     })()
-    const { parser, parserOptions } = argv
+    const { parser, parserOptions, gitignore } = argv
 
     const results: Record<string, string> = {}
     let errorCount = 0
@@ -147,6 +153,7 @@ const transform: CommandModule<Options> = {
         spinnerInterval = setInterval(showProgress, 30)
       }
       for await (const event of pool.runTransform({
+        gitignore: gitignore ? undefined : null,
         transform,
         transformFile,
         paths,

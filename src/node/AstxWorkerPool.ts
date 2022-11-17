@@ -8,6 +8,7 @@ import AsyncPool from './AsyncPool'
 import { astxCosmiconfig } from './astxCosmiconfig'
 import { RunTransformOnFileOptions } from './runTransformOnFile'
 import PushPullIterable from '../util/PushPullIterable'
+import Gitignore from 'gitignore-fs'
 
 class AbortedError extends Error {}
 
@@ -35,6 +36,7 @@ export default class AstxWorkerPool {
   }
 
   runTransform({
+    gitignore,
     transform,
     transformFile,
     paths,
@@ -44,6 +46,7 @@ export default class AstxWorkerPool {
     signal,
     queueCapacity,
   }: Omit<RunTransformOnFileOptions, 'file'> & {
+    gitignore?: Gitignore | null
     paths?: readonly string[]
     exclude?: string
     cwd?: string
@@ -86,7 +89,12 @@ export default class AstxWorkerPool {
       try {
         await emit(progress())
         for (const include of paths?.length ? paths : [cwd]) {
-          for await (const file of astxGlob({ include, exclude, cwd })) {
+          for await (const file of astxGlob({
+            include,
+            exclude,
+            cwd,
+            gitignore,
+          })) {
             if (signal?.aborted) return
             total++
             await emit(progress())

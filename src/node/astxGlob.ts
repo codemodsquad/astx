@@ -11,7 +11,7 @@ export type AstxGlobOptions = {
   exclude?: string
   includeMatcher?: Minimatch
   excludeMatcher?: Minimatch
-  gitignore?: Gitignore
+  gitignore?: Gitignore | null
   cwd?: string
   fs?: Fs
   visited?: Set<string>

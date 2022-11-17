@@ -10,7 +10,7 @@ type Options = {
   exclude?: string
   includeMatcher?: Minimatch
   excludeMatcher?: Minimatch
-  gitignore?: Gitignore
+  gitignore?: Gitignore | null
   cwd?: string
   fs?: Fs
   visited?: Set<string>
@@ -31,7 +31,7 @@ async function* globDir({
 }: {
   includeMatcher?: Minimatch
   excludeMatcher?: Minimatch
-  gitignore: Gitignore
+  gitignore: Gitignore | null
   cwd: string
   dir: string
   fs: Fs
@@ -58,7 +58,7 @@ async function* globDir({
   }
   await Promise.all(
     readdir.map(async (fullpath: string) => {
-      if (await gitignore.ignores(fullpath)) return
+      if (gitignore && (await gitignore.ignores(fullpath))) return
       const matchpath = isAbsolute ? fullpath : path.relative(cwd, fullpath)
       if (
         (includeMatcher &&

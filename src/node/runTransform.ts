@@ -4,8 +4,10 @@ import { AstxConfig } from '../AstxConfig'
 import astxGlob from './astxGlob'
 import { astxCosmiconfig } from './astxCosmiconfig'
 import { Transform, TransformResult } from '../Astx'
+import Gitignore from 'gitignore-fs'
 
 export default async function* runTransform({
+  gitignore,
   transform: _transform,
   transformFile,
   paths: _paths,
@@ -13,6 +15,7 @@ export default async function* runTransform({
   config,
   signal,
 }: {
+  gitignore?: Gitignore | null
   transform?: Transform
   transformFile?: string
   paths?: readonly string[]
@@ -29,7 +32,7 @@ export default async function* runTransform({
 
   const paths = _paths?.length ? _paths : [cwd]
   for (const include of paths) {
-    for await (const file of astxGlob({ include, cwd })) {
+    for await (const file of astxGlob({ include, cwd, gitignore })) {
       if (signal?.aborted) return
       let transformed
       try {
