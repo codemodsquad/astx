@@ -12,6 +12,7 @@ export const expectedFind = [
     node: "const foo = require('foo')",
     captures: {
       $1: 'foo',
+      $a: "'foo'",
     },
     stringCaptures: {
       $a: 'foo',
@@ -21,6 +22,7 @@ export const expectedFind = [
     node: "const bar = require('bar')",
     captures: {
       $1: 'bar',
+      $a: "'bar'",
     },
     stringCaptures: {
       $a: 'bar',
@@ -29,6 +31,7 @@ export const expectedFind = [
   {
     captures: {
       $1: '{glom, qlx}',
+      $a: "'foo'",
     },
     node: "const {glom, qlx} = require('foo')",
     stringCaptures: {
@@ -38,6 +41,7 @@ export const expectedFind = [
   {
     captures: {
       $1: '{bar: barr, default: qux}',
+      $a: "'bar'",
     },
     node: "const {bar: barr, default: qux} = require('bar')",
     stringCaptures: {

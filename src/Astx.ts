@@ -75,6 +75,7 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
   public readonly backend: Backend
   private readonly _matches: Match[]
   private readonly _withCaptures: Match[]
+  private readonly _placeholder: string | undefined
   private _lazyPaths: NodePath<Node, any>[] | undefined
   private _lazyNodes: Node[] | undefined
   private _lazyInitialMatch: MatchResult | undefined
@@ -82,23 +83,39 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
   constructor(
     backend: Backend,
     paths: NodePath<any>[] | Match[],
-    { withCaptures = [] }: { withCaptures?: Match[] } = {}
+    {
+      withCaptures = [],
+      placeholder,
+    }: { withCaptures?: Match[]; placeholder?: string } = {}
   ) {
     super({
       get(target: Astx, prop: string): Astx {
         if (typeof prop === 'symbol' || !prop.startsWith('$'))
           return (target as any)[prop]
         const matches: Match[] = []
-        for (const { arrayPathCaptures, pathCaptures } of target._matches) {
+        for (const {
+          arrayPathCaptures,
+          pathCaptures,
+          stringCaptures,
+        } of target._matches) {
           const path = pathCaptures?.[prop]
+          const stringValue = stringCaptures?.[prop]
           const arrayPaths = arrayPathCaptures?.[prop]
-          if (path) matches.push(createMatch(path, {}))
+          if (path)
+            matches.push(
+              createMatch(path, {
+                stringCaptures: stringValue
+                  ? { [prop]: stringValue }
+                  : undefined,
+              })
+            )
           if (arrayPaths) matches.push(createMatch(arrayPaths, {}))
         }
-        return new Astx(target.backend, matches)
+        return new Astx(target.backend, matches, { placeholder: prop })
       },
     })
     this.backend = backend
+    this._placeholder = placeholder
     const { NodePath } = backend.t
     this._matches =
       paths[0] instanceof NodePath
@@ -139,6 +156,12 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
 
   get code(): string {
     return this.backend.generate(this.node).code
+  }
+
+  get stringValue(): string {
+    const result = this.match.stringCaptures?.[this._placeholder || '']
+    if (!result) throw new Error(`not a string capture`)
+    return result
   }
 
   get paths(): readonly NodePath[] {

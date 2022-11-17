@@ -176,6 +176,7 @@ export function compileStringPlaceholderMatcher<N extends Node>(
         }
         debug('  captured as %s', placeholder)
         return mergeCaptures(matchSoFar, {
+          captures: { [placeholder]: path },
           stringCaptures: { [placeholder]: string },
         })
       },

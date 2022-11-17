@@ -10,6 +10,7 @@ export const expectedFind = [
     node: 'foo`foo`',
     captures: {
       $1: 'foo',
+      $a: '`foo`',
     },
     stringCaptures: {
       $a: 'foo',
@@ -19,6 +20,7 @@ export const expectedFind = [
     node: 'baz`baz`',
     captures: {
       $1: 'baz',
+      $a: '`baz`',
     },
     stringCaptures: {
       $a: 'baz',

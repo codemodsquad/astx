@@ -16,6 +16,7 @@ export const expectedFind = [
     node: "const foo = require('foo')",
     captures: {
       $1: 'foo',
+      $a: "'foo'",
     },
     stringCaptures: {
       $a: 'foo',
@@ -25,6 +26,7 @@ export const expectedFind = [
     node: "const bar = require('bar')",
     captures: {
       $1: 'bar',
+      $a: "'bar'",
     },
     stringCaptures: {
       $a: 'bar',

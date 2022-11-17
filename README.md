@@ -40,10 +40,10 @@ These are docs for the version 2 beta branch.
   - [String Matching](#string-matching)
   - [Extracting nodes](#extracting-nodes)
   - [Special Constructs](#special-constructs)
-    - [`$Maybe(pattern)`](#optionalpattern)
+    - [`$Maybe(pattern)`](#maybepattern)
     - [`$Or(...)`](#or)
     - [`$And(...)`](#and)
-    - [`$Maybe<pattern>`](#optionalpattern-1)
+    - [`$Maybe<pattern>`](#maybepattern-1)
     - [`$Or<...>`](#or-1)
     - [`$And<...>`](#and-1)
     - [`$Ordered`](#ordered)
@@ -63,6 +63,7 @@ These are docs for the version 2 beta branch.
     - [`.node` (`Node`)](#node-node)
     - [`.path` (`NodePath`)](#path-nodepath)
     - [`.code` (`string`)](#code-string)
+    - [`.stringValue` (`string`)](#stringvalue-string)
     - [`[Symbol.iterator]` (`Iterator<Astx>`)](#symboliterator-iteratorastx)
     - [`.matches()` (`Match[]`)](#matches-match)
     - [`.match()` (`Match`)](#match-match)
@@ -574,6 +575,10 @@ Returns the first path of the first match. Throws an error if there are no match
 ### `.code` (`string`)
 
 Generates code from the first node of the first match. Throws an error if there are no matches.
+
+### `.stringValue` (`string`)
+
+Returns the string value of the first node if the focused capture is a string capture. Throws an error if there are no matches.
 
 ### `[Symbol.iterator]` (`Iterator<Astx>`)
 

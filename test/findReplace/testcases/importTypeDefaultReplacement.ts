@@ -3,11 +3,11 @@ import foo from 'foo'
 `
 
 export const find = `
-import $x from '$x'
+import $x from '$y'
 `
 
 export const replace = `
-import type $x from '$x'
+import type $x from '$y'
 import $_x from 'y'
 `
 
