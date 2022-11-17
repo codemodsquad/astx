@@ -24,8 +24,7 @@ export function statements(
   for (let i = 0; i < nodes.length; i++) {
     if (typeof nodes[i] === 'string') {
       varNames.push(nodes[i])
-    }
-    if (Array.isArray(nodes[i])) {
+    } else if (Array.isArray(nodes[i])) {
       const name = `$$tpl___${i}`
       arrayCaptures[name] = nodes[i].map((n: any) =>
         n instanceof Astx ? n.node : n
@@ -87,8 +86,7 @@ export function expression(
   for (let i = 0; i < nodes.length; i++) {
     if (typeof nodes[i] === 'string') {
       varNames.push(nodes[i])
-    }
-    if (Array.isArray(nodes[i])) {
+    } else if (Array.isArray(nodes[i])) {
       const name = `$$tpl___${i}`
       arrayCaptures[name] = nodes[i]
       varNames.push(name)
