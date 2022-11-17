@@ -9,7 +9,7 @@ import * as AstTypes from 'ast-types'
 
 export type TransformOptions = {
   /** The absolute path to the current file. */
-  path: string
+  file: string
   /** The source code of the current file. */
   source: string
   astx: Astx

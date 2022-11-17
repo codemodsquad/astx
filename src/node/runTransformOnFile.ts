@@ -102,7 +102,7 @@ export default async function runTransformOnFile({
       }
       const options = {
         source,
-        path: file,
+        file,
         root,
         t: backend.t,
         report: (msg: unknown) => {
