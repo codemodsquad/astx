@@ -178,10 +178,24 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
     )
   }
 
-  filter(
-    iteratee: (match: Match, index: number, matches: Match[]) => boolean
-  ): Astx {
-    return new Astx(this.backend, this._matches.filter(iteratee))
+  filter(iteratee: (astx: Astx, index: number, parent: Astx) => boolean): Astx {
+    const filtered = []
+    let index = 0
+    for (const astx of this) {
+      if (iteratee(astx, index++, this)) {
+        filtered.push(astx.match)
+      }
+    }
+    return new Astx(this.backend, filtered)
+  }
+
+  map<T>(iteratee: (astx: Astx, index: number, parent: Astx) => T): T[] {
+    const result = []
+    let index = 0
+    for (const astx of this) {
+      result.push(iteratee(astx, index++, this))
+    }
+    return result
   }
 
   at(index: number): Astx {
