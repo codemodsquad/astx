@@ -4,6 +4,9 @@ import compileGenericNodeReplacement from './GenericNodeReplacement'
 import compileGenericArrayReplacement from './GenericArrayReplacement'
 import ClassImplements from './ClassImplements'
 import ClassProperty from './ClassProperty'
+import ExportNamedDeclaration from './ExportNamedDeclaration'
+import ExportDefaultSpecifier from './ExportDefaultSpecifier'
+import ExportSpecifier from './ExportSpecifier'
 import ExpressionStatement from './ExpressionStatement'
 import FunctionTypeParam from './FunctionTypeParam'
 import GenericTypeAnnotation from './GenericTypeAnnotation'
@@ -59,6 +62,9 @@ const nodeCompilers: Record<
 > = {
   ClassImplements,
   ClassProperty,
+  ExportNamedDeclaration,
+  ExportDefaultSpecifier,
+  ExportSpecifier,
   ExpressionStatement,
   FunctionTypeParam,
   GenericTypeAnnotation,

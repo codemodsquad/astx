@@ -156,7 +156,12 @@ for (const parser in groups) {
     allowSuperOutsideMethod: true,
     allowUndeclaredExports: true,
     tokens: backendName === 'recast',
-    plugins: ['jsx', 'topLevelAwait'],
+    plugins: [
+      'jsx',
+      'topLevelAwait',
+      'exportDefaultFrom',
+      'exportNamespaceFrom',
+    ],
   }
   const babelParser =
     actualParser === 'babel/tsx'

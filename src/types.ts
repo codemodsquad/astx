@@ -80,6 +80,14 @@ export type CallExpression = b.CallExpression | k.CallExpressionKind
 export type ClassDeclaration = b.ClassImplements | k.ClassImplementsKind
 export type ClassImplements = b.ClassImplements | k.ClassImplementsKind
 export type ClassProperty = b.ClassProperty | k.ClassPropertyKind
+export type ExportDeclaration = b.ExportDeclaration | k.ExportDeclarationKind
+export type ExportDefaultSpecifier =
+  | b.ExportDefaultSpecifier
+  | k.ExportDefaultSpecifierKind
+export type ExportNamedDeclaration =
+  | b.ExportNamedDeclaration
+  | k.ExportNamedDeclarationKind
+export type ExportSpecifier = b.ExportSpecifier | k.ExportSpecifierKind
 export type ExpressionStatement =
   | b.ExpressionStatement
   | k.ExpressionStatementKind

@@ -9,6 +9,7 @@ import ClassImplements from './ClassImplements'
 import ClassProperty from './ClassProperty'
 import compileGenericArrayMatcher from './GenericArrayMatcher'
 import compileGenericNodeMatcher from './GenericNodeMatcher'
+import ExportSpecifier from './ExportSpecifier'
 import ExpressionStatement from './ExpressionStatement'
 import FunctionTypeParam from './FunctionTypeParam'
 import GenericTypeAnnotation from './GenericTypeAnnotation'
@@ -122,6 +123,7 @@ const nodeMatchers: Record<
   CallExpression,
   ClassImplements,
   ClassProperty,
+  ExportSpecifier,
   ExpressionStatement,
   FunctionTypeParam,
   GenericTypeAnnotation,
