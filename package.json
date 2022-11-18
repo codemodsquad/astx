@@ -15,12 +15,12 @@
     "./node": {
       "import": "./mjs/node/index.mjs",
       "require": "./cjs/node/index.js",
-      "types": "./types/index.d.ts"
+      "types": "./types/node/index.d.ts"
     },
     "./cli": {
       "import": "./mjs/cli/index.mjs",
       "require": "./cjs/cli/index.js",
-      "types": "./types/index.d.ts"
+      "types": "./types/cli/index.d.ts"
     }
   },
   "files": [
