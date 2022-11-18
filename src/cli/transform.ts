@@ -8,8 +8,12 @@ import fs from 'fs-extra'
 import dedent from 'dedent-js'
 import CodeFrameError from '../util/CodeFrameError'
 import { formatIpcMatches } from '../util/formatMatches'
-import { AstxWorkerPool, astxCosmiconfig } from '../node'
-import { invertIpcError } from '../node/ipc'
+import { AstxWorkerPool, astxCosmiconfig, runTransform } from '../node'
+import {
+  invertIpcError,
+  IpcTransformResult,
+  makeIpcTransformResult,
+} from '../node/ipc'
 import { Transform } from '../Astx'
 import ansiEscapes from 'ansi-escapes'
 import { Progress } from '../node/AstxWorkerPool'
@@ -28,6 +32,7 @@ type Options = {
   filesAndDirectories?: string[]
   yes?: boolean
   gitignore?: boolean
+  threads?: number
 }
 
 const transform: CommandModule<Options> = {
@@ -71,6 +76,10 @@ const transform: CommandModule<Options> = {
         type: 'boolean',
         describe: `ignore gitignored files`,
         default: true,
+      })
+      .option('workers', {
+        type: 'number',
+        describe: 'number of worker threads to use',
       }),
 
   handler: async (argv: Arguments<Options>) => {
@@ -148,12 +157,14 @@ const transform: CommandModule<Options> = {
 
     const interactive = isInteractive()
     const config = (await astxCosmiconfig.search())?.config
-    const pool = new AstxWorkerPool({ capacity: config?.workers })
+    const workers = argv.workers ?? config?.workers
+    const pool =
+      workers === 1 ? null : new AstxWorkerPool({ capacity: workers })
     try {
       if (interactive) {
         spinnerInterval = setInterval(showProgress, 30)
       }
-      for await (const event of pool.runTransform({
+      const runTransformOptions = {
         gitignore: gitignore ? undefined : null,
         transform,
         transformFile,
@@ -162,7 +173,14 @@ const transform: CommandModule<Options> = {
           parser: parser as any,
           parserOptions: parserOptions ? JSON.parse(parserOptions) : undefined,
         },
-      })) {
+      }
+      for await (const _event of pool
+        ? pool.runTransform(runTransformOptions)
+        : runTransform(runTransformOptions)) {
+        const event: { type: 'result'; result: IpcTransformResult } | Progress =
+          pool
+            ? (_event as any)
+            : { type: 'result', result: makeIpcTransformResult(_event as any) }
         if (event.type === 'progress') {
           progress = event
           if (interactive) showProgress()
@@ -291,7 +309,7 @@ const transform: CommandModule<Options> = {
       }
       if (process.send) process.send({ exit: 0 })
     }
-    await pool.end()
+    await pool?.end()
     process.exit(0)
   },
 }

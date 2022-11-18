@@ -3,7 +3,7 @@
   "version": "0.0.0-development",
   "description": "super powerful structural search and replace for JavaScript and TypeScript to automate your refactoring",
   "bin": {
-    "astx": "es/cli/index.mjs"
+    "astx": "cli/index.js"
   },
   "astx": {
     "parser": "babel"
@@ -21,7 +21,7 @@
     "clean": "rimraf es lib $(cd src; ls) *.js *.d.ts *.js.flow",
     "build": "npm run clean && npm run build:types && npm run build:mjs && npm run check:mjs && npm run build:cjs",
     "build:types": "tsc -p tsconfig.build.json && tsc -p tsconfig.build.json --outDir es && copy 'src/**/*.js.flow' . && copy 'src/**/*.js.flow' es",
-    "build:mjs": "cross-env OUTPUT_ESM=1 babel src --out-dir es --out-file-extension .mjs --extensions .ts --source-maps inline && babel-node --extensions .ts src/cli/index.ts -t convertImportsToMjs.ts --parser babel --no-gitignore -y 'es/**/*.mjs'",
+    "build:mjs": "cross-env OUTPUT_ESM=1 babel src --out-dir es --out-file-extension .mjs --extensions .ts --source-maps inline && babel-node --extensions .ts src/cli/index.ts -t convertImportsToMjs.ts --workers 1 --parser babel --no-gitignore -y 'es/**/*.mjs'",
     "check:mjs": "node es/index.mjs && node es/node/index.mjs && node es/cli/index.mjs --help",
     "build:cjs": "cross-env BABEL_ENV=es5 babel src --out-dir . --extensions \".ts\"",
     "test": "cross-env NODE_ENV=test BABEL_ENV=coverage nyc --reporter=lcov --reporter=text mocha $npm_package_config_mocha",

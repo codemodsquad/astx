@@ -820,4 +820,5 @@ Options:
   -y, --yes            don't ask for confirmation before writing changes
                                                                        [boolean]
       --gitignore      ignore gitignored files         [boolean] [default: true]
+      --workers        number of worker threads to use                  [number]
 ```
