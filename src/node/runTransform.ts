@@ -6,6 +6,16 @@ import { astxCosmiconfig } from './astxCosmiconfig'
 import { Transform, TransformResult } from '../Astx'
 import Gitignore from 'gitignore-fs'
 
+export type RunTransformOptions = {
+  gitignore?: Gitignore | null
+  transform?: Transform
+  transformFile?: string
+  paths?: readonly string[]
+  cwd?: string
+  config?: Partial<AstxConfig>
+  signal?: AbortSignal
+}
+
 export default async function* runTransform({
   gitignore,
   transform: _transform,
@@ -14,15 +24,7 @@ export default async function* runTransform({
   cwd = process.cwd(),
   config,
   signal,
-}: {
-  gitignore?: Gitignore | null
-  transform?: Transform
-  transformFile?: string
-  paths?: readonly string[]
-  cwd?: string
-  config?: Partial<AstxConfig>
-  signal?: AbortSignal
-}): AsyncIterable<TransformResult> {
+}: RunTransformOptions): AsyncIterable<TransformResult> {
   clearCache()
   astxCosmiconfig.clearSearchCache()
 

@@ -3,12 +3,36 @@
   "version": "0.0.0-development",
   "description": "super powerful structural search and replace for JavaScript and TypeScript to automate your refactoring",
   "bin": {
-    "astx": "cli/index.js"
+    "astx": "./cjs/cli/index.js"
   },
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "import": "./mjs/index.mjs",
+      "require": "./cjs/index.js",
+      "types": "./types/index.d.ts"
+    },
+    "./node": {
+      "import": "./mjs/node/index.mjs",
+      "require": "./cjs/node/index.js",
+      "types": "./types/index.d.ts"
+    },
+    "./cli": {
+      "import": "./mjs/cli/index.mjs",
+      "require": "./cjs/cli/index.js",
+      "types": "./types/index.d.ts"
+    }
+  },
+  "files": [
+    "mjs",
+    "cjs",
+    "types"
+  ],
   "astx": {
     "parser": "babel"
   },
-  "main": "index.js",
+  "main": "./cjs/index.js",
+  "types": "./types/index.d.ts",
   "sideEffects": false,
   "scripts": {
     "cli": "babel-node --extensions .ts src/cli/index.ts",
@@ -18,12 +42,13 @@
     "prettier:check": "prettier --list-different $npm_package_config_prettier",
     "tsc": "tsc",
     "tsc:watch": "npm run tsc -- --watch",
-    "clean": "rimraf es lib $(cd src; ls) *.js *.d.ts *.js.flow",
-    "build": "npm run clean && npm run build:types && npm run build:mjs && npm run check:mjs && npm run build:cjs",
-    "build:types": "tsc -p tsconfig.build.json && tsc -p tsconfig.build.json --outDir es && copy 'src/**/*.js.flow' . && copy 'src/**/*.js.flow' es",
-    "build:mjs": "cross-env OUTPUT_ESM=1 babel src --out-dir es --out-file-extension .mjs --extensions .ts --source-maps inline && babel-node --extensions .ts src/cli/index.ts -t convertImportsToMjs.ts --workers 1 --parser babel --no-gitignore -y 'es/**/*.mjs'",
-    "check:mjs": "node es/index.mjs && node es/node/index.mjs && node es/cli/index.mjs --help",
-    "build:cjs": "cross-env BABEL_ENV=es5 babel src --out-dir . --extensions \".ts\"",
+    "clean": "rimraf mjs cjs types",
+    "build": "npm run clean && npm run build:types && npm run build:cjs && npm run build:mjs && npm run check:mjs",
+    "build:types": "tsc -p tsconfig.build.json && mkdir -p cjs && copy 'src/**/*.js.flow' cjs && mkdir -p mjs && copy 'src/**/*.js.flow' mjs",
+    "build:cjs": "cross-env BABEL_ENV=es5 babel src --out-dir cjs --extensions .ts",
+    "check:cjs": "node cjs/index.js && node cjs/node/index.js && node cjs/cli/index.js --help",
+    "build:mjs": "cross-env OUTPUT_ESM=1 babel src --out-dir mjs --out-file-extension .mjs --extensions .ts --source-maps inline && babel-node --extensions .ts src/cli/index.ts -t convertImportsToMjs.ts --workers 1 --parser babel --no-gitignore -y 'mjs/**/*.mjs'",
+    "check:mjs": "node mjs/index.mjs && node mjs/node/index.mjs && node mjs/cli/index.mjs --help",
     "test": "cross-env NODE_ENV=test BABEL_ENV=coverage nyc --reporter=lcov --reporter=text mocha $npm_package_config_mocha",
     "test:watch": "cross-env NODE_ENV=test BABEL_ENV=test mocha $npm_package_config_mocha --watch",
     "test:debug": "cross-env NODE_ENV=test BABEL_ENV=test mocha --inspect-brk $npm_package_config_mocha",

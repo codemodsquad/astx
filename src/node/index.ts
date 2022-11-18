@@ -1,6 +1,12 @@
 export { default as AstxWorkerPool } from './AstxWorkerPool'
-export { default as runTransform } from './runTransform'
-export { default as runTransformOnFile } from './runTransformOnFile'
+export {
+  default as runTransform,
+  type RunTransformOptions,
+} from './runTransform'
+export {
+  default as runTransformOnFile,
+  type RunTransformOnFileOptions,
+} from './runTransformOnFile'
 export {
   type IpcPath,
   type IpcNode,
