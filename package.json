@@ -3,7 +3,7 @@
   "version": "0.0.0-development",
   "description": "super powerful structural search and replace for JavaScript and TypeScript to automate your refactoring",
   "bin": {
-    "astx": "cli/index.js"
+    "astx": "es/cli/index.mjs"
   },
   "astx": {
     "parser": "babel"

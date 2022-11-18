@@ -15,6 +15,7 @@ import ansiEscapes from 'ansi-escapes'
 import { Progress } from '../node/AstxWorkerPool'
 import { spinner } from './spinner'
 import '../node/registerTsNode'
+import isInteractive from '../util/isInteractive'
 
 /* eslint-disable no-console */
 
@@ -145,10 +146,11 @@ const transform: CommandModule<Options> = {
     }
     let spinnerInterval
 
+    const interactive = isInteractive()
     const config = (await astxCosmiconfig.search())?.config
     const pool = new AstxWorkerPool({ capacity: config?.workers })
     try {
-      if (process.stderr.isTTY) {
+      if (interactive) {
         spinnerInterval = setInterval(showProgress, 30)
       }
       for await (const event of pool.runTransform({
@@ -163,7 +165,7 @@ const transform: CommandModule<Options> = {
       })) {
         if (event.type === 'progress') {
           progress = event
-          if (process.stderr.isTTY) showProgress()
+          if (interactive) showProgress()
           continue
         }
         clearProgress()
