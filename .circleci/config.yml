@@ -19,13 +19,13 @@ jobs:
           command: pnpm install --frozen-lockfile
       - run:
           name: build
-          command: ASTX_WORKERS=1 pnpm prepublishOnly
+          command: pnpm prepublishOnly
       - run:
           name: upload test coverage
           command: pnpm codecov
       - run:
           name: release
-          command: ASTX_WORKERS=1 pnpm semantic-release
+          command: pnpm semantic-release
 workflows:
   version: 2
   build:

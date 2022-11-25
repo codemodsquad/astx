@@ -30,7 +30,7 @@
   ],
   "astx": {
     "parser": "babel",
-    "workers": 0
+    "workers": 1
   },
   "main": "./cjs/index.js",
   "types": "./types/index.d.ts",
@@ -46,10 +46,10 @@
     "clean": "rimraf mjs cjs types",
     "build": "npm run clean && npm run build:types && npm run build:cjs && npm run check:cjs && npm run build:mjs && npm run check:mjs",
     "build:types": "tsc -p tsconfig.build.json && mkdir -p cjs && copy 'src/**/*.js.flow' cjs && mkdir -p mjs && copy 'src/**/*.js.flow' mjs",
-    "build:cjs": "cross-env BABEL_ENV=es5 babel src --out-dir cjs --extensions .ts",
-    "check:cjs": "node cjs/index.js && node cjs/node/index.js && node cjs/cli/index.js -f 'export type TransformOptions = $T' src",
-    "build:mjs": "cross-env OUTPUT_ESM=1 babel src --out-dir mjs --out-file-extension .mjs --extensions .ts --source-maps inline && babel-node --extensions .ts src/cli/index.ts -t convertImportsToMjs.ts --parser babel --workers 0 --no-gitignore -y 'mjs/**/*.mjs'",
-    "check:mjs": "node mjs/index.mjs && node mjs/node/index.mjs && node mjs/cli/index.mjs -f 'export type TransformOptions = $T' src",
+    "build:cjs": "cross-env BABEL_ENV=es5 babel src --out-dir cjs --extensions .ts && babel-node --extensions .ts src/cli/index.ts -t convertCjsBuild.ts --parser babel --no-gitignore -y cjs",
+    "check:cjs": "node cjs/cli/index.js -f 'export type TransformOptions = $T' src",
+    "build:mjs": "cross-env OUTPUT_ESM=1 babel src --out-dir mjs --out-file-extension .mjs --extensions .ts --source-maps inline && babel-node --extensions .ts src/cli/index.ts -t convertMjsBuild.ts --parser babel --no-gitignore -y mjs",
+    "check:mjs": "node mjs/cli/index.mjs -f 'export type TransformOptions = $T' src",
     "test": "cross-env NODE_ENV=test BABEL_ENV=coverage nyc --reporter=lcov --reporter=text mocha $npm_package_config_mocha",
     "test:watch": "cross-env NODE_ENV=test BABEL_ENV=test mocha $npm_package_config_mocha --watch",
     "test:debug": "cross-env NODE_ENV=test BABEL_ENV=test mocha --inspect-brk $npm_package_config_mocha",

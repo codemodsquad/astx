@@ -27,10 +27,7 @@ export default class AstxWorker {
 
   private startWorker() {
     if (this.ended) return
-    const worker =
-      typeof __filename !== 'undefined' && __filename.endsWith('.ts')
-        ? new Worker(require.resolve('./AstxWorkerEntry.babel.js'))
-        : new Worker(require.resolve('./AstxWorkerEntry.js'))
+    const worker = new Worker(require.resolve('./AstxWorkerEntry.babel.js'))
     this.worker = worker
     worker.once('exit', async () => {
       this.worker = undefined

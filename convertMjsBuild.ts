@@ -71,7 +71,7 @@ export async function astx({ astx, file }: TransformOptions): Promise<void> {
   astx.find`new Worker(require.resolve('$source'))`().replace(
     ({ $source }) =>
       `new Worker(new URL('${$source.stringValue.replace(
-        /\.js$/,
+        /\.babel\.js$/,
         '.mjs'
       )}', import.meta.url))`
   )
