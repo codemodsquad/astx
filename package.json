@@ -29,7 +29,8 @@
     "types"
   ],
   "astx": {
-    "parser": "babel"
+    "parser": "babel",
+    "workers": 0
   },
   "main": "./cjs/index.js",
   "types": "./types/index.d.ts",

@@ -27,11 +27,12 @@ export default async function getBabelAutoBackend(
   options?: { [k in string]?: any }
 ): Promise<BabelBackend> {
   const basedir = path.dirname(file)
-  const [_parser, types, { default: generate }]: any = await Promise.all([
+  const [_parser, types, { default: _generate }]: any = await Promise.all([
     getParserAsync(file, options),
     importLocal('@babel/types', basedir),
     importLocal('@babel/generator', basedir),
   ])
+  const generate = _generate.default || _generate
   const parser = _parser.parserOpts.sourceType
     ? _parser
     : _parser.bindParserOpts({ sourceType: 'unambiguous' })
