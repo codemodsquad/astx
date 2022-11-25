@@ -70,4 +70,12 @@ export async function astx({ astx, file }: TransformOptions): Promise<void> {
         match.replace(pattern.replace(/\$source/, resolved))
     }
   }
+
+  for (const match of astx.find`new Worker(require.resolve('$source'))`()) {
+    const { $source } = match
+    match.replace`new Worker(new URL('${$source.stringValue.replace(
+      /\.babel\.js$/,
+      '.mjs'
+    )}', import.meta.url))`()
+  }
 }

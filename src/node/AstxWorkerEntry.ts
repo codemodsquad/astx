@@ -4,9 +4,13 @@ import { makeIpcTransformResult } from './ipc'
 import runTransformOnFile, {
   RunTransformOnFileOptions,
 } from './runTransformOnFile'
+import { parentPort as _parentPort } from 'worker_threads'
+
+const parentPort = _parentPort
+if (!parentPort) process.exit(1)
 
 const abortControllers: Map<number, AbortController> = new Map()
-process.on('message', async (message: any) => {
+parentPort.on('message', async (message: any) => {
   switch (message.type) {
     case 'abort': {
       abortControllers.get(message.seq)?.abort()
@@ -31,7 +35,7 @@ process.on('message', async (message: any) => {
           forWorker: true,
         })
       } catch (error: any) {
-        process.send?.({
+        parentPort.postMessage({
           type: 'error',
           seq,
           error: { message: error.message, stack: error.stack },
@@ -40,7 +44,7 @@ process.on('message', async (message: any) => {
       } finally {
         abortControllers.delete(seq)
       }
-      process.send?.({
+      parentPort.postMessage({
         type: 'transformResult',
         seq,
         result: makeIpcTransformResult(result),

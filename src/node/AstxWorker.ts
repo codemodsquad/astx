@@ -1,45 +1,39 @@
 #!/usr/bin/env node
 
-import { ChildProcess, fork } from 'child_process'
+import { Worker } from 'worker_threads'
 import { RunTransformOnFileOptions } from './runTransformOnFile'
 import emitted from 'p-event'
 import { IpcTransformResult } from './ipc'
 
 export default class AstxWorker {
-  child: ChildProcess | undefined
+  private worker: Worker | undefined
   private _seq = 0
   private _running = false
   private ended = false
 
   constructor() {
-    this.startChild()
+    this.startWorker()
   }
 
   async end(): Promise<void> {
     if (this.ended) return
     this.ended = true
-    const { child } = this
-    if (child && child.connected) {
-      await Promise.all([
-        emitted(child, 'close', { rejectionEvents: [] }),
-        child.kill(),
-      ])
+    const { worker } = this
+    if (worker) {
+      await worker.terminate()
+      this.worker = undefined
     }
   }
 
-  private startChild() {
+  private startWorker() {
     if (this.ended) return
-    const child = fork(
-      __filename.endsWith('.ts')
-        ? require.resolve('./AstxWorkerEntry.babel.js')
-        : __filename.replace(/(\.[^.]+)$/, 'Entry$1')
-    )
-    this.child = child
-    child.once('close', async () => {
-      this.child = undefined
+    const worker = new Worker(require.resolve('./AstxWorkerEntry.babel.js'))
+    this.worker = worker
+    worker.once('exit', async () => {
+      this.worker = undefined
       if (this.ended) return
       await new Promise((r) => setTimeout(r, 1000))
-      this.startChild()
+      this.startWorker()
     })
   }
 
@@ -47,11 +41,11 @@ export default class AstxWorker {
     return this.running
   }
 
-  private async getChild(): Promise<ChildProcess> {
-    while (!this.child) {
+  private async getWorker(): Promise<Worker> {
+    while (!this.worker) {
       await new Promise((r) => setTimeout(r, 1000))
     }
-    if (this.child) return this.child
+    if (this.worker) return this.worker
     throw new Error('unexpected')
   }
 
@@ -62,7 +56,7 @@ export default class AstxWorker {
     config,
     signal,
   }: RunTransformOnFileOptions): Promise<IpcTransformResult> {
-    const child = await this.getChild()
+    const worker = await this.getWorker()
 
     if (this._running) {
       throw new Error(`a transform is currently running`)
@@ -72,13 +66,17 @@ export default class AstxWorker {
     try {
       this._running = true
       ;(signal as any)?.on?.('abort', () => {
-        child.send({ type: 'abort', seq })
+        worker.postMessage({ type: 'abort', seq })
       })
       const promise = Promise.race([
-        emitted(child, 'message', {
+        emitted(worker, 'message', {
           filter: (event: any) => event.seq === seq,
           rejectionEvents: ['error', 'exit'],
-        }),
+        }).catch((reason) =>
+          typeof reason === 'number'
+            ? `worker exited with code ${reason}`
+            : reason
+        ),
         ...(signal
           ? [emitted(signal as any, '', { rejectionEvents: ['abort'] })]
           : []),
@@ -86,11 +84,11 @@ export default class AstxWorker {
       promise.catch(() => {
         // ignore
       })
-      child.send({
+      worker.postMessage({
         type: 'runTransformOnFile',
         seq,
         file,
-        transform,
+        transform: transformFile ? undefined : transform,
         transformFile,
         ...(config && { config }),
       })

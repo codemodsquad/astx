@@ -47,7 +47,7 @@
     "build:types": "tsc -p tsconfig.build.json && mkdir -p cjs && copy 'src/**/*.js.flow' cjs && mkdir -p mjs && copy 'src/**/*.js.flow' mjs",
     "build:cjs": "cross-env BABEL_ENV=es5 babel src --out-dir cjs --extensions .ts",
     "check:cjs": "node cjs/index.js && node cjs/node/index.js && node cjs/cli/index.js --help",
-    "build:mjs": "cross-env OUTPUT_ESM=1 babel src --out-dir mjs --out-file-extension .mjs --extensions .ts --source-maps inline && babel-node --extensions .ts src/cli/index.ts -t convertImportsToMjs.ts --workers 1 --parser babel --no-gitignore -y 'mjs/**/*.mjs'",
+    "build:mjs": "cross-env OUTPUT_ESM=1 babel src --out-dir mjs --out-file-extension .mjs --extensions .ts --source-maps inline && babel-node --extensions .ts src/cli/index.ts -t convertImportsToMjs.ts --parser babel --no-gitignore -y 'mjs/**/*.mjs'",
     "check:mjs": "node mjs/index.mjs && node mjs/node/index.mjs && node mjs/cli/index.mjs --help",
     "test": "cross-env NODE_ENV=test BABEL_ENV=coverage nyc --reporter=lcov --reporter=text mocha $npm_package_config_mocha",
     "test:watch": "cross-env NODE_ENV=test BABEL_ENV=test mocha $npm_package_config_mocha --watch",
