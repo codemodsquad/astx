@@ -157,7 +157,12 @@ const transform: CommandModule<Options> = {
 
     const interactive = isInteractive()
     const config = (await astxCosmiconfig.search())?.config
-    const workers = argv.workers ?? config?.workers
+    const workers =
+      argv.workers ??
+      (process.env.ASTX_WORKERS
+        ? parseInt(process.env.ASTX_WORKERS)
+        : undefined) ??
+      config?.workers
     const pool =
       workers === 0 ? null : new AstxWorkerPool({ capacity: workers })
     try {
