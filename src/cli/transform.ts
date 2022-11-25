@@ -159,7 +159,7 @@ const transform: CommandModule<Options> = {
     const config = (await astxCosmiconfig.search())?.config
     const workers = argv.workers ?? config?.workers
     const pool =
-      workers === 1 ? null : new AstxWorkerPool({ capacity: workers })
+      workers === 0 ? null : new AstxWorkerPool({ capacity: workers })
     try {
       if (interactive) {
         spinnerInterval = setInterval(showProgress, 30)

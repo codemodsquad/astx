@@ -2,7 +2,7 @@ import { describe, it } from 'mocha'
 import { expect } from 'chai'
 import path from 'path'
 import find, { FindOptions, Match } from '../../src/find'
-import replace from '../../src/replace'
+import { replaceAll } from '../../src/replace'
 import { Node, NodePath } from '../../src/types'
 import requireGlob from 'require-glob'
 import mapValues from 'lodash/mapValues'
@@ -51,7 +51,7 @@ type Fixture = {
 }
 
 export function extractMatchSource(
-  matches: Match[],
+  matches: readonly Match[],
   source: string,
   backend: Backend
 ): ExpectedMatch[] {
@@ -269,28 +269,27 @@ for (const parser in groups) {
               backend,
             })
 
-            if (expectedError) {
+            if (expectedError && _replace) {
               expect(() => {
-                if (_replace)
-                  replace(
-                    matches,
-                    typeof _replace === 'string'
-                      ? backend.parsePatternToNodes(_replace)
-                      : (match): Node | Node[] => {
-                          const result = _replace(
-                            match,
-                            backend.parsePatternToNodes
-                          )
-                          return typeof result === 'string'
-                            ? backend.parsePatternToNodes(result)
-                            : result
-                        },
-                    { backend }
-                  )
+                replaceAll(
+                  matches,
+                  typeof _replace === 'string'
+                    ? backend.parsePatternToNodes(_replace)
+                    : (match): Node | Node[] => {
+                        const result = _replace(
+                          match,
+                          backend.parsePatternToNodes
+                        )
+                        return typeof result === 'string'
+                          ? backend.parsePatternToNodes(result)
+                          : result
+                      },
+                  { backend }
+                )
               }).to.throw(expectedError)
             }
             if (expectedReplace) {
-              replace(
+              replaceAll(
                 matches,
                 typeof _replace === 'string'
                   ? backend.parsePatternToNodes(_replace)

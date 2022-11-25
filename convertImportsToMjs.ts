@@ -32,14 +32,11 @@ export async function astx({ astx, file }: TransformOptions): Promise<void> {
     const { Minimatch } = __minimatch
   `()
 
-  for (const match of astx.find`import { $$imports } from 'lodash/fp'`()) {
-    const { $$imports } = match
-    match.replace(
-      $$imports.map(
-        (imp) => statement`import ${imp.code} from 'lodash/fp/${imp.code}'`
-      )
+  astx.find`import { $$imports } from 'lodash/fp'`().replace(({ $$imports }) =>
+    $$imports.map(
+      (imp) => statement`import ${imp.code} from 'lodash/fp/${imp.code}'`
     )
-  }
+  )
 
   async function resolve(source: string): Promise<string> {
     if (source.startsWith('lodash') && !source.startsWith('lodash/fp'))
@@ -71,11 +68,11 @@ export async function astx({ astx, file }: TransformOptions): Promise<void> {
     }
   }
 
-  for (const match of astx.find`new Worker(require.resolve('$source'))`()) {
-    const { $source } = match
-    match.replace`new Worker(new URL('${$source.stringValue.replace(
-      /\.babel\.js$/,
-      '.mjs'
-    )}', import.meta.url))`()
-  }
+  astx.find`new Worker(require.resolve('$source'))`().replace(
+    ({ $source }) =>
+      `new Worker(new URL('${$source.stringValue.replace(
+        /\.js$/,
+        '.mjs'
+      )}', import.meta.url))`
+  )
 }

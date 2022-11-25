@@ -70,6 +70,7 @@ These are docs for the version 2 beta branch.
     - [`.paths()` (`NodePath[]`)](#paths-nodepath)
     - [`.nodes()` (`Node[]`)](#nodes-node)
     - [`.filter(iteratee)` (`Astx`)](#filteriteratee-astx)
+    - [`.map<T>(iteratee)` (`T[]`)](#maptiteratee-t)
     - [`.at(index)` (`Astx`)](#atindex-astx)
     - [`.withCaptures(matches)` (`Astx`)](#withcapturesmatches-astx)
     - [`.captures(name)` (`Astx`)](#capturesname-astx)
@@ -534,8 +535,8 @@ There are several different ways you can call `.replace`. You can call `.find` i
 
 - `` .find(...).replace`replacement`() ``
 - `.find(...).replace(replacement: string | string | Node | Node[])`
-- `.find(...).replace(replacement: (match: Match<any>, parse: ParsePattern) => string)`
-- `.find(...).replace(replacement: (match: Match<any>, parse: ParsePattern) => Node | Node[])`
+- `.find(...).replace(replacement: (match: Astx, parse: ParsePattern) => string)`
+- `.find(...).replace(replacement: (match: Astx, parse: ParsePattern) => Node | Node[])`
 
 If you give the replacement as a string, it must be a valid expression or statement.
 You can give the replacement as AST node(s) you already parsed or constructed.
@@ -610,7 +611,14 @@ the nodes that matched the search pattern.
 
 Filters the matches.
 
-`iteratee` is function that will be called with `match: Match, index: number, matches: Match[]` and returns `true` or `false`. Only matches for which `iteratee` returns `true` will be included in the result.
+`iteratee` is function that will be called with `match: Astx, index: number, parent: Astx` and returns `true` or `false`. Only matches for which `iteratee` returns `true` will be included in the result.
+
+### `.map<T>(iteratee)` (`T[]`)
+
+Maps the matches.
+
+`iteratee` is function that will be called with `match: Astx, index: number, parent: Astx` and returns the value to include
+in the result array.
 
 ### `.at(index)` (`Astx`)
 

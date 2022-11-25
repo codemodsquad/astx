@@ -186,17 +186,14 @@ describe(`Astx`, function () {
       it(`.replace function returning parse tagged template literal works`, function () {
         const astx = createAstx(`1 + FOO; 3 + BAR`)
         astx.find`$a + $b`().replace(
-          (match, parse) =>
-            parse`${t.identifier(
-              (match.captures?.$b as any).name.toLowerCase()
-            )} + $a`
+          ({ $b }, parse) => parse`${$b.code.toLowerCase()} + $a`
         )
         expect(reformat(toSource(astx))).to.equal(reformat(`foo + 1; bar + 3;`))
       })
       it(`.replace function returning string works`, function () {
         const astx = createAstx(`1 + FOO; 3 + BAR`)
         astx.find`$a + $b`().replace(
-          (match) => `${(match.captures?.$b as any).name.toLowerCase()} + $a`
+          ({ $b }) => `${$b.code.toLowerCase()} + $a`
         )
         expect(reformat(toSource(astx))).to.equal(reformat(`foo + 1; bar + 3;`))
       })

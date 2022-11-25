@@ -132,7 +132,7 @@ for (const parser in groups) {
             const reports: any[] = []
             const options: TransformOptions = {
               astx,
-              path: './file',
+              file: './file',
               source: input,
               t: backend.t,
               report: (message) => reports.push(message),
@@ -146,7 +146,7 @@ for (const parser in groups) {
                 transformed = backend.generate(root.node).code
               }
               if (expected) {
-                expect(transformed).to.equal(expected)
+                expect(transformed?.trim()).to.equal(expected?.trim())
               }
               if (expectedReports) {
                 expect(reports).to.deep.equal(expectedReports)

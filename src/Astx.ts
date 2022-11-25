@@ -49,7 +49,7 @@ export type ParsePattern = (
 ) => Node | Node[]
 
 export type GetReplacement = (
-  match: Match,
+  astx: Astx,
   parse: ParsePattern
 ) => string | Node | Node[]
 
@@ -133,8 +133,14 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
   }
 
   *[Symbol.iterator](): Iterator<Astx> {
-    for (const match of this.matches) {
-      yield new Astx(this.backend, [match])
+    if (this._placeholder && this._matches.length === 1) {
+      for (const path of this.match.paths) {
+        yield new Astx(this.backend, [path])
+      }
+    } else {
+      for (const match of this._matches) {
+        yield new Astx(this.backend, [match])
+      }
     }
   }
 
@@ -446,25 +452,28 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
     const { backend } = this
     const { parsePatternToNodes } = backend
     try {
-      const { _matches } = this
       if (typeof arg0 === 'function') {
-        replace(
-          _matches,
-          (match: Match): Node | Node[] => {
-            const result = arg0(match, parsePatternToNodes)
-            return typeof result === 'string'
-              ? parsePatternToNodes(result)
-              : result
-          },
-          { backend }
-        )
+        for (const astx of this) {
+          const replacement = arg0(astx, parsePatternToNodes)
+          replace(
+            astx.match,
+            typeof replacement === 'string'
+              ? parsePatternToNodes(replacement)
+              : replacement,
+            { backend }
+          )
+        }
       } else if (typeof arg0 === 'string') {
-        replace(_matches, parsePatternToNodes(arg0), { backend })
+        const replacement = parsePatternToNodes(arg0)
+        for (const match of this._matches) {
+          replace(match, replacement, { backend })
+        }
       } else if (isNode(arg0) || isNodeArray(arg0)) {
-        replace(_matches, arg0, { backend })
+        for (const match of this._matches) {
+          replace(match, arg0, { backend })
+        }
       } else {
-        return () =>
-          replace(_matches, parsePatternToNodes(arg0, ...quasis), { backend })
+        return () => this.replace(parsePatternToNodes(arg0, ...quasis))
       }
     } catch (error) {
       if (error instanceof Error) {
