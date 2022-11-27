@@ -6,6 +6,7 @@ import astxGlob from './astxGlob'
 import AstxWorker from './AstxWorker'
 import AsyncPool from './AsyncPool'
 import { astxCosmiconfig } from './astxCosmiconfig'
+import { RunTransformOptions } from './runTransform'
 import { RunTransformOnFileOptions } from './runTransformOnFile'
 import PushPullIterable from '../util/PushPullIterable'
 
@@ -44,7 +45,7 @@ export default class AstxWorkerPool {
     config,
     signal,
     queueCapacity,
-  }: Omit<RunTransformOnFileOptions, 'file'> & {
+  }: RunTransformOptions & {
     queueCapacity?: number
   }): AsyncIterable<{ type: 'result'; result: IpcTransformResult } | Progress> {
     clearCache()

@@ -122,7 +122,7 @@ export default async function runTransformOnFile({
       }
       const [_result, prettier] = await Promise.all([
         transformFn(options),
-        config.prettier !== false ? getPrettier(Path.dirname(file)) : null,
+        config?.prettier !== false ? getPrettier(Path.dirname(file)) : null,
       ])
       if (signal?.aborted) throw new Error('aborted')
       if (transform.astx || transform.replace) {
