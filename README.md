@@ -99,6 +99,7 @@ These are docs for the version 2 beta branch.
 - [Configuration](#configuration)
   - [Config option: `parser`](#config-option-parser)
   - [Config option: `parserOptions`](#config-option-parseroptions)
+  - [Config option: `prettier`](#config-option-prettier)
 - [CLI](#cli)
 
 <!-- tocstop -->
@@ -776,6 +777,11 @@ I've seen `recast` output invalid syntax on some files, so use with caution.
 ### Config option: `parserOptions`
 
 Options to pass to the parser. Right now this is just the [`@babel/parser` options](https://babeljs.io/docs/en/babel-parser#options).
+
+### Config option: `prettier`
+
+If `false`, don't try to use `prettier` to reformat transformed source code.
+Defaults to `true`.
 
 # CLI
 

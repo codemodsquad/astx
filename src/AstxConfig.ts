@@ -10,6 +10,7 @@ export type AstxConfig = {
     | Backend
   parserOptions?: Record<string, any>
   workers?: number
+  prettier?: boolean
 }
 
 export const AstxConfigType: t.TypeAlias<AstxConfig> = t.alias(
@@ -26,6 +27,7 @@ export const AstxConfigType: t.TypeAlias<AstxConfig> = t.alias(
 
       parserOptions: t.record(t.string(), t.any()),
       workers: t.number(),
+      prettier: t.boolean(),
     },
   })
 )
