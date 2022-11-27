@@ -1,6 +1,8 @@
 import path from 'path'
 import _resolve from 'resolve'
 import BabelBackend from './BabelBackend'
+import defaultBabelTypes from '@babel/types'
+import defaultBabelGenerator from '@babel/generator'
 import { getParserAsync } from 'babel-parse-wild-code'
 import { promisify } from 'util'
 
@@ -11,15 +13,11 @@ const resolve: (
 ) => Promise<string> = promisify(_resolve as any)
 
 async function importLocal<T>(pkg: string, basedir: string): Promise<T> {
-  try {
-    const resolved = await resolve(pkg, {
-      basedir,
-    })
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    return await import(/* webpackIgnore: true */ resolved)
-  } catch (error) {
-    return await import(pkg)
-  }
+  const resolved = await resolve(pkg, {
+    basedir,
+  })
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  return await import(/* webpackIgnore: true */ resolved)
 }
 
 export default async function getBabelAutoBackend(
@@ -27,12 +25,12 @@ export default async function getBabelAutoBackend(
   options?: { [k in string]?: any }
 ): Promise<BabelBackend> {
   const basedir = path.dirname(file)
-  const [_parser, types, { default: _generate }]: any = await Promise.all([
+  const [_parser, types, generator]: any = await Promise.all([
     getParserAsync(file, options),
-    importLocal('@babel/types', basedir),
-    importLocal('@babel/generator', basedir),
+    importLocal('@babel/types', basedir).catch(() => defaultBabelTypes),
+    importLocal('@babel/generator', basedir).catch(() => defaultBabelGenerator),
   ])
-  const generate = _generate.default || _generate
+  const generate = generator.default || generator
   const parser = _parser.parserOpts.sourceType
     ? _parser
     : _parser.bindParserOpts({ sourceType: 'unambiguous' })
