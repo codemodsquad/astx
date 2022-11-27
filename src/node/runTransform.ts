@@ -11,6 +11,7 @@ export type RunTransformOptions = {
   transform?: Transform
   transformFile?: string
   paths?: readonly string[]
+  exclude?: string
   cwd?: string
   config?: Partial<AstxConfig>
   signal?: AbortSignal
@@ -21,6 +22,7 @@ export default async function* runTransform({
   transform: _transform,
   transformFile,
   paths: _paths,
+  exclude,
   cwd = process.cwd(),
   config,
   signal,
@@ -34,7 +36,7 @@ export default async function* runTransform({
 
   const paths = _paths?.length ? _paths : [cwd]
   for (const include of paths) {
-    for await (const file of astxGlob({ include, cwd, gitignore })) {
+    for await (const file of astxGlob({ include, exclude, cwd, gitignore })) {
       if (signal?.aborted) return
       let transformed
       try {
