@@ -17,16 +17,21 @@ const resolve = promisify(_resolve) as any
 const getPrettier = memoize(async (path: string): Promise<any> => {
   try {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const prettier = await import(
+    let prettier = await import(
+      /* webpackIgnore: true */
       await resolve('prettier', {
         basedir: path,
       })
     )
+    if (prettier.default instanceof Object) {
+      prettier = prettier.default
+    }
     if (
       typeof prettier.format === 'function' &&
       typeof prettier.resolveConfig === 'function'
-    )
+    ) {
       return prettier
+    }
   } catch (error) {
     // ignore
   }
@@ -136,8 +141,9 @@ export default async function runTransformOnFile({
           if (/\.tsx?$/.test(file)) config.parser = 'typescript'
           transformed = prettier.format(transformed, config)
         }
-        if (transformed != null)
+        if (transformed != null) {
           transformed = omitBlankLineChanges(source, transformed)
+        }
       }
     } else {
       return {

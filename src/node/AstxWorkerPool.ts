@@ -8,7 +8,6 @@ import AsyncPool from './AsyncPool'
 import { astxCosmiconfig } from './astxCosmiconfig'
 import { RunTransformOnFileOptions } from './runTransformOnFile'
 import PushPullIterable from '../util/PushPullIterable'
-import Gitignore from 'gitignore-fs'
 
 class AbortedError extends Error {}
 
@@ -46,10 +45,6 @@ export default class AstxWorkerPool {
     signal,
     queueCapacity,
   }: Omit<RunTransformOnFileOptions, 'file'> & {
-    gitignore?: Gitignore | null
-    paths?: readonly string[]
-    exclude?: string
-    cwd?: string
     queueCapacity?: number
   }): AsyncIterable<{ type: 'result'; result: IpcTransformResult } | Progress> {
     clearCache()

@@ -42,7 +42,7 @@ specifiers:
   ansi-escapes: ^4.0.0
   ast-types: ^0.14.2
   babel-eslint: ^10.1.0
-  babel-parse-wild-code: ^2.0.2
+  babel-parse-wild-code: ^2.1.2
   babel-plugin-istanbul: ^6.0.0
   chai: ^4.2.0
   chai-as-promised: ^7.1.1
@@ -90,7 +90,7 @@ dependencies:
   '@babel/runtime': 7.18.9
   '@babel/types': 7.18.13
   ast-types: 0.14.2
-  babel-parse-wild-code: 2.0.2
+  babel-parse-wild-code: 2.1.2
   chalk: 4.1.2
   cosmiconfig: 7.0.1
   debug: 4.3.4
@@ -2516,8 +2516,8 @@ packages:
       - supports-color
     dev: true
 
-  /babel-parse-wild-code/2.0.2:
-    resolution: {integrity: sha512-wro5X9J/L3Liqnp9KnZPhlG7PsOs5/YvpsTRU4Ywf70aw5/PeiIq6HUodVqKiTNHZTgZu6QRObRjQrW45EXH3w==}
+  /babel-parse-wild-code/2.1.2:
+    resolution: {integrity: sha512-I8KDNLZwsy4xOqBESi+0rX2zYeSOV2s3frCWNYVmieBTNxZXPsDYazcf72y7GuzD3SsjLHl0bNAFVsemQVnkUA==}
     dependencies:
       '@babel/parser': 7.19.1
       '@babel/runtime': 7.19.0

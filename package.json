@@ -195,7 +195,7 @@
     "@babel/runtime": "^7.18.9",
     "@babel/types": "^7.18.13",
     "ast-types": "^0.14.2",
-    "babel-parse-wild-code": "^2.0.2",
+    "babel-parse-wild-code": "^2.1.2",
     "chalk": "^4.1.0",
     "cosmiconfig": "^7.0.1",
     "debug": "^4.3.1",

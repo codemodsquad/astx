@@ -12,11 +12,11 @@ const resolve: (
 
 async function importLocal<T>(pkg: string, basedir: string): Promise<T> {
   try {
-    const generatorPath = await resolve(pkg, {
+    const resolved = await resolve(pkg, {
       basedir,
     })
     // eslint-disable-next-line @typescript-eslint/no-var-requires
-    return await import(generatorPath)
+    return await import(/* webpackIgnore: true */ resolved)
   } catch (error) {
     return await import(pkg)
   }
