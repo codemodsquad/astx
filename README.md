@@ -20,6 +20,7 @@ Super powerful structural search and replace for JavaScript and TypeScript to au
   - [Converting require statements to imports](#converting-require-statements-to-imports)
   - [Making code DRY](#making-code-dry)
 - [Roadmap](#roadmap)
+- [VSCode Extension](#vscode-extension)
 - [Prior art and philosophy](#prior-art-and-philosophy)
 - [Pattern Language](#pattern-language)
   - [Placeholders](#placeholders)
@@ -203,8 +204,14 @@ testCase({
 # Roadmap
 
 I just finally got version 2 released as of December 2022 after tons of hard work 🎉
-I'm working on a [VSCode Extension](https://github.com/codemodsquad/vscode-astx)!
+Right now I'm working on the [VSCode Extension](https://github.com/codemodsquad/vscode-astx).
 After that I want to make a documentation website that better illustrates how to use `astx`.
+
+# VSCode Extension
+
+The [VSCode Extension](https://github.com/codemodsquad/vscode-astx) is currently in beta, but try it out!
+
+![Screenshot](screenshot.png)
 
 # Prior art and philosophy
 
