@@ -8,16 +8,11 @@
 
 Super powerful structural search and replace for JavaScript and TypeScript to automate your refactoring
 
-# Version 2 Beta
-
-These are docs for the version 2 beta branch.
-
 # Table of Contents
 
 <!-- toc -->
 
 - [astx](#astx)
-- [Version 2 Beta](#version-2-beta)
 - [Table of Contents](#table-of-contents)
 - [Introduction](#introduction)
 - [Usage examples](#usage-examples)
