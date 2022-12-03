@@ -6,6 +6,12 @@ import compileMatcher, { MatchResult } from './compileMatcher'
 import CodeFrameError from './util/CodeFrameError'
 import ensureArray from './util/ensureArray'
 import * as AstTypes from 'ast-types'
+import {
+  isPlaceholder,
+  getPlaceholder,
+  getArrayPlaceholder,
+  getRestPlaceholder,
+} from './compileMatcher/Placeholder'
 
 export type TransformOptions = {
   /** The absolute path to the current file. */
@@ -58,6 +64,16 @@ function isNode(x: unknown): x is Node {
 }
 function isNodeArray(x: unknown): x is Node[] {
   return Array.isArray(x) && !Array.isArray((x as any).raw)
+}
+function isPlaceholdersHash(
+  item: unknown
+): item is { [name: `$${string}` | `$$${string}` | `$$$${string}`]: Astx } {
+  if (!(item instanceof Object)) return false
+  for (const [key, value] of Object.entries(item)) {
+    if (!isPlaceholder(key)) return false
+    if (!(value instanceof Astx)) return false
+  }
+  return true
 }
 
 export type FindOptions = {
@@ -133,8 +149,8 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
   }
 
   *[Symbol.iterator](): Iterator<Astx> {
-    if (this._placeholder && this._matches.length === 1) {
-      for (const path of this.match.paths) {
+    if (this._placeholder) {
+      for (const path of this.paths) {
         yield new Astx(this.backend, [path])
       }
     } else {
@@ -208,85 +224,72 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
     return new Astx(this.backend, [this._matches[index]])
   }
 
-  on(root: NodePath<any> | NodePath<any>[] | Match | Match[]): Astx {
-    return new Astx(this.backend, ensureArray(root) as NodePath[] | Match[])
-  }
-
   withCaptures(
-    matches: Match | Astx | Match[] | Astx[] | (Match | Astx)[]
+    ...captures: (
+      | Match
+      | Astx
+      | { [name: `$${string}` | `$$${string}` | `$$$${string}`]: Astx }
+    )[]
   ): Astx {
     const withCaptures: Match[] = [...this._withCaptures]
-    if (Array.isArray(matches)) {
-      for (const elem of matches) {
-        if (elem instanceof Astx) withCaptures.push(...elem._matches)
-        else withCaptures.push(elem)
+    for (const item of captures) {
+      if (item instanceof Astx) {
+        if (item._placeholder) {
+          const placeholder = item._placeholder
+          for (const { path, paths, stringCaptures } of item._matches) {
+            withCaptures.push(
+              createMatch(paths, {
+                captures: getPlaceholder(placeholder)
+                  ? { [placeholder]: path }
+                  : undefined,
+                arrayCaptures:
+                  getArrayPlaceholder(placeholder) ||
+                  getRestPlaceholder(placeholder)
+                    ? { [placeholder]: paths }
+                    : undefined,
+                stringCaptures:
+                  getPlaceholder(placeholder) && stringCaptures?.[placeholder]
+                    ? { [placeholder]: stringCaptures[placeholder] }
+                    : undefined,
+              })
+            )
+          }
+        } else {
+          for (const match of item._withCaptures) withCaptures.push(match)
+          for (const match of item._matches) withCaptures.push(match)
+        }
+      } else if (isPlaceholdersHash(item)) {
+        for (const [placeholder, astx] of Object.entries(item)) {
+          const { _placeholder } = astx
+          for (const { path, paths, stringCaptures } of astx._matches) {
+            withCaptures.push(
+              createMatch(paths, {
+                captures: getPlaceholder(placeholder)
+                  ? { [placeholder]: path }
+                  : undefined,
+                arrayCaptures:
+                  getArrayPlaceholder(placeholder) ||
+                  getRestPlaceholder(placeholder)
+                    ? { [placeholder]: paths }
+                    : undefined,
+                stringCaptures:
+                  getPlaceholder(placeholder) &&
+                  _placeholder &&
+                  stringCaptures?.[_placeholder]
+                    ? { [placeholder]: stringCaptures[_placeholder] }
+                    : undefined,
+              })
+            )
+          }
+        }
+      } else {
+        withCaptures.push(item)
       }
-    } else if (matches instanceof Astx) {
-      withCaptures.push(...matches._matches)
-    } else {
-      withCaptures.push(matches)
     }
+
     return new Astx(this.backend, this._matches, {
       withCaptures,
     })
-  }
-
-  captures(name: string): Astx {
-    const matches: Match[] = []
-    for (const match of this._matches) {
-      const capture = match.pathCaptures?.[name]
-      if (capture) matches.push(createMatch(capture, {}))
-    }
-    return new Astx(this.backend, matches)
-  }
-
-  captureNode(name: string): Node | null {
-    for (const match of this._matches) {
-      const capture = match.captures?.[name]
-      if (capture) return capture
-    }
-    return null
-  }
-
-  capturePath(name: string): NodePath | null {
-    for (const match of this._matches) {
-      const capture = match.pathCaptures?.[name]
-      if (capture) return capture
-    }
-    return null
-  }
-
-  arrayCaptures(name: string): Astx {
-    const matches: Match[] = []
-    for (const match of this._matches) {
-      const capture = match.arrayPathCaptures?.[name]
-      if (capture) matches.push(createMatch(capture, {}))
-    }
-    return new Astx(this.backend, matches)
-  }
-
-  arrayCaptureNodes(name: string): Node[] | null {
-    for (const match of this._matches) {
-      const capture = match.arrayCaptures?.[name]
-      if (capture) return capture
-    }
-    return null
-  }
-
-  arrayCapturePaths(name: string): NodePath[] | null {
-    for (const match of this._matches) {
-      const capture = match.arrayPathCaptures?.[name]
-      if (capture) return capture
-    }
-    return null
-  }
-
-  stringCapture(name: string): string | null {
-    for (const match of this._matches) {
-      const capture = match.stringCaptures?.[name]
-      if (capture != null) return capture
-    }
-    return null
   }
 
   private get initialMatch(): MatchResult {

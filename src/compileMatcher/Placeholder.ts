@@ -19,6 +19,10 @@ export function getRestPlaceholder(identifier: string): string | undefined {
   return /^\${3}([a-z0-9]+.*)?$/i.exec(identifier)?.[0]
 }
 
+export function isPlaceholder(identifier: string): string | undefined {
+  return /^\${1,3}([a-z0-9]+.*)?$/i.exec(identifier)?.[0]
+}
+
 export function isCapturePlaceholder(identifier: string): boolean {
   return /[^$]/.test(identifier)
 }

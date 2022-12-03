@@ -55,8 +55,7 @@ These are docs for the version 2 beta branch.
     - [`.find(...)` (`Astx`)](#find-astx)
     - [`.closest(...)` (`Astx`)](#closest-astx)
     - [`FindOptions`](#findoptions)
-      - [`FindOptions.where` (`{ [captureName: string]: (path: NodePath<any>) => boolean }`)](#findoptionswhere--capturename-string-path-nodepathany--boolean-)
-      - [`FindOptions.withCaptures` (`Match | Match[]`)](#findoptionswithcaptures-match--match)
+      - [`FindOptions.where` (`{ [captureName: string]: (path: Astx) => boolean }`)](#findoptionswhere--capturename-string-path-astx--boolean-)
     - [`.find(...).replace(...)` (`void`)](#findreplace-void)
     - [`.size()` (`number`)](#size-number)
     - [`` [name: `$${string}` | `$$${string}` | `$$$${string}`] `` (`Astx`)](#name-string--string--string-astx)
@@ -72,14 +71,7 @@ These are docs for the version 2 beta branch.
     - [`.filter(iteratee)` (`Astx`)](#filteriteratee-astx)
     - [`.map<T>(iteratee)` (`T[]`)](#maptiteratee-t)
     - [`.at(index)` (`Astx`)](#atindex-astx)
-    - [`.withCaptures(matches)` (`Astx`)](#withcapturesmatches-astx)
-    - [`.captures(name)` (`Astx`)](#capturesname-astx)
-    - [`.captureNode(name)` (`Node | null`)](#capturenodename-node--null)
-    - [`.capturePath(name)` (`NodePath<any> | null`)](#capturepathname-nodepathany--null)
-    - [`.arrayCaptures(name)` (`Astx`)](#arraycapturesname-astx)
-    - [`.arrayCaptureNodes(name)` (`Node[] | null`)](#arraycapturenodesname-node--null)
-    - [`.arrayCapturePaths(name)` (`NodePath<any>[] | null`)](#arraycapturepathsname-nodepathany--null)
-    - [`.stringCapture(name)` (`string | null`)](#stringcapturename-string--null)
+    - [`.withCaptures(...captures)` (`Astx`)](#withcapturescaptures-astx)
   - [Match](#match)
     - [`.type`](#type)
     - [`.path`](#path)
@@ -96,6 +88,8 @@ These are docs for the version 2 beta branch.
   - [`exports.where` (optional)](#exportswhere-optional)
   - [`exports.replace` (optional)](#exportsreplace-optional)
   - [`exports.astx` (optional)](#exportsastx-optional)
+  - [`exports.onReport` (optional)](#exportsonreport-optional)
+  - [`exports.finish` (optional)](#exportsfinish-optional)
 - [Configuration](#configuration)
   - [Config option: `parser`](#config-option-parser)
   - [Config option: `parserOptions`](#config-option-parseroptions)
@@ -518,15 +512,11 @@ Like `.find()`, but searches up the AST ancestors instead of down into descendan
 
 An object with the following optional properties:
 
-#### `FindOptions.where` (`{ [captureName: string]: (path: NodePath<any>) => boolean }`)
+#### `FindOptions.where` (`{ [captureName: string]: (path: Astx) => boolean }`)
 
 Where conditions for node captures. For example if your find pattern is `$a()`, you could have
-`{ where: { $a: path => /foo|bar/.test(path.node.name) } }`, which would only match zero-argument calls
+`{ where: { $a: astx => /foo|bar/.test(astx.node.name) } }`, which would only match zero-argument calls
 to `foo` or `bar`.
-
-#### `FindOptions.withCaptures` (`Match | Match[]`)
-
-Allows you to backreference captures in matches from previous find operations.
 
 ### `.find(...).replace(...)` (`void`)
 
@@ -625,43 +615,16 @@ in the result array.
 
 Selects the match at the given `index`.
 
-### `.withCaptures(matches)` (`Astx`)
+### `.withCaptures(...captures)` (`Astx`)
 
-Returns an `Astx` instance that contains captures from the given `matches` in addition to captures present in this instance.
+Returns an `Astx` instance that contains captures from the given `...captures` in addition to captures present in this instance.
 
-### `.captures(name)` (`Astx`)
+You can pass the following kinds of arguments:
 
-Filters down to nodes captured with the given `name`. For example,
-`astx.find('foo($arg)')` will have calls to `foo` as matches/paths,
-but `astx.find('foo($arg)').captures('$arg')` will have just the
-first arguments as matches/paths.
-
-### `.captureNode(name)` (`Node | null`)
-
-Gets the first node that was captured with the given `name`.
-
-### `.capturePath(name)` (`NodePath<any> | null`)
-
-Gets the path of the first node that was captured with the given `name`.
-
-### `.arrayCaptures(name)` (`Astx`)
-
-Filters down to arrays of nodes captured with the given `name`. For example,
-`astx.find('foo($$arg)')` will have calls to `foo` as matches/paths,
-but `astx.find('foo($$arg)').captures('$$arg')` will have just the
-arguments as matches/paths.
-
-### `.arrayCaptureNodes(name)` (`Node[] | null`)
-
-Gets the first array of nodes that was captured with the given `name`.
-
-### `.arrayCapturePaths(name)` (`NodePath<any>[] | null`)
-
-Gets the paths of the first array of nodes that was captured with the given `name`.
-
-### `.stringCapture(name)` (`string | null`)
-
-Gets the first string value that was captured with the given `name`.
+- `Astx` instances - all captures from the instance will be included.
+- `Astx[placeholder]` instances - capture(s) for the given `placeholder` will be included.
+- `{ $name: Astx[placeholder] }` - capture(s) for the given `placeholder`, renamed to `$name`.
+- [`Match`](#match) objects
 
 ## Match
 
@@ -738,18 +701,44 @@ is multiple statements or not.
 
 A function to perform an arbitrary transform using the `Astx` API. It gets called with an object with the following properties:
 
+- `file` (`string`) - The path to the file being transformed
 - `source` (`string`) - The source code of the file being transformed
-- `path` (`string`) - The path to the file being transformed
 - `astx` (`Astx`) - the `Astx` API instance
 - `t` (`AstTypes`) - `ast-types` definitions for the chosen parser
 - `expression` - tagged template literal for parsing code as an expression
 - `statement` - tagged template literal for parsing code as a statement
 - `statements` - tagged template literal for parsing code as an array of statements
-- `report` (`(message: any) => void`)
+- `report` (`(message: unknown) => void`)
 
 Unlike `jscodeshift`, your transform function can be async, and it doesn't have to return the transformed code,
 but you can return a `string`. You can also return `null` to
 skip the file.
+
+## `exports.onReport` (optional)
+
+If your call `report(x)` from an [`exports.astx` function](#exportsastx-optional), this will be called with
+`onReport({ file, report: x })`.
+
+If you are using multiple worker threads, `onReport`
+will be called in the parent process, so the report
+message must be a serializable value. This allows a
+transform to collect reports from all workers (and then
+potentially do something with them in [`finish`](#exportsfinish-optional)).
+
+If `onReport` returns a `Promise` it will be awaited.
+
+## `exports.finish` (optional)
+
+This will be called after the transform has been run on
+all input files.
+
+If you are using multiple worker threads, `finish`
+will be called in the parent process. You can use
+[`onReport`](#exportsonreport-optional) and `finish`
+together to collect information from each input file
+and produce some kind of combined output at the end.
+
+If `finish` returns a `Promise` it will be awaited.
 
 # Configuration
 

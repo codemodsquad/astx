@@ -55,9 +55,12 @@ describe(`Astx`, function () {
         ])
       })
       it(`.find and .withCaptures`, function () {
-        const astx = createAstx(`function foo() { foo(); bar() }`)
+        const astx = createAstx(`
+          function foo() { foo(); bar() }
+          function baz() { qux(); baz() }
+        `)
 
-        const fnMatches = astx.find`function $fn() { $$body }`()
+        let fnMatches = astx.find`function $fn() { $$body }`().at(0)
         expect(
           extractMatchSource(astx.withCaptures(fnMatches).find`$fn()`())
         ).to.deep.equal([
@@ -65,6 +68,128 @@ describe(`Astx`, function () {
             node: 'foo()',
             captures: { $fn: 'foo' },
             arrayCaptures: { $$body: ['foo();', 'bar()'] },
+          },
+        ])
+        expect(
+          extractMatchSource(astx.withCaptures(fnMatches.$fn).find`$fn()`())
+        ).to.deep.equal([
+          {
+            node: 'foo()',
+            captures: { $fn: 'foo' },
+          },
+        ])
+        expect(
+          extractMatchSource(
+            astx.withCaptures({ $bar: fnMatches.$fn }).find`$bar()`()
+          )
+        ).to.deep.equal([
+          {
+            node: 'foo()',
+            captures: { $bar: 'foo' },
+          },
+        ])
+
+        fnMatches = astx.find`function $fn() { $$body }`().at(1)
+        expect(
+          extractMatchSource(astx.withCaptures(fnMatches).find`$fn()`())
+        ).to.deep.equal([
+          {
+            node: 'baz()',
+            captures: { $fn: 'baz' },
+            arrayCaptures: { $$body: ['qux();', 'baz()'] },
+          },
+        ])
+        expect(
+          extractMatchSource(astx.withCaptures(fnMatches.$fn).find`$fn()`())
+        ).to.deep.equal([
+          {
+            node: 'baz()',
+            captures: { $fn: 'baz' },
+          },
+        ])
+        expect(
+          extractMatchSource(
+            astx.withCaptures({ $bar: fnMatches.$fn }).find`$bar()`()
+          )
+        ).to.deep.equal([
+          {
+            node: 'baz()',
+            captures: { $bar: 'baz' },
+          },
+        ])
+      })
+      it(`.find and string .withCaptures`, function () {
+        const astx = createAstx(`
+          const a = require('b')
+          const c = require('d')
+
+          console.log('b')
+          console.log('d')
+        `)
+
+        let matches = astx.find`const $a = require('$b')`().at(0)
+        expect(
+          extractMatchSource(astx.withCaptures(matches).find`console.log($b)`())
+        ).to.deep.equal([
+          {
+            node: `console.log('b')`,
+            captures: { $a: 'a', $b: "'b'" },
+            stringCaptures: { $b: 'b' },
+          },
+        ])
+        expect(
+          extractMatchSource(
+            astx.withCaptures(matches.$b).find`console.log($b)`()
+          )
+        ).to.deep.equal([
+          {
+            node: `console.log('b')`,
+            captures: { $b: "'b'" },
+            stringCaptures: { $b: 'b' },
+          },
+        ])
+        expect(
+          extractMatchSource(
+            astx.withCaptures({ $c: matches.$b }).find`console.log($c)`()
+          )
+        ).to.deep.equal([
+          {
+            node: `console.log('b')`,
+            captures: { $c: "'b'" },
+            stringCaptures: { $c: 'b' },
+          },
+        ])
+
+        matches = astx.find`const $a = require('$b')`().at(1)
+        expect(
+          extractMatchSource(astx.withCaptures(matches).find`console.log($b)`())
+        ).to.deep.equal([
+          {
+            node: `console.log('d')`,
+            captures: { $a: 'c', $b: "'d'" },
+            stringCaptures: { $b: 'd' },
+          },
+        ])
+        expect(
+          extractMatchSource(
+            astx.withCaptures(matches.$b).find`console.log($b)`()
+          )
+        ).to.deep.equal([
+          {
+            node: `console.log('d')`,
+            captures: { $b: "'d'" },
+            stringCaptures: { $b: 'd' },
+          },
+        ])
+        expect(
+          extractMatchSource(
+            astx.withCaptures({ $c: matches.$b }).find`console.log($c)`()
+          )
+        ).to.deep.equal([
+          {
+            node: `console.log('d')`,
+            captures: { $c: "'d'" },
+            stringCaptures: { $c: 'd' },
           },
         ])
       })
@@ -109,24 +234,6 @@ describe(`Astx`, function () {
         expect(astx.paths).to.deep.equal(
           astx.matches.map((m) => m.paths).flat()
         )
-      })
-      it(`.captures()`, function () {
-        expect(
-          extractMatchSource(
-            createAstx(`foo + bar; baz + qux`).find`$a + $b`().captures('$a')
-          )
-        ).to.deep.equal([{ node: 'foo' }, { node: 'baz' }])
-      })
-      it(`.arrayCaptures() works`, function () {
-        expect(
-          extractMatchSource(
-            createAstx(`const a = [1, 2, 3, 4]; const b = [1, 4, 5, 6]`)
-              .find`[1, $$a]`().arrayCaptures('$$a')
-          )
-        ).to.deep.equal([
-          { nodes: ['2', '3', '4'] },
-          { nodes: ['4', '5', '6'] },
-        ])
       })
       it(`.closest tagged template works`, function () {
         expect(
