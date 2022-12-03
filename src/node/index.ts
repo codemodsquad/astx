@@ -2,6 +2,7 @@ export { default as AstxWorkerPool } from './AstxWorkerPool'
 export {
   default as runTransform,
   type RunTransformOptions,
+  type Progress,
 } from './runTransform'
 export {
   default as runTransformOnFile,

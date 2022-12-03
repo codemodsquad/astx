@@ -8,7 +8,12 @@ import fs from 'fs-extra'
 import dedent from 'dedent-js'
 import CodeFrameError from '../util/CodeFrameError'
 import { formatIpcMatches } from '../util/formatMatches'
-import { AstxWorkerPool, astxCosmiconfig, runTransform } from '../node'
+import {
+  AstxWorkerPool,
+  astxCosmiconfig,
+  runTransform,
+  Progress,
+} from '../node'
 import {
   invertIpcError,
   IpcTransformResult,
@@ -16,7 +21,6 @@ import {
 } from '../node/ipc'
 import { Transform } from '../Astx'
 import ansiEscapes from 'ansi-escapes'
-import { Progress } from '../node/AstxWorkerPool'
 import { spinner } from './spinner'
 import '../node/registerTsNode'
 import isInteractive from '../util/isInteractive'
@@ -183,9 +187,9 @@ const transform: CommandModule<Options> = {
         ? pool.runTransform(runTransformOptions)
         : runTransform(runTransformOptions)) {
         const event: { type: 'result'; result: IpcTransformResult } | Progress =
-          pool
-            ? (_event as any)
-            : { type: 'result', result: makeIpcTransformResult(_event as any) }
+          !pool && _event.type === 'result'
+            ? { type: 'result', result: makeIpcTransformResult(_event as any) }
+            : (_event as any)
         if (event.type === 'progress') {
           progress = event
           if (interactive) showProgress()

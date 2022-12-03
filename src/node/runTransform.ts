@@ -6,6 +6,13 @@ import { astxCosmiconfig } from './astxCosmiconfig'
 import { Transform, TransformResult } from '../Astx'
 import Gitignore from 'gitignore-fs'
 
+export type Progress = {
+  type: 'progress'
+  completed: number
+  total: number
+  globDone: boolean
+}
+
 export type RunTransformOptions = {
   gitignore?: Gitignore | null
   transform?: Transform
@@ -26,7 +33,9 @@ export default async function* runTransform({
   cwd = process.cwd(),
   config,
   signal,
-}: RunTransformOptions): AsyncIterable<TransformResult> {
+}: RunTransformOptions): AsyncIterable<
+  { type: 'result'; result: TransformResult } | Progress
+> {
   clearCache()
   astxCosmiconfig.clearSearchCache()
 
@@ -34,9 +43,26 @@ export default async function* runTransform({
   if (signal?.aborted) return
   if (!transform) throw new Error(`transform or transformFile is required`)
 
+  let completed = 0,
+    total = 0,
+    globDone = false
+
+  const progress = (): Progress => ({
+    type: 'progress',
+    completed,
+    total,
+    globDone,
+  })
+
+  yield progress()
+  if (signal?.aborted) return
+
   const paths = _paths?.length ? _paths : [cwd]
   for (const include of paths) {
     for await (const file of astxGlob({ include, exclude, cwd, gitignore })) {
+      if (signal?.aborted) return
+      total++
+      yield progress()
       if (signal?.aborted) return
       let transformed
       try {
@@ -46,14 +72,21 @@ export default async function* runTransform({
           config,
           signal,
         })
+        completed++
+        yield progress()
       } catch (error: any) {
         if (error.message === 'aborted' && signal?.aborted) return
         throw error
       }
       if (signal?.aborted) return
-      yield transformed
+      yield { type: 'result', result: transformed }
     }
   }
   if (signal?.aborted) return
+
+  globDone = true
+  yield progress()
+  if (signal?.aborted) return
+
   await transform.finish?.()
 }

@@ -6,18 +6,12 @@ import astxGlob from './astxGlob'
 import AstxWorker from './AstxWorker'
 import AsyncPool from './AsyncPool'
 import { astxCosmiconfig } from './astxCosmiconfig'
-import { RunTransformOptions } from './runTransform'
+import { RunTransformOptions, Progress } from './runTransform'
 import { RunTransformOnFileOptions } from './runTransformOnFile'
 import PushPullIterable from '../util/PushPullIterable'
 
 class AbortedError extends Error {}
 
-export type Progress = {
-  type: 'progress'
-  completed: number
-  total: number
-  globDone: boolean
-}
 export default class AstxWorkerPool {
   pool: AsyncPool<AstxWorker>
 
