@@ -202,8 +202,9 @@ testCase({
 
 # Roadmap
 
-I'm working on a [VSCode Extension](https://github.com/codemodsquad/vscode-astx), but I'm still making changes to the API for the extension's
-needs, and still finalizing some aspects of the API and pattern language for the version 2 release.
+I just finally got version 2 released as of December 2022 after tons of hard work 🎉
+I'm working on a [VSCode Extension](https://github.com/codemodsquad/vscode-astx)!
+After that I want to make a documentation website that better illustrates how to use `astx`.
 
 # Prior art and philosophy
 
