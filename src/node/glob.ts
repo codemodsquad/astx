@@ -1,9 +1,26 @@
-import defaultFs from 'fs-extra'
+import fs from 'fs-extra'
 import Gitignore from 'gitignore-fs'
 import path from 'path'
 import { Minimatch } from 'minimatch'
 
-type Fs = typeof defaultFs
+interface FsEntry {
+  name: string
+  isDirectory(): boolean
+}
+
+export interface Fs {
+  readdir(dir: string): Promise<FsEntry[]>
+  realpath(path: string): Promise<string>
+}
+
+const defaultFs: Fs = {
+  async readdir(dir: string): Promise<FsEntry[]> {
+    return await fs.readdir(dir, { withFileTypes: true })
+  },
+  async realpath(path: string): Promise<string> {
+    return await fs.realpath(path)
+  },
+}
 
 type Options = {
   include?: string
@@ -47,7 +64,7 @@ async function* globDir({
   }
   let readdir
   try {
-    readdir = (await fs.readdir(dir, { withFileTypes: true })).map(
+    readdir = (await fs.readdir(dir)).map(
       (entry) => path.join(dir, entry.name) + (entry.isDirectory() ? '/' : '')
     )
   } catch (error: any) {

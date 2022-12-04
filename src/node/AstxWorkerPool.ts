@@ -35,6 +35,7 @@ export default class AstxWorkerPool {
     transformFile,
     paths,
     exclude,
+    fs,
     cwd = process.cwd(),
     config,
     signal,
@@ -84,12 +85,14 @@ export default class AstxWorkerPool {
             exclude,
             cwd,
             gitignore,
+            fs,
           })) {
             if (signal?.aborted) return
             total++
             await emit(progress())
             this.runTransformOnFile({
               file,
+              source: fs ? await fs.readFile(file, 'utf8') : undefined,
               transform,
               transformFile,
               config,

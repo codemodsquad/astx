@@ -17,7 +17,7 @@ parentPort.on('message', async (message: any) => {
       return
     }
     case 'runTransformOnFile': {
-      const { seq, file, transform, transformFile, config } =
+      const { seq, file, source, transform, transformFile, config } =
         message as RunTransformOnFileOptions & {
           seq: number
         }
@@ -28,6 +28,7 @@ parentPort.on('message', async (message: any) => {
         const { signal } = abortController
         result = await runTransformOnFile({
           file,
+          source,
           transform,
           transformFile,
           config,

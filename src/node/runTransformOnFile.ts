@@ -1,4 +1,4 @@
-import fs from 'fs-extra'
+import defaultFs from 'fs-extra'
 import Path from 'path'
 import { memoize } from 'lodash'
 import { promisify } from 'util'
@@ -38,13 +38,19 @@ const getPrettier = memoize(async (path: string): Promise<any> => {
   return null
 })
 
+export interface Fs {
+  readFile(file: string, encoding: string): Promise<string>
+}
+
 export type RunTransformOnFileOptions = {
   file: string
+  source?: string
   transform?: Transform
   transformFile?: string
   config?: Partial<AstxConfig>
   signal?: AbortSignal
   forWorker?: boolean
+  fs?: Fs
 }
 
 export default async function runTransformOnFile({
@@ -52,8 +58,10 @@ export default async function runTransformOnFile({
   transformFile,
   config: configOverrides,
   file,
+  source,
   signal,
   forWorker,
+  fs = defaultFs,
 }: RunTransformOnFileOptions): Promise<TransformResult> {
   const transform: Transform = transformFile
     ? await import(transformFile)
@@ -79,7 +87,7 @@ export default async function runTransformOnFile({
   if (signal?.aborted) throw new Error('aborted')
 
   try {
-    const source = await fs.readFile(file, 'utf8')
+    if (!source) source = await fs.readFile(file, 'utf8')
     if (signal?.aborted) throw new Error('aborted')
 
     let transformed

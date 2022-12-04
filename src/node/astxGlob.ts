@@ -1,10 +1,7 @@
-import defaultFs from 'fs-extra'
 import Gitignore from 'gitignore-fs'
 import { Minimatch } from 'minimatch'
 import path from 'path'
-import glob from './glob'
-
-type Fs = typeof defaultFs
+import glob, { Fs } from './glob'
 
 export type AstxGlobOptions = {
   include?: string
