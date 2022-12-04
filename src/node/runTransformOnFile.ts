@@ -59,17 +59,21 @@ export default async function runTransformOnFile({
     ? await import(transformFile)
     : _transform
 
-  const config = (await astxCosmiconfig.search(Path.dirname(file)))?.config as
-    | AstxConfig
-    | undefined
+  const baseConfig = (await astxCosmiconfig.search(Path.dirname(file)))
+    ?.config as AstxConfig | undefined
+
+  const config: AstxConfig = {
+    ...baseConfig,
+    ...configOverrides,
+    parserOptions:
+      baseConfig?.parserOptions || configOverrides?.parserOptions
+        ? { ...baseConfig?.parserOptions, ...configOverrides?.parserOptions }
+        : undefined,
+  }
 
   if (signal?.aborted) throw new Error('aborted')
 
-  const parser = configOverrides?.parser ?? config?.parser
-  const parserOptions = {
-    ...config?.parserOptions,
-    ...configOverrides?.parserOptions,
-  }
+  const { parser, parserOptions } = config
 
   const backend = await chooseGetBackend(parser)(file, parserOptions)
   if (signal?.aborted) throw new Error('aborted')
@@ -136,10 +140,10 @@ export default async function runTransformOnFile({
           typeof transformed === 'string' &&
           transformed !== source
         ) {
-          const config = (await prettier.resolveConfig(file)) || {}
-          config.filepath = file
-          if (/\.tsx?$/.test(file)) config.parser = 'typescript'
-          transformed = prettier.format(transformed, config)
+          const prettierConfig = (await prettier.resolveConfig(file)) || {}
+          prettierConfig.filepath = file
+          if (/\.tsx?$/.test(file)) prettierConfig.parser = 'typescript'
+          transformed = prettier.format(transformed, prettierConfig)
         }
         if (transformed != null) {
           transformed = omitBlankLineChanges(source, transformed)
