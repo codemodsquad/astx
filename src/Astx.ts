@@ -476,7 +476,8 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
           replace(match, arg0, { backend })
         }
       } else {
-        return () => this.replace(parsePatternToNodes(arg0, ...quasis))
+        const finalPaths = parsePatternToNodes(arg0, ...quasis)
+        return () => this.replace(finalPaths)
       }
     } catch (error) {
       if (error instanceof Error) {

@@ -139,7 +139,7 @@ for (const parser in groups) {
               ...backend.template,
             }
             if (expectedError) {
-              expect(transform(options)).to.be.rejectedWith(expectedError)
+              await expect(transform(options)).to.be.rejectedWith(expectedError)
             } else {
               let transformed = await transform(options)
               if (transformed !== null) {

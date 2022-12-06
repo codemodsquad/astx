@@ -7,6 +7,7 @@ import BabelBackend from '../src/babel/BabelBackend'
 import prettier from 'prettier'
 import * as t from '@babel/types'
 import { Backend } from '../src/backend/Backend'
+import { CodeFrameError } from '../src'
 
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
@@ -308,6 +309,20 @@ describe(`Astx`, function () {
         const astx = createAstx(`1 + 2; 3 + 4`)
         astx.find('$a + $b').replace('$b + $a')
         expect(reformat(toSource(astx))).to.equal(reformat(`2 + 1; 4 + 3;`))
+      })
+      it(`.find syntax error`, function () {
+        const astx = createAstx(`1 + 2; 3 + 4`)
+        expect(() => astx.find`$a + `()).to.throw(CodeFrameError)
+        expect(() => astx.find('$a +')).to.throw(CodeFrameError)
+      })
+      it(`.replace syntax error`, function () {
+        const astx = createAstx(`1 + 2; 3 + 4`)
+        expect(() => astx.find('$a + $b').replace`$b +`()).to.throw(
+          CodeFrameError
+        )
+        expect(() => astx.find('$a + $b').replace('$b +')).to.throw(
+          CodeFrameError
+        )
       })
     })
   }
