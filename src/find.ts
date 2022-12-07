@@ -51,7 +51,7 @@ export function createMatch(
   const match: Match = Array.isArray(paths)
     ? {
         type: 'nodes',
-        node: paths[0].node,
+        node: paths[0]?.node,
         path: paths[0],
         nodes: paths.map((p) => p.node),
         paths,
