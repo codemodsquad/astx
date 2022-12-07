@@ -140,6 +140,10 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
     this._withCaptures = withCaptures
   }
 
+  get placeholder(): string | undefined {
+    return this._placeholder
+  }
+
   get size(): number {
     return this._matches.length
   }

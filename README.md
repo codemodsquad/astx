@@ -54,16 +54,17 @@ Super powerful structural search and replace for JavaScript and TypeScript to au
       - [`FindOptions.where` (`{ [captureName: string]: (path: Astx) => boolean }`)](#findoptionswhere--capturename-string-path-astx--boolean-)
     - [`.find(...).replace(...)` (`void`)](#findreplace-void)
     - [`.size()` (`number`)](#size-number)
-    - [`` [name: `$${string}` | `$$${string}` | `$$$${string}`] `` (`Astx`)](#name-string--string--string-astx)
+    - [``[name: `$${string}` | `$$${string}` | `$$$${string}`]`` (`Astx`)](#name-string--string--string-astx)
+    - [`.placeholder` (`string | undefined`)](#placeholder-string--undefined)
     - [`.node` (`Node`)](#node-node)
     - [`.path` (`NodePath`)](#path-nodepath)
     - [`.code` (`string`)](#code-string)
     - [`.stringValue` (`string`)](#stringvalue-string)
     - [`[Symbol.iterator]` (`Iterator<Astx>`)](#symboliterator-iteratorastx)
-    - [`.matches()` (`Match[]`)](#matches-match)
-    - [`.match()` (`Match`)](#match-match)
-    - [`.paths()` (`NodePath[]`)](#paths-nodepath)
-    - [`.nodes()` (`Node[]`)](#nodes-node)
+    - [`.matches` (`Match[]`)](#matches-match)
+    - [`.match` (`Match`)](#match-match)
+    - [`.paths` (`NodePath[]`)](#paths-nodepath)
+    - [`.nodes` (`Node[]`)](#nodes-node)
     - [`.filter(iteratee)` (`Astx`)](#filteriteratee-astx)
     - [`.map<T>(iteratee)` (`T[]`)](#maptiteratee-t)
     - [`.at(index)` (`Astx`)](#atindex-astx)
@@ -87,9 +88,9 @@ Super powerful structural search and replace for JavaScript and TypeScript to au
   - [`exports.onReport` (optional)](#exportsonreport-optional)
   - [`exports.finish` (optional)](#exportsfinish-optional)
 - [Configuration](#configuration)
-  - [Config option: `parser`](#config-option-parser)
-  - [Config option: `parserOptions`](#config-option-parseroptions)
-  - [Config option: `prettier`](#config-option-prettier)
+    - [Config option: `parser`](#config-option-parser)
+    - [Config option: `parserOptions`](#config-option-parseroptions)
+    - [Config option: `prettier`](#config-option-prettier)
 - [CLI](#cli)
 
 <!-- tocstop -->
@@ -559,6 +560,18 @@ for (const { $v } of astx.find`process.env.$v`()) {
 }
 ```
 
+### `.placeholder` (`string | undefined`)
+
+The name of the placeholder this instance represents. For example:
+
+```ts
+const match = astx.find`function $fn($$params) { $$body }`()
+console.log(match.placeholder) // undefined
+const { $fn, $$params } = match
+console.log($fn.placeholder) // $fn
+console.log($$params.placeholder) // $$params
+```
+
 ### `.node` (`Node`)
 
 Returns the first node of the first match. Throws an error if there are no matches.
@@ -579,23 +592,23 @@ Returns the string value of the first node if the focused capture is a string ca
 
 Iterates through each match, returning an `Astx` instance for each match.
 
-### `.matches()` (`Match[]`)
+### `.matches` (`Match[]`)
 
 Gets the matches from the `.find()` or `.closest()` call that returned this instance.
 
-### `.match()` (`Match`)
+### `.match` (`Match`)
 
 Gets the first match from the `.find()` or `.closest()` call that returned this instance.
 
 Throws an error if there were no matches.
 
-### `.paths()` (`NodePath[]`)
+### `.paths` (`NodePath[]`)
 
 Returns the paths that `.find()` and `.closest()` will search within.
 If this instance was returned by `.find()` or `.closest()`, these are
 the paths of nodes that matched the search pattern.
 
-### `.nodes()` (`Node[]`)
+### `.nodes` (`Node[]`)
 
 Returns the nodes that `.find()` and `.closest()` will search within.
 If this instance was returned by `.find()` or `.closest()`, these are

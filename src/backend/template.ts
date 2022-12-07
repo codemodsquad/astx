@@ -13,6 +13,7 @@ import convertStatementReplacement from '../convertReplacement/convertStatementR
 import ensureArray from '../util/ensureArray'
 import Astx from '../Astx'
 import CodeFrameError from '../util/CodeFrameError'
+import { getArrayPlaceholder } from '../compileMatcher/Placeholder'
 
 export function statements(
   this: Backend,
@@ -23,31 +24,37 @@ export function statements(
   const arrayCaptures: Record<string, Node[]> = {}
   const varNames: string[] = []
   for (let i = 0; i < nodes.length; i++) {
+    let replacement: string | Node | Node[]
     if (typeof nodes[i] === 'string') {
-      varNames.push(nodes[i])
+      replacement = nodes[i]
     } else if (Array.isArray(nodes[i])) {
+      replacement = nodes[i]
+        .map((n: any) => (n instanceof Astx ? n.nodes : n))
+        .flat()
+    } else if (nodes[i] instanceof Astx) {
+      const astx = nodes[i]
+      if (
+        astx.size > 1 ||
+        (astx.placeholder && getArrayPlaceholder(astx.placeholder))
+      ) {
+        replacement = astx.nodes
+      } else {
+        replacement = astx.node
+      }
+    } else {
+      replacement = nodes[i]
+    }
+
+    if (typeof replacement === 'string') {
+      varNames.push(replacement)
+    } else if (Array.isArray(replacement)) {
       const name = `$$tpl___${i}`
-      arrayCaptures[name] = nodes[i].map((n: any) =>
-        n instanceof Astx ? n.node : n
-      )
+      arrayCaptures[name] = replacement
       varNames.push(name)
     } else {
-      if (nodes[i] instanceof Astx) {
-        const astx: Astx = nodes[i]
-        if (astx.size > 1) {
-          const name = `$$tpl___${i}`
-          arrayCaptures[name] = [...astx.nodes]
-          varNames.push(name)
-        } else {
-          const name = `$tpl___${i}`
-          captures[name] = astx.node
-          varNames.push(name)
-        }
-      } else {
-        const name = `$tpl___${i}`
-        captures[name] = nodes[i]
-        varNames.push(name)
-      }
+      const name = `$tpl___${i}`
+      captures[name] = replacement
+      varNames.push(name)
     }
   }
   const src = ([...ensureArray(code)] as string[]).reduce(
@@ -92,15 +99,36 @@ export function expression(
   const arrayCaptures: Record<string, Node[]> = {}
   const varNames: string[] = []
   for (let i = 0; i < nodes.length; i++) {
+    let replacement: string | Node | Node[]
     if (typeof nodes[i] === 'string') {
-      varNames.push(nodes[i])
+      replacement = nodes[i]
     } else if (Array.isArray(nodes[i])) {
+      replacement = nodes[i]
+        .map((n: any) => (n instanceof Astx ? n.nodes : n))
+        .flat()
+    } else if (nodes[i] instanceof Astx) {
+      const astx = nodes[i]
+      if (
+        astx.size > 1 ||
+        (astx.placeholder && getArrayPlaceholder(astx.placeholder))
+      ) {
+        replacement = astx.nodes
+      } else {
+        replacement = astx.node
+      }
+    } else {
+      replacement = nodes[i]
+    }
+
+    if (typeof replacement === 'string') {
+      varNames.push(replacement)
+    } else if (Array.isArray(replacement)) {
       const name = `$$tpl___${i}`
-      arrayCaptures[name] = nodes[i]
+      arrayCaptures[name] = replacement
       varNames.push(name)
     } else {
       const name = `$tpl___${i}`
-      captures[name] = nodes[i]
+      captures[name] = replacement
       varNames.push(name)
     }
   }
