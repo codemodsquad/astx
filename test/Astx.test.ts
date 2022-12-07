@@ -310,18 +310,135 @@ describe(`Astx`, function () {
         astx.find('$a + $b').replace('$b + $a')
         expect(reformat(toSource(astx))).to.equal(reformat(`2 + 1; 4 + 3;`))
       })
+      function expectCodeFrameError(
+        callee: () => any,
+        expected: { filename?: string; source?: string; message?: string }
+      ) {
+        let error
+        try {
+          callee()
+        } catch (e) {
+          error = e
+        }
+        if (!error) {
+          throw new Error(
+            `expected ${callee} to throw a CodeFrameError but it did not throw`
+          )
+        }
+        expect(error, `error thrown by ${callee}`).to.be.an.instanceOf(
+          CodeFrameError
+        )
+        expect(
+          { ...error, message: error.message },
+          `error thrown by ${callee}`
+        ).to.containSubset(expected)
+      }
       it(`.find syntax error`, function () {
         const astx = createAstx(`1 + 2; 3 + 4`)
-        expect(() => astx.find`$a + `()).to.throw(CodeFrameError)
-        expect(() => astx.find('$a +')).to.throw(CodeFrameError)
+        expectCodeFrameError(() => astx.find`$a +`(), {
+          filename: 'find pattern',
+          source: '$a +',
+          message: 'Unexpected token',
+        })
+        expectCodeFrameError(() => astx.find('$a +'), {
+          filename: 'find pattern',
+          source: '$a +',
+          message: 'Unexpected token',
+        })
+        expectCodeFrameError(() => astx.find`$b + ${'test +'}`(), {
+          filename: 'find pattern',
+          source: '$b + test +',
+          message: 'Unexpected token',
+        })
+        expectCodeFrameError(
+          () =>
+            astx.find`$b + ${{
+              type: 'Identifier',
+              name: 'foo',
+            }} +`(),
+          {
+            filename: 'find pattern',
+            source: '$b + $tpl___0 +',
+            message: 'Unexpected token',
+          }
+        )
+      })
+      it(`.closest syntax error`, function () {
+        const astx = createAstx(`1 + 2; 3 + 4`)
+        expectCodeFrameError(() => astx.closest`$a + `(), {
+          filename: 'closest pattern',
+          source: '$a + ',
+          message: 'Unexpected token',
+        })
+        expectCodeFrameError(() => astx.closest('$a + '), {
+          filename: 'closest pattern',
+          source: '$a + ',
+          message: 'Unexpected token',
+        })
+        expectCodeFrameError(() => astx.closest`$b + ${'test +'}`(), {
+          filename: 'closest pattern',
+          source: '$b + test +',
+          message: 'Unexpected token',
+        })
+        expectCodeFrameError(
+          () =>
+            astx.closest`$b + ${{
+              type: 'Identifier',
+              name: 'foo',
+            }} +`(),
+          {
+            filename: 'closest pattern',
+            source: '$b + $tpl___0 +',
+            message: 'Unexpected token',
+          }
+        )
       })
       it(`.replace syntax error`, function () {
         const astx = createAstx(`1 + 2; 3 + 4`)
-        expect(() => astx.find('$a + $b').replace`$b +`()).to.throw(
-          CodeFrameError
+        expectCodeFrameError(() => astx.find('$a + $b').replace`$b +`(), {
+          filename: 'replace pattern',
+          source: '$b +',
+          message: 'Unexpected token',
+        })
+        expectCodeFrameError(() => astx.find('$a + $b').replace('$b +'), {
+          filename: 'replace pattern',
+          source: '$b +',
+          message: 'Unexpected token',
+        })
+        expectCodeFrameError(
+          () => astx.find('$a + $b').replace`$b + ${'test +'}`(),
+          {
+            filename: 'replace pattern',
+            source: '$b + test +',
+            message: 'Unexpected token',
+          }
         )
-        expect(() => astx.find('$a + $b').replace('$b +')).to.throw(
-          CodeFrameError
+        expectCodeFrameError(
+          () =>
+            astx.find('$a + $b').replace`$b + ${{
+              type: 'Identifier',
+              name: 'foo',
+            }} +`(),
+          {
+            filename: 'replace pattern',
+            source: '$b + $tpl___0 +',
+            message: 'Unexpected token',
+          }
+        )
+        expectCodeFrameError(
+          () =>
+            astx.replace(
+              (m, parse) =>
+                parse`$b + ${{
+                  type: 'Identifier',
+                  name: 'foo',
+                }} +`
+            ),
+          {
+            filename: 'replace pattern',
+            source: '$b + $tpl___0 +',
+            message: 'Unexpected token',
+          }
         )
       })
     })

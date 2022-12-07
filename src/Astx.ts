@@ -369,7 +369,7 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
     } catch (error) {
       if (error instanceof Error) {
         CodeFrameError.rethrow(error, {
-          filename: 'find pattern',
+          filename: 'closest pattern',
           source: typeof arg0 === 'string' ? arg0 : undefined,
         })
       }

@@ -12,6 +12,7 @@ import convertToExpression from '../convertReplacement/convertToExpression'
 import convertStatementReplacement from '../convertReplacement/convertStatementReplacement'
 import ensureArray from '../util/ensureArray'
 import Astx from '../Astx'
+import CodeFrameError from '../util/CodeFrameError'
 
 export function statements(
   this: Backend,
@@ -52,15 +53,22 @@ export function statements(
   const src = ([...ensureArray(code)] as string[]).reduce(
     (result: string, elem: string, i: number) => result + varNames[i - 1] + elem
   )
-  if (!nodes.length || nodes.every((n) => typeof n === 'string'))
-    return this.parseStatements(src)
-  const result = compileReplacement(
-    this.parseStatements(src).map((n) => new this.t.NodePath(n)),
-    {
-      backend: this,
+  try {
+    if (!nodes.length || nodes.every((n) => typeof n === 'string'))
+      return this.parseStatements(src)
+    const result = compileReplacement(
+      this.parseStatements(src).map((n) => new this.t.NodePath(n)),
+      {
+        backend: this,
+      }
+    ).generate({ captures, arrayCaptures })
+    return ensureArray(result).map(convertStatementReplacement) as Statement[]
+  } catch (error) {
+    if (error instanceof Error) {
+      CodeFrameError.rethrow(error, { filename: 'statements', source: src })
     }
-  ).generate({ captures, arrayCaptures })
-  return ensureArray(result).map(convertStatementReplacement) as Statement[]
+    throw error
+  }
 }
 
 export function statement(
@@ -99,25 +107,32 @@ export function expression(
   const src = ([...ensureArray(code)] as string[]).reduce(
     (result: string, elem: string, i: number) => result + varNames[i - 1] + elem
   )
-  if (!nodes.length || nodes.every((n) => typeof n === 'string'))
-    return this.parseExpression(src)
-  const result = compileReplacement(
-    new this.t.NodePath(this.parseExpression(src)),
-    {
-      backend: this,
+  try {
+    if (!nodes.length || nodes.every((n) => typeof n === 'string'))
+      return this.parseExpression(src)
+    const result = compileReplacement(
+      new this.t.NodePath(this.parseExpression(src)),
+      {
+        backend: this,
+      }
+    ).generate({ captures, arrayCaptures })
+    let expression
+    if (Array.isArray(result)) {
+      if (result.length !== 1) {
+        throw new Error(`code is not an expression: ${src}`)
+      }
+      expression = convertToExpression(result[0])
+    } else {
+      expression = convertToExpression(result)
     }
-  ).generate({ captures, arrayCaptures })
-  let expression
-  if (Array.isArray(result)) {
-    if (result.length !== 1) {
+    if (!expression) {
       throw new Error(`code is not an expression: ${src}`)
     }
-    expression = convertToExpression(result[0])
-  } else {
-    expression = convertToExpression(result)
+    return expression
+  } catch (error) {
+    if (error instanceof Error) {
+      CodeFrameError.rethrow(error, { filename: 'expression', source: src })
+    }
+    throw error
   }
-  if (!expression) {
-    throw new Error(`code is not an expression: ${src}`)
-  }
-  return expression
 }

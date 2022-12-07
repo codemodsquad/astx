@@ -2,6 +2,7 @@
 
 const chai = require('chai')
 chai.use(require('chai-as-promised'))
+chai.use(require('chai-subset'))
 
 const { before } = require('mocha')
 require('@babel/register')({ extensions: ['.js', '.ts'] })

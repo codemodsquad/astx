@@ -76,6 +76,11 @@ export default class CodeFrameError extends Error {
     error: Error,
     { filename, source }: { filename?: string; source?: string }
   ): void {
+    if (error instanceof CodeFrameError) {
+      if (filename) error.filename = filename
+      if (source) error.source = source
+      throw error
+    }
     if (error instanceof CompilePathError) {
       throw new CodeFrameError(error.message, {
         filename,
