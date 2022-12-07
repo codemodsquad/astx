@@ -73,5 +73,21 @@
       "`",
       ""
     ]
+  },
+  "astxReplaceTestcase": {
+    "prefix": "astx-replace-testcase",
+    "body": [
+      "import { TransformOptions } from '../../../src'",
+      "",
+      "export const input = `",
+      "`",
+      "",
+      "export function astx({ astx }: TransformOptions): void {",
+      "}",
+      "",
+      "export const expected = `",
+      "`",
+      ""
+    ]
   }
 }
