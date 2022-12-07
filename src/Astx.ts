@@ -306,6 +306,59 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
     )
   }
 
+  private _execPattern<Options>(
+    name: string,
+    exec: (
+      pattern: NodePath<Node, any> | readonly NodePath<Node, any>[],
+      options?: Options
+    ) => Astx,
+    arg0:
+      | string
+      | Node
+      | Node[]
+      | NodePath<any>
+      | NodePath<any>[]
+      | string[]
+      | TemplateStringsArray,
+    ...rest: any[]
+  ): Astx | ((options?: Options) => Astx) {
+    const { backend } = this
+    const { parsePattern } = backend
+    const { NodePath } = backend.t
+    try {
+      let pattern: NodePath<Node, any> | readonly NodePath<Node, any>[],
+        options: Options | undefined
+      if (typeof arg0 === 'string') {
+        pattern = parsePattern(arg0)
+        options = rest[0]
+      } else if (
+        Array.isArray(arg0)
+          ? arg0[0] instanceof NodePath
+          : arg0 instanceof NodePath
+      ) {
+        pattern = ensureArray(arg0 as NodePath | NodePath[])
+        options = rest[0]
+      } else if (isNode(arg0) || isNodeArray(arg0)) {
+        pattern = ensureArray(arg0).map((node) => new NodePath(node))
+        options = rest[0]
+      } else {
+        pattern = parsePattern(arg0 as any, ...rest)
+        return (options?: Options) => exec(pattern, options)
+      }
+      return exec(pattern, options)
+    } catch (error) {
+      if (error instanceof Error) {
+        CodeFrameError.rethrow(error, {
+          filename: `${name} pattern`,
+          source: typeof arg0 === 'string' ? arg0 : undefined,
+        })
+      }
+      throw error
+    }
+  }
+
+      }
+
   closest(
     strings: TemplateStringsArray,
     ...quasis: any[]
@@ -325,32 +378,17 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
     ...rest: any[]
   ): Astx | ((options?: FindOptions) => Astx) {
     const { backend } = this
-    const { parsePattern } = backend
-    const { NodePath } = backend.t
-    try {
-      let paths: readonly NodePath<any>[], options: FindOptions | undefined
-      if (typeof arg0 === 'string') {
-        paths = ensureArray(parsePattern(arg0))
-        options = rest[0]
-      } else if (
-        Array.isArray(arg0)
-          ? arg0[0] instanceof NodePath
-          : arg0 instanceof NodePath
-      ) {
-        paths = ensureArray(arg0 as NodePath | NodePath[])
-        options = rest[0]
-      } else if (isNode(arg0) || isNodeArray(arg0)) {
-        paths = ensureArray(arg0).map((node) => new NodePath(node))
-        options = rest[0]
-      } else {
-        const finalPaths = parsePattern(arg0 as any, ...rest)
-        return (options?: FindOptions) =>
-          this.closest(finalPaths, options) as any
-      }
-      if (paths.length !== 1) {
+    return this._execPattern(
+      'closest',
+      (
+        pattern: NodePath<Node, any> | readonly NodePath<Node, any>[],
+        options?: FindOptions
+      ): Astx => {
+        pattern = ensureArray(pattern)
+        if (pattern.length !== 1) {
         throw new Error(`must be a single node`)
       }
-      const matcher = compileMatcher(paths[0], {
+        const matcher = compileMatcher(pattern[0], {
         ...options,
         backend,
       })
@@ -370,15 +408,10 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
       })
 
       return new Astx(backend, matches)
-    } catch (error) {
-      if (error instanceof Error) {
-        CodeFrameError.rethrow(error, {
-          filename: 'closest pattern',
-          source: typeof arg0 === 'string' ? arg0 : undefined,
-        })
-      }
-      throw error
-    }
+      },
+      arg0,
+      ...rest
+    )
   }
 
   find(
@@ -401,44 +434,23 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
     ...rest: any[]
   ): Astx | ((options?: FindOptions) => Astx) {
     const { backend } = this
-    const { parsePattern } = backend
-    const { NodePath } = backend.t
-    try {
-      let pattern, options: FindOptions | undefined
-      if (typeof arg0 === 'string') {
-        pattern = parsePattern(arg0)
-        options = rest[0]
-      } else if (
-        Array.isArray(arg0)
-          ? arg0[0] instanceof NodePath
-          : arg0 instanceof NodePath
-      ) {
-        pattern = ensureArray(arg0 as NodePath | NodePath[])
-        options = rest[0]
-      } else if (isNode(arg0) || isNodeArray(arg0)) {
-        pattern = ensureArray(arg0).map((node) => new NodePath(node))
-        options = rest[0]
-      } else {
-        const finalPaths = parsePattern(arg0 as any, ...rest)
-        return (options?: FindOptions) => this.find(finalPaths, options) as any
-      }
-      return new Astx(
+    return this._execPattern(
+      'find',
+      (
+        pattern: NodePath<Node, any> | readonly NodePath<Node, any>[],
+        options?: FindOptions
+      ): Astx =>
+        new Astx(
         backend,
         find(this.paths, pattern, {
           ...options,
           backend,
           matchSoFar: this.initialMatch,
         })
+        ),
+      arg0,
+      ...rest
       )
-    } catch (error) {
-      if (error instanceof Error) {
-        CodeFrameError.rethrow(error, {
-          filename: 'find pattern',
-          source: typeof arg0 === 'string' ? arg0 : undefined,
-        })
-      }
-      throw error
-    }
   }
 
   replace(
