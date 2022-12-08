@@ -357,8 +357,6 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
     }
   }
 
-      }
-
   closest(
     strings: TemplateStringsArray,
     ...quasis: any[]
@@ -386,28 +384,28 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
       ): Astx => {
         pattern = ensureArray(pattern)
         if (pattern.length !== 1) {
-        throw new Error(`must be a single node`)
-      }
-        const matcher = compileMatcher(pattern[0], {
-        ...options,
-        backend,
-      })
-
-      const matchedParents: Set<NodePath> = new Set()
-      const matches: Match[] = []
-      this.paths.forEach((path) => {
-        for (let p = path.parentPath; p; p = p.parentPath) {
-          if (matchedParents.has(p)) return
-          const match = matcher.match(p, this.initialMatch)
-          if (match) {
-            matchedParents.add(p)
-            matches.push(createMatch(p, match))
-            return
-          }
+          throw new Error(`must be a single node`)
         }
-      })
+        const matcher = compileMatcher(pattern[0], {
+          ...options,
+          backend,
+        })
 
-      return new Astx(backend, matches)
+        const matchedParents: Set<NodePath> = new Set()
+        const matches: Match[] = []
+        this.paths.forEach((path) => {
+          for (let p = path.parentPath; p; p = p.parentPath) {
+            if (matchedParents.has(p)) return
+            const match = matcher.match(p, this.initialMatch)
+            if (match) {
+              matchedParents.add(p)
+              matches.push(createMatch(p, match))
+              return
+            }
+          }
+        })
+
+        return new Astx(backend, matches)
       },
       arg0,
       ...rest
@@ -441,16 +439,16 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
         options?: FindOptions
       ): Astx =>
         new Astx(
-        backend,
-        find(this.paths, pattern, {
-          ...options,
           backend,
-          matchSoFar: this.initialMatch,
-        })
+          find(this.paths, pattern, {
+            ...options,
+            backend,
+            matchSoFar: this.initialMatch,
+          })
         ),
       arg0,
       ...rest
-      )
+    )
   }
 
   replace(

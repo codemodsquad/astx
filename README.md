@@ -54,7 +54,7 @@ Super powerful structural search and replace for JavaScript and TypeScript to au
       - [`FindOptions.where` (`{ [captureName: string]: (path: Astx) => boolean }`)](#findoptionswhere--capturename-string-path-astx--boolean-)
     - [`.find(...).replace(...)` (`void`)](#findreplace-void)
     - [`.size()` (`number`)](#size-number)
-    - [``[name: `$${string}` | `$$${string}` | `$$$${string}`]`` (`Astx`)](#name-string--string--string-astx)
+    - [`` [name: `$${string}` | `$$${string}` | `$$$${string}`] `` (`Astx`)](#name-string--string--string-astx)
     - [`.placeholder` (`string | undefined`)](#placeholder-string--undefined)
     - [`.node` (`Node`)](#node-node)
     - [`.path` (`NodePath`)](#path-nodepath)
@@ -88,9 +88,9 @@ Super powerful structural search and replace for JavaScript and TypeScript to au
   - [`exports.onReport` (optional)](#exportsonreport-optional)
   - [`exports.finish` (optional)](#exportsfinish-optional)
 - [Configuration](#configuration)
-    - [Config option: `parser`](#config-option-parser)
-    - [Config option: `parserOptions`](#config-option-parseroptions)
-    - [Config option: `prettier`](#config-option-prettier)
+  - [Config option: `parser`](#config-option-parser)
+  - [Config option: `parserOptions`](#config-option-parseroptions)
+  - [Config option: `prettier`](#config-option-prettier)
 - [CLI](#cli)
 
 <!-- tocstop -->
