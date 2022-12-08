@@ -15,16 +15,16 @@ import Astx from '../Astx'
 import CodeFrameError from '../util/CodeFrameError'
 import { getArrayPlaceholder } from '../compileMatcher/Placeholder'
 
-export function statements(
-  this: Backend,
-  code: TemplateStringsArray | string[] | string,
-  ...nodes: any[]
-): Statement[] {
+function convertQuasis(nodes: any[]): {
+  captures: Record<string, Node>
+  arrayCaptures: Record<string, Node[]>
+  varNames: string[]
+} {
   const captures: Record<string, Node> = {}
   const arrayCaptures: Record<string, Node[]> = {}
   const varNames: string[] = []
   for (let i = 0; i < nodes.length; i++) {
-    let replacement: string | Node | Node[]
+    let replacement: string | Node | Node[] | undefined
     if (typeof nodes[i] === 'string') {
       replacement = nodes[i]
     } else if (Array.isArray(nodes[i])) {
@@ -39,9 +39,9 @@ export function statements(
       ) {
         replacement = astx.nodes
       } else {
-        replacement = astx.node
+        replacement = astx.nodes[0]
       }
-    } else {
+    } else if (nodes[i]) {
       replacement = nodes[i]
     }
 
@@ -53,10 +53,20 @@ export function statements(
       varNames.push(name)
     } else {
       const name = `$tpl___${i}`
-      captures[name] = replacement
+      if (replacement) captures[name] = replacement
       varNames.push(name)
     }
   }
+  return { captures, arrayCaptures, varNames }
+}
+
+export function statements(
+  this: Backend,
+  code: TemplateStringsArray | string[] | string,
+  ...nodes: any[]
+): Statement[] {
+  const { captures, arrayCaptures, varNames } = convertQuasis(nodes)
+
   const src = ([...ensureArray(code)] as string[]).reduce(
     (result: string, elem: string, i: number) => result + varNames[i - 1] + elem
   )
@@ -95,43 +105,8 @@ export function expression(
   code: TemplateStringsArray | string[] | string,
   ...nodes: any[]
 ): Expression {
-  const captures: Record<string, Node> = {}
-  const arrayCaptures: Record<string, Node[]> = {}
-  const varNames: string[] = []
-  for (let i = 0; i < nodes.length; i++) {
-    let replacement: string | Node | Node[]
-    if (typeof nodes[i] === 'string') {
-      replacement = nodes[i]
-    } else if (Array.isArray(nodes[i])) {
-      replacement = nodes[i]
-        .map((n: any) => (n instanceof Astx ? n.nodes : n))
-        .flat()
-    } else if (nodes[i] instanceof Astx) {
-      const astx = nodes[i]
-      if (
-        astx.size > 1 ||
-        (astx.placeholder && getArrayPlaceholder(astx.placeholder))
-      ) {
-        replacement = astx.nodes
-      } else {
-        replacement = astx.node
-      }
-    } else {
-      replacement = nodes[i]
-    }
+  const { captures, arrayCaptures, varNames } = convertQuasis(nodes)
 
-    if (typeof replacement === 'string') {
-      varNames.push(replacement)
-    } else if (Array.isArray(replacement)) {
-      const name = `$$tpl___${i}`
-      arrayCaptures[name] = replacement
-      varNames.push(name)
-    } else {
-      const name = `$tpl___${i}`
-      captures[name] = replacement
-      varNames.push(name)
-    }
-  }
   const src = ([...ensureArray(code)] as string[]).reduce(
     (result: string, elem: string, i: number) => result + varNames[i - 1] + elem
   )
