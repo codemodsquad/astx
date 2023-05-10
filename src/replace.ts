@@ -4,6 +4,7 @@ import compileReplacement, { CompiledReplacement } from './compileReplacement'
 import createReplacementConverter, { bulkConvert } from './convertReplacement'
 import { Backend } from './backend/Backend'
 import pipeline from './util/pipeline'
+import { last } from 'lodash'
 
 export type ReplaceOptions = {
   backend: Backend
@@ -34,14 +35,7 @@ export default function replace(
     ),
   ]
 
-  const replacedPaths = match.paths.map((p) =>
-    p.parentPath?.node.type === 'ExpressionStatement' ? p.parentPath : p
-  )
-
-  replacedPaths[0]?.replace(...replacements)
-  for (let i = 1; i < replacedPaths.length; i++) {
-    replacedPaths[i].prune()
-  }
+  doReplace(match, replacements)
 }
 
 export function replaceAll(
@@ -80,13 +74,47 @@ export function replaceAll(
       ),
     ]
 
-    const replacedPaths = match.paths.map((p) =>
-      p.parentPath?.node.type === 'ExpressionStatement' ? p.parentPath : p
-    )
+    doReplace(match, replacements)
+  }
+}
 
-    replacedPaths[0]?.replace(...replacements)
-    for (let i = 1; i < replacedPaths.length; i++) {
-      replacedPaths[i].prune()
-    }
+function doReplace(match: Match, replacements: Node[]) {
+  const replacedPaths = match.paths.map((p) =>
+    p.parentPath?.node.type === 'ExpressionStatement' ? p.parentPath : p
+  )
+
+  transferComments(replacedPaths[0], replacements[0], { leading: true })
+  transferComments(last(replacedPaths), last(replacements), { trailing: true })
+
+  replacedPaths[0]?.replace(...replacements)
+  for (let i = 1; i < replacedPaths.length; i++) {
+    replacedPaths[i].prune()
+  }
+}
+
+function transferComments(
+  from: NodePath | undefined,
+  to: Node | undefined,
+  options: { leading?: boolean; trailing?: boolean }
+) {
+  if (!from || !to) return
+  const node: any = from.node
+  const leading = options.leading
+    ? node.comments?.filter((c: any) => c.leading) || node.leadingComments
+    : undefined
+  if (leading?.length) {
+    const dest = node.comments
+      ? (to as any).comments || ((to as any).comments = [])
+      : (to as any).leadingComments || ((to as any).leadingComments = [])
+    for (const c of leading) dest.push(c)
+  }
+  const trailing = options.trailing
+    ? node.comments?.filter((c: any) => c.trailing) || node.trailingComments
+    : undefined
+  if (trailing?.length) {
+    const dest = node.comments
+      ? (to as any).comments || ((to as any).comments = [])
+      : (to as any).trailingComments || ((to as any).trailingComments = [])
+    for (const c of trailing) dest.push(c)
   }
 }

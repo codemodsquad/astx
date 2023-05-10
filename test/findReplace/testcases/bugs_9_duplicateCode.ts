@@ -50,6 +50,7 @@ module.exports = func({
 `
 
 export const expectedReplace = `
+/* eslint-disable no-console */
 const {
   func
 } = require("some-module");

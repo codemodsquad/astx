@@ -1,14 +1,14 @@
 import { File, Statement, Expression, Location, Comment } from '../types'
 import { Backend } from '../backend/Backend'
 import * as defaultRecast from 'recast'
-import * as t from 'ast-types'
+import * as AstTypes from 'ast-types'
 import * as k from 'ast-types/gen/kinds'
 
 type Node = k.NodeKind
 
 export default class RecastBackend extends Backend<Node> {
   readonly wrapped: Backend
-  readonly t: typeof t
+  readonly t: typeof AstTypes
   readonly parse: (code: string) => Node
   readonly parseExpression: (code: string) => Expression
   readonly parseStatements: (code: string) => Statement[]
