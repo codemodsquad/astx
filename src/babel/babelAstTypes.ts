@@ -111,7 +111,8 @@ const babelAstTypes: (t?: typeof defaultTypes) => ReturnType<typeof fork> =
       }
     }
 
-    return fork([babel])
+    const result = fork([babel])
+    return result
   })
 
 export default babelAstTypes

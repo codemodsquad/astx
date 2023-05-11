@@ -91,7 +91,7 @@ for (const parser in groups) {
     allowReturnOutsideFunction: true,
     allowSuperOutsideMethod: true,
     allowUndeclaredExports: true,
-    tokens: backendName === 'recast',
+    tokens: backendName === '@codemodsquad/recast',
     plugins: ['jsx', 'topLevelAwait'],
   }
   const babelParser =
@@ -102,7 +102,7 @@ for (const parser in groups) {
     parserOptions: babelParser.parserOpts,
   })
   const backend: Backend =
-    backendName === 'recast'
+    backendName === '@codemodsquad/recast'
       ? new RecastBackend({
           wrapped: babelBackend,
         })

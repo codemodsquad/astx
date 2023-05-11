@@ -1,8 +1,8 @@
 import { File, Statement, Expression, Location, Comment } from '../types'
 import { Backend } from '../backend/Backend'
-import * as defaultRecast from 'recast'
+import * as defaultRecast from '@codemodsquad/recast'
 import * as AstTypes from 'ast-types'
-import * as k from 'ast-types/gen/kinds'
+import * as k from 'ast-types/lib/gen/kinds'
 
 type Node = k.NodeKind
 
@@ -31,7 +31,7 @@ export default class RecastBackend extends Backend<Node> {
     super()
     this.wrapped = wrapped
     this.t = wrapped.t
-    parseOptions = { ...parseOptions, parser: wrapped }
+    parseOptions = { ...parseOptions, parser: wrapped, types: wrapped.t }
     this.parse = (code: string) => recast.parse(code, parseOptions)
     this.parseStatements = (code: string): Statement[] => {
       const ast: File = recast.parse(code, parseOptions)

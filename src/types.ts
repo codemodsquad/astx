@@ -1,6 +1,6 @@
 import * as b from '@babel/types'
 import * as t from 'ast-types'
-import * as k from 'ast-types/gen/kinds'
+import * as k from 'ast-types/lib/gen/kinds'
 
 type ArrayElement<A> = A extends readonly (infer T)[] ? T : never
 
