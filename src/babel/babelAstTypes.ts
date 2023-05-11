@@ -1,20 +1,50 @@
 import _typesPlugin from 'ast-types/lib/types'
 const typesPlugin: typeof _typesPlugin =
   (_typesPlugin as any)['default'] || _typesPlugin
+
+import _sharedPlugin from 'ast-types/lib/shared'
+const sharedPlugin: typeof _sharedPlugin =
+  (_sharedPlugin as any)['default'] || _sharedPlugin
+
 import * as defaultTypes from '@babel/types'
 import { memoize, omit, mapValues } from 'lodash'
-import fork from 'ast-types/fork'
-import { Fork } from 'ast-types/types'
+import fork from 'ast-types/lib/fork'
+import { Fork } from 'ast-types/lib/types'
 import nodePathPlugin from 'ast-types/lib/node-path'
 
 const babelAstTypes: (t?: typeof defaultTypes) => ReturnType<typeof fork> =
   memoize((t: typeof defaultTypes = defaultTypes): ReturnType<typeof fork> => {
     function babel(fork: Fork) {
       const types = fork.use(typesPlugin)
+      const shared = fork.use(sharedPlugin)
+      const defaults = shared.defaults
+      const geq = shared.geq
+
       const { builtInTypes, Type } = types
       const { def, or } = Type
 
       fork.use(nodePathPlugin)
+
+      // Abstract supertype of all syntactic entities that are allowed to have a
+      // .loc field.
+      def('Printable').field(
+        'loc',
+        or(def('SourceLocation'), null),
+        defaults['null'],
+        true
+      )
+
+      def('Node')
+        .bases('Printable')
+        .field('type', String)
+        .field('comments', or([def('Comment')], null), defaults['null'], true)
+
+      def('SourceLocation')
+        .field('start', def('Position'))
+        .field('end', def('Position'))
+        .field('source', or(String, null), defaults['null'])
+
+      def('Position').field('line', geq(1)).field('column', geq(0))
 
       def('Node').field('type', builtInTypes.string)
 

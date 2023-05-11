@@ -241,7 +241,6 @@ export function astx({ astx, statement }: TransformOptions): void {
 
 export const expectedReports = []
 
-export const only = true
 export const expected = `
 /**
  * @flow

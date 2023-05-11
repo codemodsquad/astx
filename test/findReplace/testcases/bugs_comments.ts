@@ -1,8 +1,7 @@
 export const input = `
 // before
 const a = 1
-const b = 2
-// after
+const b = 2 // after
 `
 
 export const find = `
@@ -18,6 +17,5 @@ const $a = $bv
 export const expectedReplace = `
 // before
 const b = 1
-const a = 2
-// after
+const a = 2 // after
 `
