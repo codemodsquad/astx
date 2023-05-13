@@ -19,7 +19,9 @@ export const expectedFind = [
 
 export const replace = `$1(d, $$a, e, $c, f)`
 
-export const expectedReplace = `
+export const expectedReplace = (parser: string): string =>
+  parser.startsWith('recast/babel')
+    ? `
 foo(
   d,
   a,
@@ -32,4 +34,7 @@ foo(
   [1, 2, 3],
   f
 );
+`
+    : `
+foo(d, a, { b: 3, c: 4 }, c, e, [1, 2, 3], f);
 `

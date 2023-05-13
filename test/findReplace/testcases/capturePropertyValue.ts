@@ -1,5 +1,7 @@
 export const input = `
-const x = { a: c, b }
+const x = {
+  a: c, b
+}
 `
 
 export const find = `
@@ -18,5 +20,7 @@ const x = { /**/ c: $a }
 `
 
 export const expectedReplace = `
-const x = { c: c, b }
+const x = {
+  c: c, b
+}
 `

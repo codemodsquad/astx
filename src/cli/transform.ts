@@ -37,6 +37,7 @@ type Options = {
   yes?: boolean
   gitignore?: boolean
   threads?: number
+  debugConfig?: boolean
 }
 
 const transform: CommandModule<Options> = {
@@ -84,10 +85,21 @@ const transform: CommandModule<Options> = {
       .option('workers', {
         type: 'number',
         describe: 'number of worker threads to use',
+      })
+      .option('debugConfig', {
+        type: 'boolean',
+        describe: 'print found config and location',
       }),
 
   handler: async (argv: Arguments<Options>) => {
     const startTime = Date.now()
+
+    const configResult = await astxCosmiconfig.search()
+    if (argv.debugConfig) {
+      console.log(JSON.stringify(configResult, null, 2))
+      process.exit(0)
+    }
+    const config = configResult?.config
 
     const paths = (argv.filesAndDirectories || []).filter(
       (x) => typeof x === 'string'
@@ -160,7 +172,6 @@ const transform: CommandModule<Options> = {
     let spinnerInterval
 
     const interactive = isInteractive()
-    const config = (await astxCosmiconfig.search())?.config
     const workers =
       argv.workers ??
       (process.env.ASTX_WORKERS
