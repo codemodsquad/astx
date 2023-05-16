@@ -1,8 +1,8 @@
 import path from 'path'
 import _resolve from 'resolve'
 import BabelBackend from './BabelBackend'
-import defaultBabelTypes from '@babel/types'
-import defaultBabelGenerator from '@babel/generator'
+import * as defaultBabelTypes from '@babel/types'
+import * as defaultBabelGenerator from '@babel/generator'
 import { getParserAsync } from 'babel-parse-wild-code'
 import { promisify } from 'util'
 
@@ -27,8 +27,13 @@ export default async function getBabelAutoBackend(
   const basedir = path.dirname(file)
   const [_parser, types, generator] = await Promise.all([
     getParserAsync(file, options),
-    importLocal('@babel/types', basedir).catch(() => defaultBabelTypes),
-    importLocal('@babel/generator', basedir).catch(() => defaultBabelGenerator),
+    importLocal<typeof defaultBabelTypes>('@babel/types', basedir).catch(
+      () => defaultBabelTypes
+    ),
+    importLocal<typeof defaultBabelGenerator>(
+      '@babel/generator',
+      basedir
+    ).catch(() => defaultBabelGenerator),
   ])
   const parser = (
     _parser.parserOpts.sourceType
@@ -39,7 +44,7 @@ export default async function getBabelAutoBackend(
     parser,
     parserOptions: options,
     preserveFormat,
-    generator: generator as any,
-    types: types as any,
+    generator,
+    types,
   })
 }
