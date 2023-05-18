@@ -41,6 +41,7 @@ export default function convertToJSXIdentifierName(node: Node): string | void {
       break
     case 'TypeAnnotation':
     case 'TSTypeAnnotation':
+    case 'TSRestType':
       return convertToJSXIdentifierName(node.typeAnnotation)
     case 'GenericTypeAnnotation':
       if (node.id.type !== 'Identifier' || node.typeParameters) return

@@ -8,6 +8,7 @@ export default function convertPropertyReplacement(node: Node): Node {
     case 'SpreadElement':
     case 'ObjectProperty':
       return node
+    case 'TSRestType':
     case 'ObjectTypeSpreadProperty': {
       const expr = convertToExpression(node)
       if (expr) return t.spreadElement(expr as t.Expression)
