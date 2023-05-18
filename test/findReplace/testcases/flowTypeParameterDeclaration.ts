@@ -23,7 +23,20 @@ export const expectedFind = [
 
 export const replace = `type Foo<Z: {bar: $foo}, $$b, $a> = $c`
 
-export const expectedReplace = `
+export const expectedReplace = (parser: string): string =>
+  parser === 'babel'
+    ? `
+type Foo<
+  Z: {
+    bar: 1
+  },
+  X,
+  Y,
+  W
+> = [W, X, Y, Z]
+type Bar<A, B, C> = [A, B, C]
+`
+    : `
 type Foo<Z: {bar: 1}, X, Y, W> = [W, X, Y, Z]
 type Bar<A, B, C> = [A, B, C]
 `

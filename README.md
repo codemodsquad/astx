@@ -88,6 +88,7 @@ Super powerful structural search and replace for JavaScript and TypeScript to au
   - [`exports.onReport` (optional)](#exportsonreport-optional)
   - [`exports.finish` (optional)](#exportsfinish-optional)
 - [Configuration](#configuration)
+  - [Preserving Formatting](#preserving-formatting)
   - [Config option: `parser`](#config-option-parser)
   - [Config option: `parserOptions`](#config-option-parseroptions)
   - [Config option: `prettier`](#config-option-prettier)
@@ -765,6 +766,35 @@ If `finish` returns a `Promise` it will be awaited.
 - an `.astxrc.json`, `.astxrc.yaml`, `.astxrc.yml`, `.astxrc.js`, or `.astxrc.cjs` file
 - an `astx.config.js` or `astx.config.cjs` CommonJS module exporting an object
 
+### Preserving Formatting
+
+I recommend trying this first:
+
+```json
+{
+  "parser": "babel/auto",
+  "parserOptions": {
+    "preserveFormat": "generatorHack"
+  }
+}
+```
+
+(or as CLI options)
+
+```
+--parser babel/auto --parserOptions '{"preserveFormat": "generatorHack"}'
+```
+
+If this fails you can try `parser: 'recast/babel/auto'` or the non-`/auto` parsers.
+
+I've gotten tired of `recast`; they just aren't able to keep it up to date
+with new syntax features in JS and TS quickly enough, and I've seen it output invalid
+syntax too many times.
+
+From now on I'm going to work on a reliable solution using `@babel/generator` or `prettier`
+to print the modified AST, with a hook to use the original source verbatim for unmodified
+nodes.
+
 ### Config option: `parser`
 
 The parser to use. Options:
@@ -781,7 +811,13 @@ I've seen `recast` output invalid syntax on some files, so use with caution.
 
 ### Config option: `parserOptions`
 
-Options to pass to the parser. Right now this is just the [`@babel/parser` options](https://babeljs.io/docs/en/babel-parser#options).
+Options to pass to the parser. Right now this is just the [`@babel/parser` options](https://babeljs.io/docs/en/babel-parser#options) plus
+the following additional options:
+
+- `preserveFormat` (applies to: `babel`, `babel/auto`)
+  `preserveFormat: 'generatorHack'` uses an experimental hack
+  to preserve format of all unchanged nodes by hijacking
+  internal `@babel/generator` API.
 
 ### Config option: `prettier`
 

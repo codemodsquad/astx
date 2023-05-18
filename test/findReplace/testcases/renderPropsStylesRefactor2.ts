@@ -4,10 +4,7 @@ export const input = `
 import * as React from 'react'
 import classNames from 'classnames'
 import createStyled from 'material-ui-render-props-styles'
-type Classes<Styles> = $Call<
-  <T>((any) => T) => { [$Keys<T>]: string },
-  Styles
->
+type Classes<Styles> = $Call<<T>((any) => T) => { [$Keys<T>]: string, }, Styles>
 import type {Theme} from '../../theme'
 import TableBase from '@material-ui/core/Table'
 
@@ -132,7 +129,7 @@ export const expectedReplace = `
 import * as React from "react";
 import classNames from "classnames";
 import { makeStyles } from "@material-ui/core/styles";
-type Classes<Styles> = $Call<<T>((any) => T) => { [$Keys<T>]: string }, Styles>;
+type Classes<Styles> = $Call<<T>((any) => T) => { [$Keys<T>]: string, }, Styles>
 import type { Theme } from "../../theme";
 import TableBase from "@material-ui/core/Table";
 

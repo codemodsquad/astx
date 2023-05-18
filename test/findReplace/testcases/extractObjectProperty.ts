@@ -1,5 +1,7 @@
 export const input = `
-const foo = { a: 1, b: 2 }
+const foo = {
+  a: 1, b: 2
+}
 `
 
 export const find = `const x = { /**/ $key: $value }`
@@ -24,5 +26,7 @@ export const expectedFind = [
 export const replace = `const x = { /**/ $value: $key }`
 
 export const expectedReplace = `
-const foo = { 1: a, 2: b }
+const foo = {
+  1: a, 2: b
+}
 `

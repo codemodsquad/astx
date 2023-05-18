@@ -43,7 +43,7 @@ type Fixture = {
     | ((match: Match, parse: ParseNodes) => string | Node | Node[])
   expectMatchesSelf?: boolean
   expectedFind?: ExpectedMatch[]
-  expectedReplace?: string
+  expectedReplace?: string | ((parser: string) => string)
   parsers?: string[]
   only?: boolean
   skip?: boolean
@@ -169,6 +169,7 @@ for (const parser in groups) {
       : jsParser.bindParserOpts(parserOpts)
   const babelBackend = new BabelBackend({
     parserOptions: babelParser.parserOpts,
+    preserveFormat: 'generatorHack',
   })
   const backend: Backend =
     backendName === 'recast'
@@ -289,6 +290,10 @@ for (const parser in groups) {
               }).to.throw(expectedError)
             }
             if (expectedReplace) {
+              const expected =
+                typeof expectedReplace === 'function'
+                  ? expectedReplace(parser)
+                  : expectedReplace
               replaceAll(
                 matches,
                 typeof _replace === 'string'
@@ -305,7 +310,7 @@ for (const parser in groups) {
                 { backend }
               )
               const actual = backend.generate(ast).code
-              expect(format(actual)).to.deep.equal(reformat(expectedReplace))
+              expect(reformat(format(actual))).to.deep.equal(reformat(expected))
             }
           }
         )

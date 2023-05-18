@@ -147,9 +147,7 @@ const CodeInputField = (inputProps: CodeInputFieldProps): React.Node => {
   return (
     <FormControl
       error={touched && (error || warning) != null}
-      classes={{
-        root: classes.root
-      }}
+      classes={{ root: classes.root }}
     >
       {label && <FormLabel className={classes.formLabel}>{label}</FormLabel>}
       <CodeInput

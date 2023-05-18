@@ -1,7 +1,21 @@
-import { Node } from '../types'
+import { Comment, Node } from '../types'
+import { original, source } from './symbols'
+
+const commentClones: Map<Comment, Comment> = new Map()
+
+function isComment(node: any): node is Comment {
+  return node.type === 'CommentLine' || node.type === 'CommentBlock'
+}
 
 export default function cloneNode<T extends Node>(node: T): T {
-  const result: any = {}
+  if (isComment(node)) {
+    const clone = commentClones.get(node)
+    if (clone && (node as Comment).value === clone.value) return clone as any
+  }
+  const result: any = {
+    [original]: (node as any)[original],
+    [source]: (node as any)[source],
+  }
   for (const field in node) {
     switch (field) {
       case 'start':
@@ -12,6 +26,9 @@ export default function cloneNode<T extends Node>(node: T): T {
     }
     const value = (node as any)[field]
     result[field] = cloneValue(value)
+  }
+  if (isComment(node)) {
+    commentClones.set(node, result)
   }
   return result
 }

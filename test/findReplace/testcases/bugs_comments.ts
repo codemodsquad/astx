@@ -15,9 +15,16 @@ const $b = $av
 const $a = $bv
 `
 
-export const expectedReplace = `
+export const expectedReplace = (parser) =>
+  parser.startsWith('recast/babel')
+    ? `
 // before
 const b = 1
 const a = 2
 // after
+`
+    : `
+// before
+const b = 1
+const a = 2; // after
 `

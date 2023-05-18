@@ -3,11 +3,13 @@ import { Backend } from '../backend/Backend'
 import * as defaultParser from '@babel/parser'
 import { ParserOptions } from '@babel/parser'
 import * as defaultTypes from '@babel/types'
-import babelGenerator from '@babel/generator'
-const defaultGenerate = (babelGenerator as any).default || babelGenerator
+import * as defaultGenerator from '@babel/generator'
 import * as AstTypes from 'ast-types'
 import babelAstTypes from './babelAstTypes'
 import { Comment, Location } from '../types'
+import reprint from './reprint'
+import detectChangedNodes from '../util/detectChangedNodes'
+import { cloneAstWithOriginals } from '../util/cloneAstWithOriginals'
 
 interface Parser {
   parse(code: string, parserOpts?: ParserOptions): File
@@ -21,6 +23,7 @@ export default class BabelBackend extends Backend<Node> {
   readonly parse: (code: string) => Node
   readonly parseExpression: (code: string) => Expression
   readonly parseStatements: (code: string) => Statement[]
+  readonly generator: typeof defaultGenerator
   readonly generate: Generate
   readonly location: (node: Node) => Location
   readonly comments: (
@@ -31,20 +34,23 @@ export default class BabelBackend extends Backend<Node> {
   constructor({
     parser = defaultParser,
     parserOptions,
-    generate = defaultGenerate,
+    generator = defaultGenerator,
     types = defaultTypes,
+    preserveFormat,
   }: {
     parser?: Parser
     parserOptions?: ParserOptions
-    generate?: Generate
+    generator?: typeof defaultGenerator
     types?: typeof defaultTypes
+    preserveFormat?: 'generatorHack'
   } = {}) {
     super()
 
     const t = babelAstTypes(types)
 
     this.t = t
-    this.parse = (code: string) => parser.parse(code, parserOptions)
+    this.parse = (code: string) =>
+      cloneAstWithOriginals(parser.parse(code, parserOptions), code)
     this.parseExpression = (code: string) =>
       parser.parseExpression(code, parserOptions)
     this.parseStatements = (code: string) => {
@@ -54,7 +60,14 @@ export default class BabelBackend extends Backend<Node> {
       }
       return ast.program.body
     }
-    this.generate = generate
+    this.generator = generator
+    this.generate =
+      preserveFormat === 'generatorHack'
+        ? (node: Node) => {
+            detectChangedNodes(this.t, new t.NodePath(node))
+            return reprint(this.generator, node)
+          }
+        : generator.default
     this.location = (node: Node) => ({
       start: node.start,
       end: node.end,
