@@ -11,6 +11,7 @@ import convertStatementReplacement from './convertStatementReplacement'
 import convertImportSpecifierReplacement from './convertImportSpecifierReplacement'
 import * as t from '@babel/types'
 import ensureArray from '../util/ensureArray'
+import convertArrayElementReplacement from './convertArrayElementReplacement'
 
 export type ReplacementConverter = (replacement: Node) => Node | Node[]
 
@@ -45,6 +46,9 @@ export default function createReplacementConverter(
     case 'ObjectExpression':
     case 'ObjectPattern':
       return convertPropertyReplacement
+    case 'ArrayExpression':
+    case 'ArrayPattern':
+      return convertArrayElementReplacement
   }
 
   if (t.isStatement(path.node)) {
