@@ -17,8 +17,10 @@ Super powerful structural search and replace for JavaScript and TypeScript to au
 - [Introduction](#introduction)
 - [Usage examples](#usage-examples)
   - [Fixing eslint errors](#fixing-eslint-errors)
-  - [Converting require statements to imports](#converting-require-statements-to-imports)
-  - [Making code DRY](#making-code-dry)
+  - [Restructure array concatenation](#restructure-array-concatenation)
+  - [Convert require statements to imports](#convert-require-statements-to-imports)
+  - [Combine unnecessary nested if statements](#combine-unnecessary-nested-if-statements)
+  - [Make code DRY](#make-code-dry)
 - [Roadmap](#roadmap)
 - [VSCode Extension](#vscode-extension)
 - [Prior art and philosophy](#prior-art-and-philosophy)
@@ -98,9 +100,8 @@ Super powerful structural search and replace for JavaScript and TypeScript to au
 
 # Introduction
 
-If you've ever refactored a function, and had to go through and change all the calls to that function by hand one by one, you know
-how much time it can take. For example, let's say you decided to move an optional boolean `force` argument to your `rmdir` function
-into an options hash argument:
+Simple refactors can be tedious and repetitive. For example say you want to make the following change
+across a codebase:
 
 ```js
 // before:
@@ -113,26 +114,29 @@ rmdir('new/stuff', { force: true })
 ```
 
 Changing a bunch of calls to `rmdir` by hand would suck. You could try using regex replace, but it's fiddly and wouldn't tolerate whitespace and
-linebreaks well unless you work really hard at the regex.
+linebreaks well unless you work really hard at the regex. You could even use `jscodeshift`, but it takes too long for simple cases like this, and starts to feel harder than necessary...
 
 Now there's a better option...you can refactor with confidence using `astx`!
 
 ```sh
-astx -f 'rmdir($path, $force)' -r 'rmdir($path, { force: $force })' src
+astx \
+  --find    'rmdir($path, $force)' \
+  --replace 'rmdir($path, { force: $force })'
 ```
 
-What's going on here? Find and replace must be valid JS expressions or statements. `astx` parses them
-into AST (Abstract Syntax Tree) nodes, and then looks for matching AST nodes in your code.
-`astx` treats any identifier in starting with `$` in the find or replace expression as a placeholder - in this case, `$path` and `$force`.
-(You can use leading `$_` as an escape, for instance `$_foo` will match literal identifier `$foo` in your code).
+This is a basic example of _`astx` [patterns](#pattern-language)_, which are just JS or TS code that can contain [placeholders](#placeholders) and other [special matching constructs](#special-constructs); `astx` looks for
+code matching the pattern, accepting any expression in place of `$path` and `$force`. Then `astx` replaces
+each match with the replace pattern, substituting the expressions it captured for `$path` (`'new/stuff'`) and `$force` (`true`).
 
-When it gets to a function call, it checks that the function name matches `rmdir`, and that it has the same number of arguments.
-Then it checks if the arguments match.
-Our patterns for both arguments (`$path`, `$force`) are placeholders, so they automatically match and capture the corresponding AST nodes
-of the two arguments in your code.
+But this is just the beginning; `astx` patterns can be much more complex and powerful than this, and for really advanced use cases it has
+an intuitive [API](#api) you can use:
 
-Then `astx` replaces that function call it found with the replacement expression. When it finds placeholders in the replacement expression,
-it substitutes the corresponding values that were captured for those placeholders (`$path` captured `'new/stuff'` and `$force` captured `true`).
+```ts
+for (const match of astx.find`rmdir($path, $force)`()) {
+  const { $path, $force } = match
+  // do stuff with $path.node, $path.code, etc...
+}
+```
 
 # Usage examples
 
@@ -143,10 +147,43 @@ Got a lot of `Do not access Object.prototype method 'hasOwnProperty' from target
 ```js
 // astx.js
 exports.find = `$a.hasOwnProperty($b)`
-exports.replace = `Object.prototype.hasOwnProperty.call($a, $b)`
+exports.replace = `Object.hasOwn($a, $b)`
 ```
 
-## Converting require statements to imports
+## Restructure array concatenation
+
+Recently for work I wanted to make this change:
+
+```ts
+// before
+const pkg = OrgPackage({
+  subPackage: [
+    'services',
+    async ? 'async' : 'blocking',
+    ...namespace,
+    Names.ServiceType({ resource, async }),
+  ],
+})
+
+// after
+const pkg = [
+  ...OrgPackage(),
+  'services',
+  async ? 'async' : 'blocking',
+  ...namespace,
+  Names.ServiceType({ resource, async }),
+]
+```
+
+This is simple to do with [list matching](#list-matching):
+
+```js
+// astx.js
+exports.find = `OrgPackage({subPackage: [$$p]})`
+exports.replace = `[...OrgPackage(), $$p]`
+```
+
+## Convert require statements to imports
 
 ```js
 // astx.js
@@ -154,7 +191,15 @@ exports.find = `const $id = require('$source')`
 exports.replace = `import $id from '$source'`
 ```
 
-## Making code DRY
+## Combine unnecessary nested if statements
+
+```js
+// astx.js
+export const find = `if ($a) { if ($b) $body }`
+export const replace = `if ($a && $b) $body`
+```
+
+## Make code DRY
 
 In `jscodeshift-add-imports` I had a bunch of test cases following this pattern:
 
