@@ -35,6 +35,10 @@ for (const klass of equivalenceClassesArray) {
   for (const type of klass.nodeTypes) equivalenceClasses[type] = klass
 }
 
+const normalizeNull = <T>(value: T | null | undefined): T | null => {
+  return value === undefined ? null : value
+}
+
 export default function compileGenericNodeMatcher(
   path: NodePath<Node, Node>,
   compileOptions: CompileOptions,
@@ -67,67 +71,64 @@ export default function compileGenericNodeMatcher(
   const { debug } = compileOptions
 
   const keyMatchers: Record<string, CompiledMatcher> = Object.fromEntries(
-    t
-      .getFieldNames(pattern)
-      // .filter((key: string) => key !== 'type')
-      .map((key: string): [string, CompiledMatcher] => {
-        const custom = options?.keyMatchers?.[key]
+    t.getFieldNames(pattern).map((key: string): [string, CompiledMatcher] => {
+      const custom = options?.keyMatchers?.[key]
 
-        if (custom) return [key, custom]
+      if (custom) return [key, custom]
 
-        const value = t.getFieldValue(pattern, key)
-        const fieldPath = path.get(key)
+      const value = normalizeNull(t.getFieldValue(pattern, key))
+      const fieldPath = path.get(key)
 
-        if (Array.isArray(value) || fieldPath.node === value) {
-          return [
-            key,
-            compileMatcher(fieldPath, {
-              ...compileOptions,
-              debug: indentDebug(debug, 2),
-            }),
-          ]
-        } else if (value instanceof Object) {
-          return [
-            key,
-            {
-              pattern: fieldPath,
-              match: (path: NodePath, matchSoFar: MatchResult): MatchResult => {
-                const nodeValue = t.getFieldValue(path.node, key)
+      if (Array.isArray(value) || fieldPath.node === value) {
+        return [
+          key,
+          compileMatcher(fieldPath, {
+            ...compileOptions,
+            debug: indentDebug(debug, 2),
+          }),
+        ]
+      } else if (value instanceof Object) {
+        return [
+          key,
+          {
+            pattern: fieldPath,
+            match: (path: NodePath, matchSoFar: MatchResult): MatchResult => {
+              const nodeValue = normalizeNull(path.value)
 
-                if (areFieldValuesEqual(t, value, nodeValue)) {
-                  debug('    %s === %s', value, nodeValue)
-                  return matchSoFar || {}
-                } else {
-                  debug('    %s !== %s', value, nodeValue)
-                  return null
-                }
-              },
+              if (areFieldValuesEqual(t, value, nodeValue)) {
+                debug('    %s === %s', value, nodeValue)
+                return matchSoFar || {}
+              } else {
+                debug('    %s !== %s', value, nodeValue)
+                return null
+              }
             },
-          ]
-        } else {
-          return [
-            key,
-            {
-              pattern: fieldPath,
-              match: (path: NodePath, matchSoFar: MatchResult): MatchResult => {
-                const nodeValue = t.getFieldValue(path.node, key)
+          },
+        ]
+      } else {
+        return [
+          key,
+          {
+            pattern: fieldPath,
+            match: (path: NodePath, matchSoFar: MatchResult): MatchResult => {
+              const nodeValue = normalizeNull(path.value)
 
-                if (
-                  value === nodeValue ||
-                  (value === null && nodeValue === false) ||
-                  (value === false && nodeValue === null)
-                ) {
-                  debug('    %s === %s', value, nodeValue)
-                  return matchSoFar || {}
-                } else {
-                  debug('    %s !== %s', value, nodeValue)
-                  return null
-                }
-              },
+              if (
+                value === nodeValue ||
+                (value === null && nodeValue === false) ||
+                (value === false && nodeValue === null)
+              ) {
+                debug('    %s === %s', value, nodeValue)
+                return matchSoFar || {}
+              } else {
+                debug('    %s !== %s', value, nodeValue)
+                return null
+              }
             },
-          ]
-        }
-      })
+          },
+        ]
+      }
+    })
   )
 
   return {
