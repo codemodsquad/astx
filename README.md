@@ -768,7 +768,7 @@ If `finish` returns a `Promise` it will be awaited.
 
 ### Preserving Formatting
 
-I recommend trying this first:
+If your codebase is formatted with prettier, I recommend trying this first:
 
 ```json
 {
@@ -787,7 +787,7 @@ I recommend trying this first:
 
 If this fails you can try `parser: 'recast/babel/auto'` or the non-`/auto` parsers.
 
-I've gotten tired of `recast`; they just aren't able to keep it up to date
+Your mileage may vary with `recast`; they just aren't able to keep it up to date
 with new syntax features in JS and TS quickly enough, and I've seen it output invalid
 syntax too many times.
 
