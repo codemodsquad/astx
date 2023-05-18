@@ -7,7 +7,7 @@ export default async function getBabelDefaultsBackend(
 ): Promise<BabelBackend> {
   const parser = options ? jsParser.bindParserOpts(options) : jsParser
   return new BabelBackend({
-    parser: parser.forExtension(file),
+    parser: parser.forExtension(file) as any,
     parserOptions: options,
     preserveFormat,
   })

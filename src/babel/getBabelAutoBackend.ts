@@ -41,7 +41,7 @@ export default async function getBabelAutoBackend(
       : _parser.bindParserOpts({ sourceType: 'unambiguous' })
   ).forExtension(file)
   return new BabelBackend({
-    parser,
+    parser: parser as any,
     parserOptions: options,
     preserveFormat,
     generator,
