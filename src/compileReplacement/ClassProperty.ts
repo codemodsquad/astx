@@ -13,7 +13,18 @@ export default function compileClassPropertyReplacement(
       !pattern.computed &&
       !pattern.static &&
       pattern.variance == null &&
-      pattern.value == null
+      pattern.value == null &&
+      (pattern.typeAnnotation == null ||
+        (n.TypeAnnotation.check(pattern.typeAnnotation) &&
+          n.GenericTypeAnnotation.check(
+            pattern.typeAnnotation?.typeAnnotation
+          ) &&
+          n.Identifier.check(pattern.typeAnnotation.typeAnnotation.id) &&
+          pattern.typeAnnotation.typeAnnotation.id.name === '$') ||
+        (n.TSTypeAnnotation.check(pattern.typeAnnotation) &&
+          n.TSTypeReference.check(pattern.typeAnnotation?.typeAnnotation) &&
+          n.Identifier.check(pattern.typeAnnotation.typeAnnotation.typeName) &&
+          pattern.typeAnnotation.typeAnnotation.typeName.name === '$'))
     ) {
       const placeholderReplacement = compilePlaceholderReplacement(
         path,

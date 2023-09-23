@@ -14,20 +14,31 @@ $Or($a.then($handleValue), $a.then($handleValue, $handleError), $a.catch($handle
 
 export const expectedFind = [
   {
-    arrayCaptures: {
-      $$args: ['error => blah'],
+    captures: {
+      $a: 'thing.then(() => blah)',
+      $handleFinally: '() => done',
     },
+    node: 'thing.then(() => blah).finally(() => done)',
+  },
+  {
+    captures: {
+      $a: 'thing',
+      $handleValue: '() => blah',
+    },
+    node: 'thing.then(() => blah)',
+  },
+  {
     captures: {
       $a: 'thing.then(\n    value => value * 2,\n    error => logged(error)\n  )',
+      $handleError: 'error => blah',
     },
     node: 'thing.then(\n    value => value * 2,\n    error => logged(error)\n  ).catch(error => blah)',
   },
   {
-    arrayCaptures: {
-      $$args: ['value => value * 2', 'error => logged(error)'],
-    },
     captures: {
       $a: 'thing',
+      $handleError: 'error => logged(error)',
+      $handleValue: 'value => value * 2',
     },
     node: 'thing.then(\n    value => value * 2,\n    error => logged(error)\n  )',
   },

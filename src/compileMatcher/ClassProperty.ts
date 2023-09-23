@@ -13,6 +13,7 @@ export default function compileClassPropertyMatcher(
     if (
       !pattern.computed &&
       !pattern.static &&
+      pattern.typeAnnotation == null &&
       pattern.variance == null &&
       pattern.value == null
     ) {
