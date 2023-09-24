@@ -19,5 +19,5 @@ export default async function loadFile(
     source = await fs.readFile(file, 'utf8')
   }
   const backend: Backend = await chooseGetBackend(parser)(file, parserOptions)
-  return new Astx(backend, [new backend.t.NodePath(backend.parse(source))])
+  return new Astx({ backend }, [new backend.t.NodePath(backend.parse(source))])
 }

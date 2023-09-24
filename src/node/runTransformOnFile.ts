@@ -130,7 +130,7 @@ export default async function runTransformOnFile({
           reports.push(msg)
         },
         ...backend.template,
-        astx: new Astx(backend, [root]),
+        astx: new Astx({ backend }, [root]),
       }
       const [_result, prettier] = await Promise.all([
         transformFn(options),

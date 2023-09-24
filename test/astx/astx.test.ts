@@ -128,7 +128,7 @@ for (const parser in groups) {
           `${testcaseDir}/${key}.ts`,
           async function () {
             const root = new backend.t.NodePath(backend.parse(input))
-            const astx = new Astx(backend, [root])
+            const astx = new Astx({ backend }, [root])
             const reports: any[] = []
             const options: TransformOptions = {
               astx,

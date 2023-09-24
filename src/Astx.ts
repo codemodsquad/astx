@@ -80,6 +80,10 @@ export type FindOptions = {
   where?: { [captureName: string]: (path: NodePath) => boolean }
 }
 
+export type AstxContext = {
+  backend: Backend
+}
+
 class ExtendableProxy {
   constructor(handler: ProxyHandler<any>) {
     return new Proxy(this, handler)
@@ -88,7 +92,6 @@ class ExtendableProxy {
 
 export default class Astx extends ExtendableProxy implements Iterable<Astx> {
   [name: `$${string}` | `$$${string}` | `$$$${string}`]: Astx
-  public readonly backend: Backend
   private readonly _matches: Match[]
   private readonly _withCaptures: Match[]
   private readonly _placeholder: string | undefined
@@ -97,7 +100,7 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
   private _lazyInitialMatch: MatchResult | undefined
 
   constructor(
-    backend: Backend,
+    public readonly context: AstxContext,
     paths: NodePath<any>[] | Match[],
     {
       withCaptures = [],
@@ -127,17 +130,20 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
             )
           if (arrayPaths) matches.push(createMatch(arrayPaths, {}))
         }
-        return new Astx(target.backend, matches, { placeholder: prop })
+        return new Astx(target.context, matches, { placeholder: prop })
       },
     })
-    this.backend = backend
     this._placeholder = placeholder
-    const { NodePath } = backend.t
+    const { NodePath } = context.backend.t
     this._matches =
       paths[0] instanceof NodePath
         ? (paths as NodePath[]).map((path) => createMatch(path, {}))
         : (paths as Match[])
     this._withCaptures = withCaptures
+  }
+
+  get backend(): Backend {
+    return this.context.backend
   }
 
   get placeholder(): string | undefined {
@@ -155,11 +161,11 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
   *[Symbol.iterator](): Iterator<Astx> {
     if (this._placeholder) {
       for (const path of this.paths) {
-        yield new Astx(this.backend, [path])
+        yield new Astx(this.context, [path])
       }
     } else {
       for (const match of this._matches) {
-        yield new Astx(this.backend, [match])
+        yield new Astx(this.context, [match])
       }
     }
   }
@@ -212,7 +218,7 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
         filtered.push(astx.match)
       }
     }
-    return new Astx(this.backend, filtered)
+    return new Astx(this.context, filtered)
   }
 
   map<T>(iteratee: (astx: Astx, index: number, parent: Astx) => T): T[] {
@@ -225,7 +231,7 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
   }
 
   at(index: number): Astx {
-    return new Astx(this.backend, [this._matches[index]])
+    return new Astx(this.context, [this._matches[index]])
   }
 
   withCaptures(
@@ -291,7 +297,7 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
       }
     }
 
-    return new Astx(this.backend, this._matches, {
+    return new Astx(this.context, this._matches, {
       withCaptures,
     })
   }
@@ -375,7 +381,7 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
       | TemplateStringsArray,
     ...rest: any[]
   ): Astx | ((options?: FindOptions) => Astx) {
-    const { backend } = this
+    const { context, backend } = this
     return this._execPattern(
       'closest',
       (
@@ -405,7 +411,7 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
           }
         })
 
-        return new Astx(backend, matches)
+        return new Astx(context, matches)
       },
       arg0,
       ...rest
@@ -431,7 +437,7 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
       | TemplateStringsArray,
     ...rest: any[]
   ): Astx | ((options?: FindOptions) => Astx) {
-    const { backend } = this
+    const { context, backend } = this
     return this._execPattern(
       'find',
       (
@@ -439,7 +445,7 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
         options?: FindOptions
       ): Astx =>
         new Astx(
-          backend,
+          context,
           find(this.paths, pattern, {
             ...options,
             backend,
