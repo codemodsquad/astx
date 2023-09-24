@@ -42,6 +42,7 @@ export abstract class Backend<Node = any> {
     node: Node,
     kind?: 'leading' | 'inner' | 'trailing'
   ) => Iterable<Comment>
+  abstract removeComments(node: Node): void
 
   constructor() {
     this.template = {

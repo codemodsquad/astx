@@ -94,4 +94,10 @@ export default class BabelBackend extends Backend<Node> {
       }
     }
   }
+
+  removeComments(node: Node): void {
+    delete node.leadingComments
+    delete node.trailingComments
+    delete node.innerComments
+  }
 }

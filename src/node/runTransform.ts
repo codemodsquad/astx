@@ -2,7 +2,7 @@ import runTransformOnFile, {
   Fs as RunTransformOnFileFs,
 } from './runTransformOnFile'
 import { clearCache } from 'babel-parse-wild-code'
-import { AstxConfig } from '../AstxConfig'
+import { AstxConfig, debugConfig } from '../AstxConfig'
 import astxGlob from './astxGlob'
 import { Fs as GlobFs } from './glob'
 import { astxCosmiconfig } from './astxCosmiconfig'
@@ -45,6 +45,8 @@ export default async function* runTransform({
 > {
   clearCache()
   astxCosmiconfig.clearSearchCache()
+
+  debugConfig('runTransform', 'config', config)
 
   const transform = transformFile ? await import(transformFile) : _transform
   if (signal?.aborted) return

@@ -12,6 +12,7 @@ import {
   getArrayPlaceholder,
   getRestPlaceholder,
 } from './compileMatcher/Placeholder'
+import { SimpleReplacementInterface } from './util/SimpleReplacementCollector'
 
 export type TransformOptions = {
   /** The absolute path to the current file. */
@@ -82,6 +83,7 @@ export type FindOptions = {
 
 export type AstxContext = {
   backend: Backend
+  simpleReplacements?: SimpleReplacementInterface
 }
 
 class ExtendableProxy {
@@ -483,17 +485,17 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
             typeof replacement === 'string'
               ? parsePatternToNodes(replacement)
               : replacement,
-            { backend }
+            this.context
           )
         }
       } else if (typeof arg0 === 'string') {
         const replacement = parsePatternToNodes(arg0)
         for (const match of this._matches) {
-          replace(match, replacement, { backend })
+          replace(match, replacement, this.context)
         }
       } else if (isNode(arg0) || isNodeArray(arg0)) {
         for (const match of this._matches) {
-          replace(match, arg0, { backend })
+          replace(match, arg0, this.context)
         }
       } else {
         const finalPaths = parsePatternToNodes(arg0, ...quasis)

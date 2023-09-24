@@ -1,5 +1,8 @@
 import { Backend } from './backend/Backend'
 import * as t from 'typed-validators'
+import debug from 'debug'
+
+export const debugConfig = debug('astx:config')
 
 export type AstxConfig = {
   parser?:
@@ -11,6 +14,7 @@ export type AstxConfig = {
   parserOptions?: Record<string, any>
   workers?: number
   prettier?: boolean
+  preferSimpleReplacement?: boolean
 }
 
 export const AstxConfigType: t.TypeAlias<AstxConfig> = t.alias(
@@ -28,6 +32,7 @@ export const AstxConfigType: t.TypeAlias<AstxConfig> = t.alias(
       parserOptions: t.record(t.string(), t.any()),
       workers: t.number(),
       prettier: t.boolean(),
+      preferSimpleReplacement: t.boolean(),
     },
   })
 )

@@ -6,12 +6,13 @@ import _resolve from 'resolve'
 import { Match } from '../find'
 import omitBlankLineChanges from '../util/omitBlankLineChanges'
 import CodeFrameError from '../util/CodeFrameError'
-import { AstxConfig } from '../AstxConfig'
+import { AstxConfig, debugConfig } from '../AstxConfig'
 import chooseGetBackend from '../chooseGetBackend'
 import { astxCosmiconfig } from './astxCosmiconfig'
 import Astx, { Transform, TransformOptions, TransformResult } from '../Astx'
 import { Node } from '../types'
 import './registerTsNode'
+import { SimpleReplacementCollector } from '../util/SimpleReplacementCollector'
 const resolve = promisify(_resolve) as any
 
 const getPrettier = memoize(async (path: string): Promise<any> => {
@@ -79,9 +80,13 @@ export default async function runTransformOnFile({
         : undefined,
   }
 
+  debugConfig('runTransformOnFile', 'baseConfig', baseConfig)
+  debugConfig('runTransformOnFile', 'configOverrides', configOverrides)
+  debugConfig('runTransformOnFile', 'config', config)
+
   if (signal?.aborted) throw new Error('aborted')
 
-  const { parser, parserOptions } = config
+  const { parser, parserOptions, preferSimpleReplacement } = config
 
   const backend = await chooseGetBackend(parser)(file, parserOptions)
   if (signal?.aborted) throw new Error('aborted')
@@ -119,6 +124,12 @@ export default async function runTransformOnFile({
         }
         throw error
       }
+      const simpleReplacements = preferSimpleReplacement
+        ? new SimpleReplacementCollector({
+            source,
+            backend,
+          })
+        : undefined
       const options = {
         source,
         file,
@@ -130,7 +141,7 @@ export default async function runTransformOnFile({
           reports.push(msg)
         },
         ...backend.template,
-        astx: new Astx({ backend }, [root]),
+        astx: new Astx({ backend, simpleReplacements }, [root]),
       }
       const [_result, prettier] = await Promise.all([
         transformFn(options),
@@ -140,7 +151,16 @@ export default async function runTransformOnFile({
       if (transform.astx || transform.replace) {
         transformed = _result
         if (transformed === undefined) {
-          transformed = backend.generate(ast).code
+          if (simpleReplacements) {
+            try {
+              transformed = simpleReplacements.applyReplacements()
+            } catch (error) {
+              // ignore
+            }
+          }
+          if (transformed === undefined) {
+            transformed = backend.generate(ast).code
+          }
         }
         if (transformed === null) transformed = undefined
         if (

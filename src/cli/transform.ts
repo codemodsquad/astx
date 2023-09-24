@@ -24,6 +24,7 @@ import ansiEscapes from 'ansi-escapes'
 import { spinner } from './spinner'
 import '../node/registerTsNode'
 import isInteractive from '../util/isInteractive'
+import { debugConfig } from '../AstxConfig'
 
 /* eslint-disable no-console */
 
@@ -31,6 +32,7 @@ type Options = {
   transform?: string
   parser?: string
   parserOptions?: string
+  preferSimpleReplacement?: boolean
   find?: string
   replace?: string
   filesAndDirectories?: string[]
@@ -61,6 +63,11 @@ const transform: CommandModule<Options> = {
       .options('parserOptions', {
         describe: 'options for parser',
         type: 'string',
+      })
+      .option('preferSimpleReplacement', {
+        describe:
+          'avoid reprinting any code outside of replaced nodes if possible',
+        type: 'boolean',
       })
       .option('find', {
         alias: 'f',
@@ -134,7 +141,13 @@ const transform: CommandModule<Options> = {
         throw new Error(`missing transform file: ${files.join(' or ')}`)
       }
     })()
-    const { parser, parserOptions, gitignore } = argv
+    const { parser, parserOptions, preferSimpleReplacement, gitignore } = argv
+
+    debugConfig('transform', 'cli overrides', {
+      parser,
+      parserOptions,
+      preferSimpleReplacement,
+    })
 
     const results: Record<string, string> = {}
     let errorCount = 0
@@ -190,8 +203,13 @@ const transform: CommandModule<Options> = {
         transformFile,
         paths,
         config: {
-          parser: parser as any,
-          parserOptions: parserOptions ? JSON.parse(parserOptions) : undefined,
+          ...(parser ? { parser: parser as any } : null),
+          ...(parserOptions
+            ? { parserOptions: JSON.parse(parserOptions) }
+            : null),
+          ...(preferSimpleReplacement != null
+            ? { preferSimpleReplacement }
+            : null),
         },
       }
       for await (const _event of pool

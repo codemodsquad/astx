@@ -5,15 +5,17 @@ import createReplacementConverter, { bulkConvert } from './convertReplacement'
 import { Backend } from './backend/Backend'
 import pipeline from './util/pipeline'
 import { last } from 'lodash'
+import { SimpleReplacementInterface } from './util/SimpleReplacementCollector'
 
 export type ReplaceOptions = {
   backend: Backend
+  simpleReplacements?: SimpleReplacementInterface
 }
 
 export default function replace(
   match: Match,
   replace: CompiledReplacement | Node | readonly Node[],
-  { backend }: ReplaceOptions
+  { backend, simpleReplacements }: ReplaceOptions
 ): void {
   const path =
     match.path.parentPath?.node.type === 'ExpressionStatement'
@@ -35,6 +37,12 @@ export default function replace(
     ),
   ]
 
+  if (match.paths.length === 1 && replacements.length === 1) {
+    simpleReplacements?.replace(match.node, replacements[0])
+  } else {
+    simpleReplacements?.bail()
+  }
+
   doReplace(match, replacements)
 }
 
@@ -45,7 +53,7 @@ export function replaceAll(
     | Node
     | readonly Node[]
     | ((match: Match) => CompiledReplacement | Node | readonly Node[]),
-  { backend }: ReplaceOptions
+  { backend, simpleReplacements }: ReplaceOptions
 ): void {
   for (const match of matches) {
     const path =
@@ -73,6 +81,12 @@ export function replaceAll(
         createReplacementConverter(path)
       ),
     ]
+
+    if (match.paths.length === 1 && replacements.length === 1) {
+      simpleReplacements?.replace(match.node, replacements[0])
+    } else {
+      simpleReplacements?.bail()
+    }
 
     doReplace(match, replacements)
   }

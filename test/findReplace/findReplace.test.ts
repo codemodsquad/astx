@@ -13,6 +13,7 @@ import { ParserOptions } from '@babel/parser'
 import RecastBackend from '../../src/recast/RecastBackend'
 import BabelBackend from '../../src/babel/BabelBackend'
 import { Backend } from '../../src/backend/Backend'
+import { SimpleReplacementCollector } from '../../src/util/SimpleReplacementCollector'
 
 const projRoot = path.resolve(__dirname, '..', '..')
 const testcaseDir = path.relative(
@@ -48,6 +49,7 @@ type Fixture = {
   only?: boolean
   skip?: boolean
   expectedError?: string
+  useSimpleReplacements?: boolean
 }
 
 export function extractMatchSource(
@@ -257,6 +259,7 @@ for (const parser in groups) {
           expectedError,
           only,
           skip,
+          useSimpleReplacements,
         }: Fixture = replaceTestcases[key]
 
         ;(skip ? it.skip : only ? it.only : it)(
@@ -294,6 +297,9 @@ for (const parser in groups) {
                 typeof expectedReplace === 'function'
                   ? expectedReplace(parser)
                   : expectedReplace
+              const simpleReplacements = useSimpleReplacements
+                ? new SimpleReplacementCollector({ source: input, backend })
+                : undefined
               replaceAll(
                 matches,
                 typeof _replace === 'string'
@@ -307,9 +313,11 @@ for (const parser in groups) {
                         ? backend.parsePatternToNodes(result)
                         : result
                     },
-                { backend }
+                { backend, simpleReplacements }
               )
-              const actual = backend.generate(ast).code
+              const actual =
+                simpleReplacements?.applyReplacements() ??
+                backend.generate(ast).code
               expect(reformat(format(actual))).to.deep.equal(reformat(expected))
             }
           }
