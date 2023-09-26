@@ -199,7 +199,6 @@
     "require-glob": "^3.2.0",
     "rimraf": "^3.0.2",
     "semantic-release": "^17.3.7",
-    "ts-node": "^9.1.1",
     "typescript": "^4.7.4"
   },
   "dependencies": {
@@ -226,6 +225,7 @@
     "resolve": "^1.19.0",
     "shallowequal": "^1.1.0",
     "tiny-typed-emitter": "^2.1.0",
+    "ts-node": "^9.1.1",
     "typed-validators": "^4.5.1",
     "yargs": "^17.6.2"
   }
