@@ -14,3 +14,4 @@ node_modules
 !/test/**/*.ts
 !/test/**/*.js
 !/.babelrc.js
+!/.mocharc.js
