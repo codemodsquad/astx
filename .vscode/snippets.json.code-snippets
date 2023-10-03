@@ -2,13 +2,18 @@
   "parseTestcase": {
     "prefix": "parse-testcase",
     "body": [
-      "export const input = `",
-      "$0",
-      "`",
+      "import { parseTestcase } from '../parseTestcase'"
       "",
-      "export const expected = `",
-      "",
-      "`"
+      "parseTestcase({",
+      "  file: __filename,",
+      "  input: `",
+      "    $0",
+      "  `,",
+      "  expected: [",
+      "    ",
+      "  ],",
+      "})",
+      ""
     ]
   },
   "findTestcase": {
@@ -83,16 +88,21 @@
   "astxReplaceTestcase": {
     "prefix": "astx-replace-testcase",
     "body": [
-      "import { TransformOptions } from '../../../src'",
+      "import { TransformOptions } from '../../src'"
+      "import { astxTestcase } from '../astxTestcase'"
       "",
-      "export const input = `",
-      "`",
-      "",
-      "export function astx({ astx }: TransformOptions): void {",
-      "}",
-      "",
-      "export const expected = `",
-      "`",
+      "astxTestcase({",
+      "  file: __filename,",
+      "  input: `",
+      "    $0",
+      "  `,",
+      "  astx: ({ astx }: TransformOptions): void {`",
+      "    ",
+      "  },",
+      "  expected: `",
+      "    ",
+      "  `,"
+      "})",
       ""
     ]
   }
