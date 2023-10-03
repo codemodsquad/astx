@@ -1,4 +1,6 @@
-import { TransformOptions } from '../../../src'
+import { TransformOptions } from '../../src'
+import { astxTestcase } from '../astxTestcase'
+
 export const input = `
 import blah from '@jcoreio/require-env'
 
@@ -16,3 +18,10 @@ export function astx({ astx, report }: TransformOptions): void {
 }
 
 export const expectedReports = ["'TEST'"]
+
+astxTestcase({
+  file: __filename,
+  input,
+  astx,
+  expectedReports,
+})

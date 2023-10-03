@@ -1,4 +1,5 @@
-import { Statement, TransformOptions } from '../../../src'
+import { Statement, TransformOptions } from '../../src'
+import { astxTestcase } from '../astxTestcase'
 
 export const parsers = ['recast/babel']
 
@@ -402,3 +403,11 @@ export function TagNotificationsListener(props: TagNotificationsListenerProps): 
   return null;
 }
 `
+
+astxTestcase({
+  file: __filename,
+  input,
+  parsers,
+  astx,
+  expected,
+})

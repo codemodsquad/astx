@@ -1,4 +1,5 @@
-import { TransformOptions } from '../../../src'
+import { TransformOptions } from '../../src'
+import { astxTestcase } from '../astxTestcase'
 
 export const input = `
 process.env.FOO
@@ -25,3 +26,10 @@ export function astx({ astx, report }: TransformOptions): void {
 }
 
 export const expectedReports = ['FOO', 'BAR', 'BAZ', 'QUX', 'BOO', 'GLORM', 'A']
+
+astxTestcase({
+  file: __filename,
+  input,
+  astx,
+  expectedReports,
+})

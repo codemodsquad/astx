@@ -1,7 +1,7 @@
 import { describe, it } from 'mocha'
 import { expect } from 'chai'
 import Astx from '../src/Astx'
-import { extractMatchSource as _extractMatchSource } from './findReplace/findReplace.test'
+import { extractMatchSource as _extractMatchSource } from './findReplaceTestcase'
 import RecastBackend from '../src/recast/RecastBackend'
 import BabelBackend from '../src/babel/BabelBackend'
 import prettier from 'prettier'

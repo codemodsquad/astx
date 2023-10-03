@@ -1,4 +1,5 @@
-import { TransformOptions } from '../../../src'
+import { TransformOptions } from '../../src'
+import { astxTestcase } from '../astxTestcase'
 export const input = `
 import a from 'b'
 import c from 'd'
@@ -14,3 +15,10 @@ export const expectedReports = [
   { $$$i: 'a', $s: 'b' },
   { $$$i: 'c', $s: 'd' },
 ]
+
+astxTestcase({
+  file: __filename,
+  input,
+  astx,
+  expectedReports,
+})

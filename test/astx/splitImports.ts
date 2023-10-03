@@ -1,4 +1,5 @@
-import { TransformOptions } from '../../../src'
+import { TransformOptions } from '../../src'
+import { astxTestcase } from '../astxTestcase'
 
 export const input = `
 import { mapValues, map } from 'lodash'
@@ -18,3 +19,10 @@ import mapValues from "lodash/mapValues";
 import map from "lodash/map";
 import fromPairs from "lodash/fromPairs";
 `
+
+astxTestcase({
+  file: __filename,
+  input,
+  astx,
+  expected,
+})
