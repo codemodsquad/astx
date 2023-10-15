@@ -50,9 +50,9 @@
     "check:cjs": "node cjs/cli/index.js -f 'export type TransformOptions = $T' 'src/**/*.ts'",
     "build:mjs": "cross-env OUTPUT_ESM=1 babel src --out-dir mjs --out-file-extension .mjs --extensions .ts --source-maps inline && babel-node --extensions .ts src/cli/index.ts -t convertMjsBuild.ts --parser babel --no-gitignore -y mjs",
     "check:mjs": "node mjs/cli/index.mjs -f 'export type TransformOptions = $T' 'src/**/*.ts'",
-    "test": "cross-env NODE_ENV=test BABEL_ENV=coverage nyc --reporter=lcov --reporter=text mocha $npm_package_config_mocha",
-    "test:watch": "cross-env NODE_ENV=test BABEL_ENV=test mocha $npm_package_config_mocha --watch",
-    "test:debug": "cross-env NODE_ENV=test BABEL_ENV=test mocha --inspect-brk $npm_package_config_mocha",
+    "test": "cross-env NODE_ENV=test BABEL_ENV=coverage nyc --reporter=lcov --reporter=text mocha",
+    "test:watch": "cross-env NODE_ENV=test BABEL_ENV=test mocha --watch",
+    "test:debug": "cross-env NODE_ENV=test BABEL_ENV=test mocha --inspect-brk",
     "codecov": "nyc report --reporter=text-lcov > coverage.lcov; codecov",
     "prepublishOnly": "npm run clean && npm run prettier:check && npm run lint && npm test && npm run build",
     "open:coverage": "open coverage/lcov-report/index.html",
@@ -69,7 +69,6 @@
   },
   "config": {
     "lint": "--cache --ext .js,.ts src test",
-    "mocha": "--extension js --extension ts test/configure.js 'src/**/*.spec.ts' 'test/**/*.ts'",
     "prettier": ".babelrc.js *.{json,md} {src,test}/**/*.{js,ts,flow}",
     "commitizen": {
       "path": "cz-conventional-changelog"

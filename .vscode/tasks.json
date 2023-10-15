@@ -1,0 +1,31 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "test <file>",
+      "type": "shell",
+      "options": { "shell": { "executable": "bash", "args": ["-c", "-l"] } },
+      "command": "pnpm",
+      "isBackground": false,
+      "args": ["test", "--", "${file}"],
+      "group": "test",
+      "presentation": {
+        "panel": "dedicated",
+        "clear": true
+      }
+    },
+    {
+      "label": "test:watch <file>",
+      "type": "shell",
+      "options": { "shell": { "executable": "bash", "args": ["-c", "-l"] } },
+      "command": "pnpm",
+      "isBackground": true,
+      "args": ["test:watch", "--", "${file}"],
+      "group": "test",
+      "presentation": {
+        "panel": "dedicated",
+        "clear": true
+      }
+    }
+  ]
+}
