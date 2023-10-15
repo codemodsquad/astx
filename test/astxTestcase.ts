@@ -1,7 +1,7 @@
 import { describe, it } from 'mocha'
 import { expect } from 'chai'
 import { Astx, TransformFunction, TransformOptions } from '../src'
-import { NodePath } from '../src/types'
+import { Node, NodePath } from '../src/types'
 import { jsParser, tsParser } from 'babel-parse-wild-code'
 import { ParserOptions } from '@babel/parser'
 import RecastBackend from '../src/recast/RecastBackend'

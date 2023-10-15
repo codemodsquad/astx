@@ -1,6 +1,6 @@
-import { ParsePattern } from '../../../src/Astx'
-import { Match } from '../../../src/find'
-import { Node } from '../../../src/types'
+import { ParsePattern } from '../../src/Astx'
+import { Match } from '../../src/find'
+import { Node } from '../../src/types'
 
 export const input = `
 1 + 2

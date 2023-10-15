@@ -8,7 +8,7 @@ export const find = `
 const $a: $Or<number, {foo: $value}> = $b
 `
 
-export const expectedFind = [
+export const expectedFind: ExpectedMatch[] = [
   {
     captures: {
       $a: 'a',
@@ -25,7 +25,7 @@ export const expectedFind = [
     node: 'const b: {foo: number} = {foo: 3}',
   },
 ]
-import { findReplaceTestcase } from '../findReplaceTestcase'
+import { ExpectedMatch, findReplaceTestcase } from '../findReplaceTestcase'
 
 findReplaceTestcase({
   file: __filename,

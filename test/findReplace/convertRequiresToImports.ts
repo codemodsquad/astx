@@ -1,4 +1,4 @@
-import { NodePath } from '../../../src/types'
+import { NodePath } from '../../src/types'
 
 export const input = `
 const foo = require('foo')

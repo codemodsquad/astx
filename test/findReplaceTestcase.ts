@@ -11,7 +11,7 @@ import RecastBackend from '../src/recast/RecastBackend'
 import BabelBackend from '../src/babel/BabelBackend'
 import { Backend } from '../src/backend/Backend'
 
-type ExpectedMatch = {
+export type ExpectedMatch = {
   node?: string
   nodes?: string[]
   captures?: Record<string, string>
@@ -27,7 +27,7 @@ type ParseNodes = (
 type Fixture = {
   file: string
   input: string
-  find: string
+  find?: string
   findOptions?: FindOptions
   where?: FindOptions['where']
   replace?:
@@ -120,16 +120,23 @@ export function findReplaceTestcase(fixture: Fixture): void {
     parsers = ['babel', 'babel/tsx', 'recast/babel', 'recast/babel/tsx'],
     input,
     file,
-    find: _find,
+    expectMatchesSelf,
     findOptions,
     where,
-    expectMatchesSelf,
     expectedFind,
     replace: _replace,
     expectedReplace,
     expectedError,
     skip,
   } = fixture
+  const _find: string = (() => {
+    if (expectMatchesSelf) return input
+    if (!fixture.find)
+      throw new Error(
+        `fixture.find must be given unless fixture.expectMatchesSelf is true`
+      )
+    return fixture.find
+  })()
 
   ;(skip ? describe.skip : describe)(file, function () {
     for (const parser of parsers) {

@@ -12,7 +12,7 @@ export const find = `
 $Or($a.then($handleValue), $a.then($handleValue, $handleError), $a.catch($handleError), $a.finally($handleFinally))
 `
 
-export const expectedFind = [
+export const expectedFind: ExpectedMatch[] = [
   {
     captures: {
       $a: 'thing.then(() => blah)',
@@ -43,7 +43,8 @@ export const expectedFind = [
     node: 'thing.then(\n    value => value * 2,\n    error => logged(error)\n  )',
   },
 ]
-import { findReplaceTestcase } from '../findReplaceTestcase'
+
+import { ExpectedMatch, findReplaceTestcase } from '../findReplaceTestcase'
 
 findReplaceTestcase({
   file: __filename,

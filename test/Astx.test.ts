@@ -26,7 +26,7 @@ describe(`Astx`, function () {
       format(backend.generate(backend.parse(code)).code)
 
     const toSource = (astx: Astx) => backend.generate(astx.nodes[0]).code
-    let source
+    let source = ''
     const createAstx = (src: string): Astx => {
       source = src
       return new Astx({ backend }, [new backend.t.NodePath(backend.parse(src))])
@@ -329,7 +329,10 @@ describe(`Astx`, function () {
           CodeFrameError
         )
         expect(
-          { ...error, message: error.message },
+          {
+            ...error,
+            message: error instanceof Error ? error.message : String(error),
+          },
           `error thrown by ${callee}`
         ).to.containSubset(expected)
       }

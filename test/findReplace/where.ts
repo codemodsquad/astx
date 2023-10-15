@@ -1,5 +1,3 @@
-import { NodePath } from '../../../src/types'
-
 export const input = `
 1 + 2
 const foo = bar
@@ -27,6 +25,7 @@ export const expectedReplace = `
 const foo = bar
 3 + 5
 `
+import { NodePath } from '../../src/types'
 import { findReplaceTestcase } from '../findReplaceTestcase'
 
 findReplaceTestcase({

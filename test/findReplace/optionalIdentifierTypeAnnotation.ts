@@ -7,7 +7,7 @@ export const find = `
 const $a: $Maybe<$type> = $init
 `
 
-export const expectedFind = [
+export const expectedFind: ExpectedMatch[] = [
   {
     captures: {
       $a: 'foo',
@@ -24,7 +24,7 @@ export const expectedFind = [
     node: 'const bar: number = 1',
   },
 ]
-import { findReplaceTestcase } from '../findReplaceTestcase'
+import { ExpectedMatch, findReplaceTestcase } from '../findReplaceTestcase'
 
 findReplaceTestcase({
   file: __filename,

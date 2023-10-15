@@ -78,7 +78,7 @@ export default class RecastBackend extends Backend<Node> {
     }
   }
 
-  removeComments(node: Node) {
+  removeComments(node: Node): void {
     delete node.comments
   }
 }

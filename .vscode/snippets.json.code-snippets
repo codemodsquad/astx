@@ -2,7 +2,7 @@
   "parseTestcase": {
     "prefix": "parse-testcase",
     "body": [
-      "import { parseTestcase } from '../parseTestcase'"
+      "import { parseTestcase } from '../parseTestcase'",
       "",
       "parseTestcase({",
       "  file: __filename,",
@@ -19,7 +19,7 @@
   "findTestcase": {
     "prefix": "find-testcase",
     "body": [
-      "import { findReplaceTestcase } from '../findReplaceTestcase'"
+      "import { findReplaceTestcase } from '../findReplaceTestcase'",
       "",
       "findReplaceTestcase({",
       "  file: __filename,",
@@ -39,7 +39,7 @@
   "findReplaceTestcase": {
     "prefix": "find-replace-testcase",
     "body": [
-      "import { findReplaceTestcase } from '../findReplaceTestcase'"
+      "import { findReplaceTestcase } from '../findReplaceTestcase'",
       "",
       "findReplaceTestcase({",
       "  file: __filename,",
@@ -54,10 +54,10 @@
       "  ],",
       "  replace: `",
       "    ",
-      "  `,"
+      "  `,",
       "  expectedReplace: `",
       "    ",
-      "  `,"
+      "  `,",
       "})",
       ""
     ]
@@ -65,7 +65,7 @@
   "replaceTestcase": {
     "prefix": "replace-testcase",
     "body": [
-      "import { findReplaceTestcase } from '../findReplaceTestcase'"
+      "import { findReplaceTestcase } from '../findReplaceTestcase'",
       "",
       "findReplaceTestcase({",
       "  file: __filename,",
@@ -77,10 +77,10 @@
       "  `,",
       "  replace: `",
       "    ",
-      "  `,"
+      "  `,",
       "  expectedReplace: `",
       "    ",
-      "  `,"
+      "  `,",
       "})",
       ""
     ]
@@ -88,8 +88,8 @@
   "astxReplaceTestcase": {
     "prefix": "astx-replace-testcase",
     "body": [
-      "import { TransformOptions } from '../../src'"
-      "import { astxTestcase } from '../astxTestcase'"
+      "import { TransformOptions } from '../../src'",
+      "import { astxTestcase } from '../astxTestcase'",
       "",
       "astxTestcase({",
       "  file: __filename,",
@@ -101,7 +101,7 @@
       "  },",
       "  expected: `",
       "    ",
-      "  `,"
+      "  `,",
       "})",
       ""
     ]
