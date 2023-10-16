@@ -30,7 +30,11 @@
   ],
   "astx": {
     "parser": "babel",
-    "workers": 1
+    "workers": 1,
+    "parserOptions": {
+      "preserveFormat": "generatorHack"
+    },
+    "preferSimpleReplacement": true
   },
   "main": "./cjs/index.js",
   "types": "./types/index.d.ts",

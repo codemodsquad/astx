@@ -26,6 +26,19 @@
         "panel": "dedicated",
         "clear": true
       }
+    },
+    {
+      "label": "test:debug <file>",
+      "type": "shell",
+      "options": { "shell": { "executable": "bash", "args": ["-c", "-l"] } },
+      "command": "pnpm",
+      "isBackground": true,
+      "args": ["test:debug", "--", "${file}"],
+      "group": "test",
+      "presentation": {
+        "panel": "dedicated",
+        "clear": true
+      }
     }
   ]
 }

@@ -15,18 +15,11 @@ const $b = $av
 const $a = $bv
 `
 
-export const expectedReplace = (parser: string): string =>
-  parser.startsWith('recast/babel')
-    ? `
+export const expectedReplace = `
 // before
 const b = 1
 const a = 2
 // after
-`
-    : `
-// before
-const b = 1
-const a = 2; // after
 `
 import { findReplaceTestcase } from '../findReplaceTestcase'
 

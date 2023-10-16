@@ -39,6 +39,7 @@ type Fixture = {
   parsers?: string[]
   skip?: boolean
   expectedError?: string
+  format?: boolean
 }
 
 export function extractMatchSource(
@@ -128,6 +129,7 @@ export function findReplaceTestcase(fixture: Fixture): void {
     expectedReplace,
     expectedError,
     skip,
+    format: _format,
   } = fixture
   const _find: string = (() => {
     if (expectMatchesSelf) return input
@@ -174,13 +176,17 @@ export function findReplaceTestcase(fixture: Fixture): void {
       }
 
       const format = (code: string) =>
-        prettier
-          .format(code, prettierOptions)
-          .trim()
-          .replace(/\n{2,}/gm, '\n')
+        _format === false
+          ? code
+          : prettier
+              .format(code, prettierOptions)
+              .trim()
+              .replace(/\n{2,}/gm, '\n')
 
       const reformat = (code: string) =>
-        format(backend.generate(backend.parse(code)).code)
+        _format === false
+          ? code
+          : format(backend.generate(backend.parse(code)).code)
 
       if (expectedFind || !_replace) {
         it(`<find>    ${parser}`, function () {

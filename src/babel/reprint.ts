@@ -1,6 +1,6 @@
 import * as babelGenerator from '@babel/generator'
-import { Node } from '../types'
-import { original, source } from '../util/symbols'
+import { Comment, Node } from '../types'
+import { original, rangeWithWhitespace, source } from '../util/symbols'
 
 export default function reprint(
   generator: typeof babelGenerator,
@@ -8,6 +8,7 @@ export default function reprint(
 ): { code: string } {
   const { CodeGenerator, default: generate } = generator
   const gen: any = new CodeGenerator(node as any)
+  const lastPrintedRange = { start: 0, end: 0 }
   if (gen._generator instanceof Object) {
     const Generator = gen._generator.constructor
     class Reprinter extends Generator {
@@ -29,8 +30,20 @@ export default function reprint(
         if (node && !(node as any).typeAnnotation) {
           const orig = (node as any)[original]
           const src = (node as any)[source]
+
           if (orig && src) {
-            const { start, end } = orig
+            const { start: _start, end } =
+              (node as any)[rangeWithWhitespace] || orig
+            let start = _start
+            if (
+              start < lastPrintedRange.end &&
+              orig.start >= lastPrintedRange.end
+            ) {
+              start = lastPrintedRange.end
+            }
+            lastPrintedRange.start = start
+            lastPrintedRange.end = end
+
             if (Number.isInteger(start) && Number.isInteger(end)) {
               const origPrintMethod = this[node.type]
               try {
@@ -62,6 +75,36 @@ export default function reprint(
           trailingCommentsLineOffset,
           forceParens
         )
+      }
+      _printComment(comment: Comment, skipNewLines?: boolean) {
+        if ((comment as any).ignore) return
+        if (this._printedComments.has(comment)) return
+        if (!this.format.shouldPrintComment(comment.value)) return
+
+        this._printedComments.add(comment)
+
+        const orig = (comment as any)[original]
+        const src = (comment as any)[source]
+        if (orig && src) {
+          const loc = (comment as any)[rangeWithWhitespace] || orig
+          let { start } = loc
+          const { end } = loc
+          if (
+            start < lastPrintedRange.end &&
+            orig.start >= lastPrintedRange.end
+          ) {
+            start = lastPrintedRange.end
+          }
+          lastPrintedRange.start = start
+          lastPrintedRange.end = end
+
+          this._append(
+            src.substring(start, end),
+            src.charCodeAt(end - 1) === 10
+          )
+          return
+        }
+        return super._printComment(comment, skipNewLines)
       }
     }
     return new Reprinter(node).generate(node)

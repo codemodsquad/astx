@@ -16,12 +16,7 @@ export const expectedReplace = (parser: string): string =>
 /*a*/ (3 + 4) * (1 + 2) /*b*/ /*c*/; /*d*/
 `
     : `
-/*a*/
-/*c*/
-(3 + 4) *
-  (1 + 2);
-  /*b*/
-/*d*/
+/*a*/ /*c*/ (3 + 4) * (1 + 2) /*b*/; /*d*/
 `
 import { findReplaceTestcase } from '../findReplaceTestcase'
 
