@@ -66,7 +66,10 @@ export default async function runTransformOnFile({
 }: RunTransformOnFileOptions): Promise<TransformResult> {
   const transform: Transform = transformFile
     ? await import(transformFile)
-    : _transform
+    : _transform ??
+      ((): Transform => {
+        throw new Error('transformFile or transform is required')
+      })()
 
   const baseConfig = (await astxCosmiconfig.search(Path.dirname(file)))
     ?.config as AstxConfig | undefined

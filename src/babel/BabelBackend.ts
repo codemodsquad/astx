@@ -1,15 +1,16 @@
 import { Node, File, Statement, Expression } from '@babel/types'
 import { Backend } from '../backend/Backend'
-import * as defaultParser from '@babel/parser'
+import defaultParser from '@babel/parser'
 import { ParserOptions } from '@babel/parser'
 import * as defaultTypes from '@babel/types'
 import * as defaultGenerator from '@babel/generator'
-import * as AstTypes from 'ast-types'
+import type * as AstTypes from 'ast-types'
 import babelAstTypes from './babelAstTypes'
 import { Comment, Location } from '../types'
 import reprint from './reprint'
 import detectChangedNodes from '../util/detectChangedNodes'
 import { cloneAstWithOriginals } from '../util/cloneAstWithOriginals'
+import babelInterop from './babelInterop'
 
 interface Parser {
   parse(code: string, parserOpts?: ParserOptions): File
@@ -34,8 +35,8 @@ export default class BabelBackend extends Backend<Node> {
   constructor({
     parser = defaultParser,
     parserOptions,
-    generator = defaultGenerator,
-    types = defaultTypes,
+    generator = babelInterop(defaultGenerator),
+    types = babelInterop(defaultTypes),
     preserveFormat,
   }: {
     parser?: Parser
@@ -45,6 +46,10 @@ export default class BabelBackend extends Backend<Node> {
     preserveFormat?: 'generatorHack'
   } = {}) {
     super()
+
+    if (typeof generator.default !== 'function') {
+      throw new Error(`typeof generator.default should === 'function'`)
+    }
 
     const t = babelAstTypes(types)
 

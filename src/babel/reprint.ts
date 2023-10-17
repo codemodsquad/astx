@@ -1,4 +1,4 @@
-import * as babelGenerator from '@babel/generator'
+import type * as babelGenerator from '@babel/generator'
 import { Comment, Node } from '../types'
 import { original, rangeWithWhitespace, source } from '../util/symbols'
 

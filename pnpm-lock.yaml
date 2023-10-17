@@ -125,8 +125,8 @@ devDependencies:
     specifier: ^7.0.3
     version: 7.0.3
   '@types/babel__generator':
-    specifier: ^7.6.3
-    version: 7.6.4
+    specifier: ^7.6.5
+    version: 7.6.5
   '@types/babel__parser':
     specifier: ^7.1.1
     version: 7.1.1
@@ -2013,8 +2013,8 @@ packages:
     resolution: {integrity: sha512-2TN6oiwtNjOezilFVl77zwdNPwQWaDBBCCWWxyo1ctiO3vAtd7H/aB/CBJdw9+kqq3+latD0SXoedIuHySSZWw==}
     dev: true
 
-  /@types/babel__generator@7.6.4:
-    resolution: {integrity: sha512-tFkciB9j2K755yrTALxD44McOrk+gfpIpvC3sxHjRawj6PfnQxrse4Clq5y/Rq+G3mrBurMax/lG8Qn2t9mSsg==}
+  /@types/babel__generator@7.6.5:
+    resolution: {integrity: sha512-h9yIuWbJKdOPLJTbmSpPzkF67e659PbQDba7ifWm5BJ8xTv+sDmS7rFmywkWOvXedGTivCdeGSIIX8WLcRTz8w==}
     dependencies:
       '@babel/types': 7.21.5
     dev: true

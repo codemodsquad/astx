@@ -152,7 +152,7 @@
     "@jedwards1211/eslint-config": "^2.0.2",
     "@jedwards1211/eslint-config-typescript": "^2.0.2",
     "@types/babel__code-frame": "^7.0.3",
-    "@types/babel__generator": "^7.6.3",
+    "@types/babel__generator": "^7.6.5",
     "@types/babel__parser": "^7.1.1",
     "@types/chai": "^4.2.14",
     "@types/chai-as-promised": "^7.1.5",
