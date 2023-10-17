@@ -55,6 +55,7 @@ Super powerful structural search and replace for JavaScript and TypeScript to au
     - [`FindOptions`](#findoptions)
       - [`FindOptions.where` (`{ [captureName: string]: (path: Astx) => boolean }`)](#findoptionswhere--capturename-string-path-astx--boolean-)
     - [`.find(...).replace(...)` (`void`)](#findreplace-void)
+    - [`.remove()` (`void`)](#remove-void)
     - [`.size()` (`number`)](#size-number)
     - [`` [name: `$${string}` | `$$${string}` | `$$$${string}`] `` (`Astx`)](#name-string--string--string-astx)
     - [`.placeholder` (`string | undefined`)](#placeholder-string--undefined)
@@ -589,6 +590,10 @@ astx
   .find`$fn()`
   .replace(({ captures: { $fn } }) => `${$fn.name.toUpperCase()}()`)
 ```
+
+### `.remove()` (`void`)
+
+Removes the matches from `.find()` or focused capture(s) in this `Astx` instance.
 
 ### `.size()` (`number`)
 

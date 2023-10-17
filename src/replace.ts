@@ -97,11 +97,15 @@ function doReplace(match: Match, replacements: Node[]) {
     p.parentPath?.node.type === 'ExpressionStatement' ? p.parentPath : p
   )
 
-  transferComments(replacedPaths[0], replacements[0], { leading: true })
-  transferComments(last(replacedPaths), last(replacements), { trailing: true })
+  if (replacements.length) {
+    transferComments(replacedPaths[0], replacements[0], { leading: true })
+    transferComments(last(replacedPaths), last(replacements), {
+      trailing: true,
+    })
+    replacedPaths[0]?.replace(...replacements)
+  }
 
-  replacedPaths[0]?.replace(...replacements)
-  for (let i = 1; i < replacedPaths.length; i++) {
+  for (let i = replacements.length ? 1 : 0; i < replacedPaths.length; i++) {
     replacedPaths[i].prune()
   }
 }

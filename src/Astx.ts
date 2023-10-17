@@ -511,4 +511,8 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
       throw error
     }
   }
+
+  remove(): void {
+    this.replace([])
+  }
 }

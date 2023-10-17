@@ -11,17 +11,18 @@ export function replaceRanges(
   replacer: (api: ReplacerAPI) => void
 ): string {
   const replacements: { range: Range; replacement: string }[] = []
-  replacer({
-    insert(index: number, content: string): void {
-      this.replace([index, index], content)
+  const replacerApi = {
+    insert: (index: number, content: string): void => {
+      replacerApi.replace([index, index], content)
     },
-    delete(range: Range): void {
-      this.replace(range, '')
+    delete: (range: Range): void => {
+      replacerApi.replace(range, '')
     },
-    replace(range: Range, replacement: string): void {
+    replace: (range: Range, replacement: string): void => {
       replacements.push({ range, replacement })
     },
-  })
+  }
+  replacer(replacerApi)
 
   if (!replacements.length) return code
   replacements.sort((a, b) => a.range[0] - b.range[0])

@@ -7,6 +7,7 @@ import { ParserOptions } from '@babel/parser'
 import RecastBackend from '../src/recast/RecastBackend'
 import BabelBackend from '../src/babel/BabelBackend'
 import { Backend } from '../src/backend/Backend'
+import { SimpleReplacementCollector } from '../src/util/SimpleReplacementCollector'
 
 type Fixture = {
   file: string
@@ -18,6 +19,7 @@ type Fixture = {
   parsers?: string[]
   only?: boolean
   skip?: boolean
+  preferSimpleReplacement?: boolean
 }
 
 export function extractSource(
@@ -70,6 +72,7 @@ export function astxTestcase(testcase: Fixture): void {
     expectedError,
     only,
     skip,
+    preferSimpleReplacement,
   } = testcase
 
   describe(file, function () {
@@ -100,7 +103,16 @@ export function astxTestcase(testcase: Fixture): void {
 
       ;(skip ? it.skip : only ? it.only : it)(parser, async function () {
         const root = new backend.t.NodePath(backend.parse(input))
-        const astx = new Astx({ backend }, [root])
+        const simpleReplacements = preferSimpleReplacement
+          ? new SimpleReplacementCollector({ source: input, backend })
+          : undefined
+        const astx = new Astx(
+          {
+            backend,
+            simpleReplacements,
+          },
+          [root]
+        )
         const reports: any[] = []
         const options: TransformOptions = {
           astx,
@@ -114,8 +126,11 @@ export function astxTestcase(testcase: Fixture): void {
           await expect(transform(options)).to.be.rejectedWith(expectedError)
         } else {
           let transformed = await transform(options)
-          if (transformed !== null) {
-            transformed = backend.generate(root.node).code
+          if (transformed !== null && transformed == undefined) {
+            transformed =
+              simpleReplacements?.bailed === false
+                ? simpleReplacements.applyReplacements()
+                : backend.generate(root.node).code
           }
           if (expected) {
             expect(transformed?.trim()).to.equal(expected?.trim())
