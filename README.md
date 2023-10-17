@@ -56,7 +56,7 @@ Super powerful structural search and replace for JavaScript and TypeScript to au
       - [`FindOptions.where` (`{ [captureName: string]: (path: Astx) => boolean }`)](#findoptionswhere--capturename-string-path-astx--boolean-)
     - [`.find(...).replace(...)` (`void`)](#findreplace-void)
     - [`.size()` (`number`)](#size-number)
-    - [`` [name: `$${string}` | `$$${string}` | `$$$${string}`] `` (`Astx`)](#name-string--string--string-astx)
+    - [``[name: `$${string}` | `$$${string}` | `$$$${string}`]`` (`Astx`)](#name-string--string--string-astx)
     - [`.placeholder` (`string | undefined`)](#placeholder-string--undefined)
     - [`.node` (`Node`)](#node-node)
     - [`.path` (`NodePath`)](#path-nodepath)
@@ -479,7 +479,7 @@ Matches nodes that match all of the given patterns. This is mostly useful for na
 
 ### `$Maybe<pattern>`
 
-Matches either the given type annotation or no node in its place. For example `let $a: $Maybe<number>` will match `let foo: number` and `let foo` (with no type annotation), but not ` let foo: string``let foo: string `.
+Matches either the given type annotation or no node in its place. For example `let $a: $Maybe<number>` will match `let foo: number` and `let foo` (with no type annotation), but not `let foo: string``let foo: string`.
 
 ### `$Or<...>`
 
@@ -533,14 +533,14 @@ For example if you do `astx.find('foo($$args)').find('$a + $b')`, the second `fi
 
 You can call `.find` as a method or tagged template literal:
 
-- `` .find`pattern`(options?: FindOptions) ``
+- ``.find`pattern`(options?: FindOptions)``
 - `.find(pattern: string | string[] | Node | Node[] | NodePath | NodePath[], options?: FindOptions)`
 
 If you give the pattern as a string, it must be a valid expression or statement(s). Otherwise it should be valid
 AST node(s) you already parsed or constructed.
 You can interpolate strings, AST nodes, arrays of AST nodes, and `Astx` instances in the tagged template literal.
 
-For example you could do `` astx.find`${t.identifier('foo')} + 3`() ``.
+For example you could do ``astx.find`${t.identifier('foo')} + 3`()``.
 
 Or you could match multiple statements by doing
 
@@ -574,7 +574,7 @@ Finds and replaces matches for the given pattern within `root`.
 
 There are several different ways you can call `.replace`. You can call `.find` in any way described above.
 
-- `` .find(...).replace`replacement`() ``
+- ``.find(...).replace`replacement`()``
 - `.find(...).replace(replacement: string | string | Node | Node[])`
 - `.find(...).replace(replacement: (match: Astx, parse: ParsePattern) => string)`
 - `.find(...).replace(replacement: (match: Astx, parse: ParsePattern) => Node | Node[])`
@@ -594,7 +594,7 @@ astx
 
 Returns the number of matches from the `.find()` or `.closest()` call that returned this instance.
 
-### `` [name: `$${string}` | `$$${string}` | `$$$${string}`] `` (`Astx`)
+### ``[name: `$${string}` | `$$${string}` | `$$$${string}`]`` (`Astx`)
 
 Gets an `Astx` instance focused on the capture(s) with the given `name`.
 

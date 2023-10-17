@@ -122,10 +122,10 @@ export default class CodeFrameError extends Error {
     return dedent`
       ${red(`Error in ${filename} (${start.line}:${start.column})`)}
       ${codeFrameColumns(source, { start, end }, { message, ...options })}${
-      options.stack && stack
-        ? '\n' + red(stack?.replace(/^.*?(\r\n?|\n)/, ''))
-        : ''
-    }
+        options.stack && stack
+          ? '\n' + red(stack?.replace(/^.*?(\r\n?|\n)/, ''))
+          : ''
+      }
     `
   }
 }
