@@ -1,7 +1,7 @@
 import { Node, File, Statement, Expression } from '@babel/types'
 import { Backend } from '../backend/Backend'
-import defaultParser from '@babel/parser'
 import { ParserOptions } from '@babel/parser'
+import * as defaultParser from '@babel/parser'
 import * as defaultTypes from '@babel/types'
 import * as defaultGenerator from '@babel/generator'
 import type * as AstTypes from 'ast-types'
@@ -33,7 +33,7 @@ export default class BabelBackend extends Backend<Node> {
   ) => Iterable<Comment>
 
   constructor({
-    parser = defaultParser,
+    parser = babelInterop(defaultParser),
     parserOptions,
     generator = babelInterop(defaultGenerator),
     types = babelInterop(defaultTypes),
