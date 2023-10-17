@@ -17,13 +17,12 @@ describe(`Astx`, function () {
     new BabelBackend(),
   ] as Backend<any>[]) {
     const prettierOptions = { parser: 'babel-ts' }
-    const format = (code: string) =>
-      prettier
-        .format(code, prettierOptions)
+    const format = async (code: string) =>
+      (await prettier.format(code, prettierOptions))
         .trim()
         .replace(/\n{2,}/gm, '\n')
-    const reformat = (code: string) =>
-      format(backend.generate(backend.parse(code)).code)
+    const reformat = async (code: string) =>
+      await format(backend.generate(backend.parse(code)).code)
 
     const toSource = (astx: Astx) => backend.generate(astx.nodes[0]).code
     let source = ''
@@ -274,41 +273,55 @@ describe(`Astx`, function () {
           )
         ).to.deep.equal([{ node: '1 + 2', captures: { $a: '1', $b: '2' } }])
       })
-      it(`.replace tagged template works`, function () {
+      it(`.replace tagged template works`, async function () {
         const astx = createAstx(`1 + 2; 3 + 4`)
         astx.find`$a + $b`().replace`$b + $a`()
-        expect(reformat(toSource(astx))).to.equal(reformat(`2 + 1; 4 + 3;`))
+        expect(await reformat(toSource(astx))).to.equal(
+          await reformat(`2 + 1; 4 + 3;`)
+        )
       })
-      it(`.replace tagged template after find options works`, function () {
+      it(`.replace tagged template after find options works`, async function () {
         const astx = createAstx(`1 + 2; 3 + 4`)
         astx.find`$a + $b`({
-          where: { $b: (path: any) => path.node.value < 4 },
+          where: {
+            $b: (path: any) => path.node.value < 4,
+          },
         }).replace`$b + $a`()
-        expect(reformat(toSource(astx))).to.equal(reformat(`2 + 1; 3 + 4`))
+        expect(await reformat(toSource(astx))).to.equal(
+          await reformat(`2 + 1; 3 + 4`)
+        )
       })
-      it(`.replace tagged template interpolation works`, function () {
+      it(`.replace tagged template interpolation works`, async function () {
         const astx = createAstx(`1 + 2; 3 + 4`)
         astx.find`$a + $b`().replace`$b + ${t.identifier('foo')}`()
-        expect(reformat(toSource(astx))).to.equal(reformat(`2 + foo; 4 + foo;`))
+        expect(await reformat(toSource(astx))).to.equal(
+          await reformat(`2 + foo; 4 + foo;`)
+        )
       })
-      it(`.replace function returning parse tagged template literal works`, function () {
+      it(`.replace function returning parse tagged template literal works`, async function () {
         const astx = createAstx(`1 + FOO; 3 + BAR`)
         astx.find`$a + $b`().replace(
           ({ $b }, parse) => parse`${$b.code.toLowerCase()} + $a`
         )
-        expect(reformat(toSource(astx))).to.equal(reformat(`foo + 1; bar + 3;`))
+        expect(await reformat(toSource(astx))).to.equal(
+          await reformat(`foo + 1; bar + 3;`)
+        )
       })
-      it(`.replace function returning string works`, function () {
+      it(`.replace function returning string works`, async function () {
         const astx = createAstx(`1 + FOO; 3 + BAR`)
         astx.find`$a + $b`().replace(
           ({ $b }) => `${$b.code.toLowerCase()} + $a`
         )
-        expect(reformat(toSource(astx))).to.equal(reformat(`foo + 1; bar + 3;`))
+        expect(await reformat(toSource(astx))).to.equal(
+          await reformat(`foo + 1; bar + 3;`)
+        )
       })
-      it(`.replace called with string works`, function () {
+      it(`.replace called with string works`, async function () {
         const astx = createAstx(`1 + 2; 3 + 4`)
         astx.find('$a + $b').replace('$b + $a')
-        expect(reformat(toSource(astx))).to.equal(reformat(`2 + 1; 4 + 3;`))
+        expect(await reformat(toSource(astx))).to.equal(
+          await reformat(`2 + 1; 4 + 3;`)
+        )
       })
       function expectCodeFrameError(
         callee: () => any,

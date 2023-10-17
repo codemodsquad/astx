@@ -73,11 +73,11 @@ export default class AstxWorker {
         emitted(worker, 'message', {
           filter: (event: any) => event.seq === seq,
           rejectionEvents: ['error', 'exit'],
-        }).catch((reason) =>
-          typeof reason === 'number'
-            ? `worker exited with code ${reason}`
+        }).catch((reason) => {
+          throw typeof reason === 'number'
+            ? new Error(`worker exited with code ${reason}`)
             : reason
-        ),
+        }),
         ...(signal
           ? [emitted(signal as any, '', { rejectionEvents: ['abort'] })]
           : []),

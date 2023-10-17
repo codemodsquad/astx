@@ -175,18 +175,17 @@ export function findReplaceTestcase(fixture: Fixture): void {
         parser: actualParser === 'babel/tsx' ? 'babel-ts' : 'babel-flow',
       }
 
-      const format = (code: string) =>
+      const format = async (code: string) =>
         _format === false
           ? code
-          : prettier
-              .format(code, prettierOptions)
+          : (await prettier.format(code, prettierOptions))
               .trim()
               .replace(/\n{2,}/gm, '\n')
 
-      const reformat = (code: string) =>
+      const reformat = async (code: string) =>
         _format === false
           ? code
-          : format(backend.generate(backend.parse(code)).code)
+          : await format(backend.generate(backend.parse(code)).code)
 
       if (expectedFind || !_replace) {
         it(`<find>    ${parser}`, function () {
@@ -226,7 +225,7 @@ export function findReplaceTestcase(fixture: Fixture): void {
         })
       }
       if (_replace) {
-        it(`<replace> ${parser}`, function () {
+        it(`<replace> ${parser}`, async function () {
           const ast = backend.parse(input)
           const root = new backend.t.NodePath(ast)
           const matches = find(root, backend.parsePattern(_find), {
@@ -272,7 +271,9 @@ export function findReplaceTestcase(fixture: Fixture): void {
               { backend }
             )
             const actual = backend.generate(ast).code
-            expect(reformat(format(actual))).to.deep.equal(reformat(expected))
+            expect(await reformat(await format(actual))).to.deep.equal(
+              await reformat(expected)
+            )
           }
         })
       }

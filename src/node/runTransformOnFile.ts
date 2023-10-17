@@ -36,7 +36,7 @@ const getPrettier = memoize(async (path: string): Promise<any> => {
   } catch (error) {
     // ignore
   }
-  return null
+  return await import('prettier')
 })
 
 export interface Fs {
@@ -174,7 +174,7 @@ export default async function runTransformOnFile({
           const prettierConfig = (await prettier.resolveConfig(file)) || {}
           prettierConfig.filepath = file
           if (/\.tsx?$/.test(file)) prettierConfig.parser = 'typescript'
-          transformed = prettier.format(transformed, prettierConfig)
+          transformed = await prettier.format(transformed, prettierConfig)
         }
         if (transformed != null) {
           transformed = omitBlankLineChanges(source, transformed)
