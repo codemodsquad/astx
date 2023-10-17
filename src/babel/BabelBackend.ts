@@ -64,6 +64,7 @@ export default class BabelBackend extends Backend<Node> {
     this.generate =
       preserveFormat === 'generatorHack'
         ? (node: Node) => {
+            if (node.type !== 'File') return generator.default(node)
             detectChangedNodes(this.t, new t.NodePath(node))
             return reprint(this.generator, node)
           }
