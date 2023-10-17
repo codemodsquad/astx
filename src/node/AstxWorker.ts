@@ -51,6 +51,7 @@ export default class AstxWorker {
 
   async runTransformOnFile({
     file,
+    source,
     transform,
     transformFile,
     config,
@@ -90,6 +91,7 @@ export default class AstxWorker {
         file,
         transform: transformFile ? undefined : transform,
         transformFile,
+        ...(source && { source }),
         ...(config && { config }),
       })
       const message = await promise
