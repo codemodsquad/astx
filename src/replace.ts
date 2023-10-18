@@ -18,7 +18,7 @@ export default function replace(
   { backend, simpleReplacements }: ReplaceOptions
 ): void {
   const path =
-    match.path.parentPath?.node.type === 'ExpressionStatement'
+    match.path.parentPath?.node?.type === 'ExpressionStatement'
       ? match.path.parentPath
       : match.path
   const replacements = [
@@ -94,7 +94,7 @@ export function replaceAll(
 
 function doReplace(match: Match, replacements: Node[]) {
   const replacedPaths = match.paths.map((p) =>
-    p.parentPath?.node.type === 'ExpressionStatement' ? p.parentPath : p
+    p.parentPath?.node?.type === 'ExpressionStatement' ? p.parentPath : p
   )
 
   if (replacements.length) {

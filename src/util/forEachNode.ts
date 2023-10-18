@@ -1,6 +1,8 @@
 import * as AstTypes from 'ast-types'
 import { NodeType, NodePath } from '../types'
 
+AstTypes.PathVisitor
+
 export default function forEachNode(
   t: typeof AstTypes,
   paths: readonly NodePath[],
@@ -18,7 +20,8 @@ export default function forEachNode(
   for (const nodeType of nodeTypes) {
     ;(visitor as any)[`visit${nodeType}`] = visitNode
   }
+  const pathVisitor = t.PathVisitor.fromMethodsObject(visitor)
   paths.forEach((path: NodePath) => {
-    t.visit(path.node, visitor)
+    pathVisitor.visitWithoutReset(path)
   })
 }
