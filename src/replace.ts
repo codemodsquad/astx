@@ -16,7 +16,7 @@ export default function replace(
   { backend }: ReplaceOptions
 ): void {
   const path =
-    match.path.parentPath?.node.type === 'ExpressionStatement'
+    match.path.parentPath?.node?.type === 'ExpressionStatement'
       ? match.path.parentPath
       : match.path
   const replacements = [
@@ -80,7 +80,7 @@ export function replaceAll(
 
 function doReplace(match: Match, replacements: Node[]) {
   const replacedPaths = match.paths.map((p) =>
-    p.parentPath?.node.type === 'ExpressionStatement' ? p.parentPath : p
+    p.parentPath?.node?.type === 'ExpressionStatement' ? p.parentPath : p
   )
 
   transferComments(replacedPaths[0], replacements[0], { leading: true })

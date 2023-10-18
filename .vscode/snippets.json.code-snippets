@@ -96,7 +96,7 @@
       "  input: `",
       "    $0",
       "  `,",
-      "  astx: ({ astx }: TransformOptions): void {`",
+      "  astx: ({ astx }: TransformOptions): void => {",
       "    ",
       "  },",
       "  expected: `",
