@@ -2,6 +2,13 @@ import * as babelGenerator from '@babel/generator'
 import { Node } from '../types'
 import { original, source } from '../util/symbols'
 
+const excludedNodeTypes = new Set([
+  'File',
+  // @babel/generator prints ` ${ and } around TemplateElement
+  // even though their range doesn't include those characters
+  'TemplateElement',
+])
+
 export default function reprint(
   generator: typeof babelGenerator,
   node: Node
@@ -26,7 +33,11 @@ export default function reprint(
         forceParens?: boolean
       ) {
         // Nodes with typeAnnotations are screwy in Babel...
-        if (node && !(node as any).typeAnnotation) {
+        if (
+          node &&
+          !excludedNodeTypes.has(node.type) &&
+          !(node as any).typeAnnotation
+        ) {
           const orig = (node as any)[original]
           const src = (node as any)[source]
           if (orig && src) {
