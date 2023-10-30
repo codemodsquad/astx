@@ -120,8 +120,12 @@ export default async function* glob({
   include,
   exclude,
   dot,
-  includeMatcher = include ? new Minimatch(include, { dot }) : undefined,
-  excludeMatcher = exclude ? new Minimatch(exclude, { dot }) : undefined,
+  includeMatcher = include
+    ? new Minimatch(include.replace(/\/$/, ''), { dot })
+    : undefined,
+  excludeMatcher = exclude
+    ? new Minimatch(exclude.replace(/\/$/, ''), { dot })
+    : undefined,
   gitignore = new Gitignore(),
   cwd = process.cwd(),
   fs = defaultFs,
