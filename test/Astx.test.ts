@@ -197,6 +197,17 @@ describe(`Astx`, function () {
         const astx = createAstx(`foo + bar; baz + qux, qlomb`).find`$a + $b`()
         expect(astx.match).to.equal(astx.matches[0])
       })
+      it.only(`.matched`, function () {
+        expect(
+          createAstx(`foo + bar; baz + qux, qlomb`).find`$a + $b`().matched?.$a
+        ).to.exist
+        expect(
+          createAstx(`foo + bar; baz + qux, qlomb`).find`$a + $b`().matched
+        ).to.exist
+        expect(
+          createAstx(`foo + bar; baz + qux, qlomb`).find`$a - $b`().matched
+        ).not.to.exist
+      })
       it(`.at()`, function () {
         const astx = createAstx(`foo + bar; baz + qux, qlomb`).find`$a + $b`()
         expect(astx.at(1).matches).to.deep.equal([astx.matches[1]])
@@ -245,6 +256,40 @@ describe(`Astx`, function () {
           { node: 'foo + bar', captures: { $a: 'foo', $b: 'bar' } },
           { node: 'baz + qux', captures: { $a: 'baz', $b: 'qux' } },
         ])
+      })
+      it(`.destruct works`, function () {
+        expect(
+          extractMatchSource(
+            createAstx(`
+              const useStyles = makeStyles(theme => ({ foo: { margin: '0 auto' } }))
+            `).find`const $useStyles = makeStyles($styles)`().$styles
+              .destruct`($$args) => $body`()
+          )
+        ).to.deep.equal([
+          {
+            node: `theme => ({ foo: { margin: '0 auto' } })`,
+            captures: { $body: `{ foo: { margin: '0 auto' } }` },
+            arrayCaptures: { $$args: ['theme'] },
+          },
+        ])
+        expect(
+          createAstx(`
+              const useStyles = makeStyles(styles)
+            `).find`const $useStyles = makeStyles($styles)`().$styles
+            .destruct`($$args) => $body`().matched
+        ).not.to.exist
+        expect(
+          createAstx(`
+              const useStyles = makeStyles({ test: theme => ({ foo: 1 }) })
+            `).find`const $useStyles = makeStyles($styles)`().$styles
+            .destruct`($$args) => $body`().matched
+        ).not.to.exist
+        expect(
+          createAstx(`
+              const useStyles = makeStyles(styles)
+            `).find`const $useStyles = withStyles($styles)`().$styles
+            .destruct`($$args) => $body`().matched
+        ).not.to.exist
       })
       it(`.find node argument works`, function () {
         expect(

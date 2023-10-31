@@ -110,9 +110,11 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
     }: { withCaptures?: Match[]; placeholder?: string } = {}
   ) {
     super({
-      get(target: Astx, prop: string): Astx {
-        if (typeof prop === 'symbol' || !prop.startsWith('$'))
-          return (target as any)[prop]
+      get: (target: Astx, prop: string, receiver: Astx): Astx => {
+        if (typeof prop === 'symbol' || !prop.startsWith('$')) {
+          const result = (target as any)[prop]
+          return result === target ? receiver : result
+        }
         const matches: Match[] = []
         for (const {
           arrayPathCaptures,
@@ -158,6 +160,10 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
 
   get matches(): readonly Match[] {
     return this._matches
+  }
+
+  get matched(): Astx | null {
+    return this._matches.length ? this : null
   }
 
   *[Symbol.iterator](): Iterator<Astx> {
@@ -233,7 +239,10 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
   }
 
   at(index: number): Astx {
-    return new Astx(this.context, [this._matches[index]])
+    return new Astx(
+      this.context,
+      this._matches[index] ? [this._matches[index]] : []
+    )
   }
 
   withCaptures(
@@ -411,6 +420,53 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
               return
             }
           }
+        })
+
+        return new Astx(context, matches)
+      },
+      arg0,
+      ...rest
+    )
+  }
+
+  destruct(
+    strings: TemplateStringsArray,
+    ...quasis: any[]
+  ): (options?: FindOptions) => Astx
+  destruct(
+    pattern: string | Node | Node[] | NodePath<any> | NodePath<any>[],
+    options?: FindOptions
+  ): Astx
+  destruct(
+    arg0:
+      | string
+      | Node
+      | Node[]
+      | NodePath<any>
+      | NodePath<any>[]
+      | TemplateStringsArray,
+    ...rest: any[]
+  ): Astx | ((options?: FindOptions) => Astx) {
+    const { context, backend } = this
+    return this._execPattern(
+      'destruct',
+      (
+        pattern: NodePath<Node, any> | readonly NodePath<Node, any>[],
+        options?: FindOptions
+      ): Astx => {
+        pattern = ensureArray(pattern)
+        if (pattern.length !== 1) {
+          throw new Error(`must be a single node`)
+        }
+        const matcher = compileMatcher(pattern[0], {
+          ...options,
+          backend,
+        })
+
+        const matches: Match[] = []
+        this.paths.forEach((path) => {
+          const match = matcher.match(path, this.initialMatch)
+          if (match) matches.push(createMatch(path, match))
         })
 
         return new Astx(context, matches)

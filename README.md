@@ -52,10 +52,12 @@ Super powerful structural search and replace for JavaScript and TypeScript to au
     - [`constructor(backend: Backend, paths: NodePath<any>[] | Match[], options?: { withCaptures?: Match[] })`](#constructorbackend-backend-paths-nodepathany--match-options--withcaptures-match-)
     - [`.find(...)` (`Astx`)](#find-astx)
     - [`.closest(...)` (`Astx`)](#closest-astx)
+    - [`.destruct(...)` (`Astx`)](#destruct-astx)
     - [`FindOptions`](#findoptions)
       - [`FindOptions.where` (`{ [captureName: string]: (path: Astx) => boolean }`)](#findoptionswhere--capturename-string-path-astx--boolean-)
     - [`.find(...).replace(...)` (`void`)](#findreplace-void)
     - [`.remove()` (`void`)](#remove-void)
+    - [`.matched` (`this | null`)](#matched-this--null)
     - [`.size()` (`number`)](#size-number)
     - [`` [name: `$${string}` | `$$${string}` | `$$$${string}`] `` (`Astx`)](#name-string--string--string-astx)
     - [`.placeholder` (`string | undefined`)](#placeholder-string--undefined)
@@ -559,6 +561,11 @@ This would match (for example) the statements `const foo = 1; const bar = foo + 
 
 Like `.find()`, but searches up the AST ancestors instead of down into descendants; finds the closest enclosing node of each input path that matches the given pattern.
 
+### `.destruct(...)` (`Astx`)
+
+Like `.find()`, but doesn't test descendants of the input path(s) against the pattern; only input paths matching the pattern will be included
+in the result.
+
 ### `FindOptions`
 
 An object with the following optional properties:
@@ -594,6 +601,14 @@ astx
 ### `.remove()` (`void`)
 
 Removes the matches from `.find()` or focused capture(s) in this `Astx` instance.
+
+### `.matched` (`this | null`)
+
+Returns this `Astx` instance if it has at least one match, otherwise returns `null`.
+
+Since `.find()`, `.closest()`, and `.destruct()` always return an `Astx` instance, even if there were no
+matches, you can use `.find(...).matched` if you only want a defined value when there was at least
+one match.
 
 ### `.size()` (`number`)
 
