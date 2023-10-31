@@ -17,6 +17,11 @@ const babelAstTypes: (t?: typeof defaultTypes) => ReturnType<typeof fork> =
       fork.use(nodePathPlugin)
 
       def('Node').field('type', builtInTypes.string)
+      def('Comment')
+        .field('type', builtInTypes.string)
+        .field('value', builtInTypes.string)
+      def('CommentLine').bases('Comment').field('type', 'CommentLine')
+      def('CommentBlock').bases('Comment').field('type', 'CommentBlock')
 
       function tryConvertValidate(validate: any, node?: any): any {
         if (!validate) return {}
