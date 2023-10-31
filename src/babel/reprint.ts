@@ -92,8 +92,6 @@ export default function reprint(
         if (this._printedComments.has(comment)) return
         if (!this.format.shouldPrintComment(comment.value)) return
 
-        this._printedComments.add(comment)
-
         const orig = (comment as any)[original]
         const src = (comment as any)[source]
         if (orig && src) {
@@ -113,6 +111,7 @@ export default function reprint(
             src.substring(start, end),
             src.charCodeAt(end - 1) === 10
           )
+          this._printedComments.add(comment)
           return
         }
         return super._printComment(comment, skipNewLines)
