@@ -20,7 +20,7 @@ function getFieldNames(t: typeof AstTypes, node: Node | Comment): string[] {
 
 export default function detectChangedNodes(
   t: typeof AstTypes,
-  path: NodePath<Node> | NodePath<Comment>
+  path: NodePath<Node>
 ): void {
   const isNode = t.namedTypes.Node.check(path.value)
   if (isNode) {
