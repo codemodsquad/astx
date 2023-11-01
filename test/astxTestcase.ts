@@ -133,7 +133,7 @@ export function astxTestcase(testcase: Fixture): void {
                 ? simpleReplacements.applyReplacements()
                 : backend.generate(root.node).code
           }
-          if (expected) {
+          if (expected != null) {
             expect(transformed?.trim()).to.equal(expected?.trim())
           }
           if (expectedReports) {

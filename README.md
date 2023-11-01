@@ -537,7 +537,7 @@ For example if you do `astx.find('foo($$args)').find('$a + $b')`, the second `fi
 You can call `.find` as a method or tagged template literal:
 
 - `` .find`pattern`(options?: FindOptions) ``
-- `.find(pattern: string | string[] | Node | Node[] | NodePath | NodePath[], options?: FindOptions)`
+- `.find(pattern: string | string[] | Node | Node[] | NodePath | NodePath[] | ((wrapper: Astx) => boolean), options?: FindOptions)`
 
 If you give the pattern as a string, it must be a valid expression or statement(s). Otherwise it should be valid
 AST node(s) you already parsed or constructed.

@@ -2,7 +2,7 @@ import { Expression, Statement, Node, NodePath } from './types'
 import { Backend } from './backend/Backend'
 import find, { Match, convertWithCaptures, createMatch } from './find'
 import replace from './replace'
-import compileMatcher, { MatchResult } from './compileMatcher'
+import compileMatcher, { CompiledMatcher, MatchResult } from './compileMatcher'
 import CodeFrameError from './util/CodeFrameError'
 import ensureArray from './util/ensureArray'
 import * as AstTypes from 'ast-types'
@@ -13,6 +13,7 @@ import {
   getRestPlaceholder,
 } from './compileMatcher/Placeholder'
 import { SimpleReplacementInterface } from './util/SimpleReplacementCollector'
+import forEachNode from './util/forEachNode'
 
 export type TransformOptions = {
   /** The absolute path to the current file. */
@@ -59,6 +60,8 @@ export type GetReplacement = (
   astx: Astx,
   parse: ParsePattern
 ) => string | Node | Node[]
+
+export type FindPredicate = (wrapper: Astx) => boolean
 
 function isNode(x: unknown): x is Node {
   return x instanceof Object && typeof (x as any).type === 'string'
@@ -374,12 +377,75 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
     }
   }
 
+  private _execPatternOrPredicate<Options>(
+    name: string,
+    exec: (match: CompiledMatcher['match'], options?: Options) => Astx,
+    arg0:
+      | string
+      | Node
+      | Node[]
+      | NodePath<any>
+      | NodePath<any>[]
+      | string[]
+      | TemplateStringsArray
+      | FindPredicate,
+    ...rest: any[]
+  ): Astx | ((options?: Options) => Astx) {
+    const { backend } = this
+    if (arg0 instanceof Function) {
+      const predicate = arg0
+      const options = rest[0]
+      const match = (path: NodePath): MatchResult => {
+        const wrapper = new Astx(this.context, [path], {
+          withCaptures: this._matches,
+        })
+        return predicate(wrapper) ? wrapper.initialMatch || {} : null
+      }
+      try {
+        return exec(match, options)
+      } catch (error) {
+        if (error instanceof Error) {
+          CodeFrameError.rethrow(error, {
+            filename: `${name} pattern`,
+          })
+        }
+        throw error
+      }
+    } else {
+      return this._execPattern(
+        name,
+        (
+          pattern: NodePath<Node, any> | readonly NodePath<Node, any>[],
+          options?: Options
+        ) => {
+          pattern = ensureArray(pattern)
+          if (pattern.length !== 1) {
+            throw new Error(`must be a single node`)
+          }
+          const matcher = compileMatcher(pattern[0], {
+            ...options,
+            backend,
+          })
+          return exec(matcher.match, options)
+        },
+        arg0,
+        ...rest
+      )
+    }
+  }
+
   closest(
     strings: TemplateStringsArray,
     ...quasis: any[]
   ): (options?: FindOptions) => Astx
   closest(
-    pattern: string | Node | Node[] | NodePath<any> | NodePath<any>[],
+    pattern:
+      | string
+      | Node
+      | Node[]
+      | NodePath<any>
+      | NodePath<any>[]
+      | FindPredicate,
     options?: FindOptions
   ): Astx
   closest(
@@ -389,31 +455,20 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
       | Node[]
       | NodePath<any>
       | NodePath<any>[]
-      | TemplateStringsArray,
+      | TemplateStringsArray
+      | FindPredicate,
     ...rest: any[]
   ): Astx | ((options?: FindOptions) => Astx) {
-    const { context, backend } = this
-    return this._execPattern(
+    const { context } = this
+    return this._execPatternOrPredicate(
       'closest',
-      (
-        pattern: NodePath<Node, any> | readonly NodePath<Node, any>[],
-        options?: FindOptions
-      ): Astx => {
-        pattern = ensureArray(pattern)
-        if (pattern.length !== 1) {
-          throw new Error(`must be a single node`)
-        }
-        const matcher = compileMatcher(pattern[0], {
-          ...options,
-          backend,
-        })
-
+      (matcher: CompiledMatcher['match']): Astx => {
         const matchedParents: Set<NodePath> = new Set()
         const matches: Match[] = []
         this.paths.forEach((path) => {
           for (let p = path.parentPath; p; p = p.parentPath) {
             if (matchedParents.has(p)) return
-            const match = matcher.match(p, this.initialMatch)
+            const match = matcher(p, this.initialMatch)
             if (match) {
               matchedParents.add(p)
               matches.push(createMatch(p, match))
@@ -421,7 +476,6 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
             }
           }
         })
-
         return new Astx(context, matches)
       },
       arg0,
@@ -434,7 +488,13 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
     ...quasis: any[]
   ): (options?: FindOptions) => Astx
   destruct(
-    pattern: string | Node | Node[] | NodePath<any> | NodePath<any>[],
+    pattern:
+      | string
+      | Node
+      | Node[]
+      | NodePath<any>
+      | NodePath<any>[]
+      | FindPredicate,
     options?: FindOptions
   ): Astx
   destruct(
@@ -444,31 +504,19 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
       | Node[]
       | NodePath<any>
       | NodePath<any>[]
-      | TemplateStringsArray,
+      | TemplateStringsArray
+      | FindPredicate,
     ...rest: any[]
   ): Astx | ((options?: FindOptions) => Astx) {
-    const { context, backend } = this
-    return this._execPattern(
+    const { context } = this
+    return this._execPatternOrPredicate(
       'destruct',
-      (
-        pattern: NodePath<Node, any> | readonly NodePath<Node, any>[],
-        options?: FindOptions
-      ): Astx => {
-        pattern = ensureArray(pattern)
-        if (pattern.length !== 1) {
-          throw new Error(`must be a single node`)
-        }
-        const matcher = compileMatcher(pattern[0], {
-          ...options,
-          backend,
-        })
-
+      (matcher: CompiledMatcher['match']): Astx => {
         const matches: Match[] = []
         this.paths.forEach((path) => {
-          const match = matcher.match(path, this.initialMatch)
+          const match = matcher(path, this.initialMatch)
           if (match) matches.push(createMatch(path, match))
         })
-
         return new Astx(context, matches)
       },
       arg0,
@@ -481,7 +529,13 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
     ...quasis: any[]
   ): (options?: FindOptions) => Astx
   find(
-    pattern: string | Node | Node[] | NodePath<any> | NodePath<any>[],
+    pattern:
+      | string
+      | Node
+      | Node[]
+      | NodePath<any>
+      | NodePath<any>[]
+      | FindPredicate,
     options?: FindOptions
   ): Astx
   find(
@@ -492,10 +546,24 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
       | NodePath<any>
       | NodePath<any>[]
       | string[]
-      | TemplateStringsArray,
+      | TemplateStringsArray
+      | FindPredicate,
     ...rest: any[]
   ): Astx | ((options?: FindOptions) => Astx) {
     const { context, backend } = this
+    if (arg0 instanceof Function) {
+      const predicate = arg0
+      const matches: Match[] = []
+      forEachNode(backend.t, this.paths, ['Node'], (path: NodePath) => {
+        const wrapper = new Astx(this.context, [path], {
+          withCaptures: this._matches,
+        })
+        if (predicate(wrapper)) {
+          matches.push(createMatch(path, wrapper.initialMatch || {}))
+        }
+      })
+      return new Astx(context, matches)
+    }
     return this._execPattern(
       'find',
       (
