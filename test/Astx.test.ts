@@ -197,7 +197,7 @@ describe(`Astx`, function () {
         const astx = createAstx(`foo + bar; baz + qux, qlomb`).find`$a + $b`()
         expect(astx.match).to.equal(astx.matches[0])
       })
-      it.only(`.matched`, function () {
+      it(`.matched`, function () {
         expect(
           createAstx(`foo + bar; baz + qux, qlomb`).find`$a + $b`().matched?.$a
         ).to.exist

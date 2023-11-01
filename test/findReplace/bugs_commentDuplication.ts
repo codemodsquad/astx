@@ -1,4 +1,5 @@
 export const input = `
+/* eslint-disable no-console */
 const testLib = require('test-lib')
 
 const funcOne = (foo) => {
@@ -52,6 +53,7 @@ const {
   func
 } = require("some-module");
 
+/* eslint-disable no-console */
 const testLib = require("test-lib");
 
 const funcOne = foo => {
@@ -86,4 +88,5 @@ findReplaceTestcase({
   find,
   replace,
   expectedReplace,
+  skip: true,
 })

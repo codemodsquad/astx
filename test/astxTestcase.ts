@@ -93,6 +93,7 @@ export function astxTestcase(testcase: Fixture): void {
           : jsParser.bindParserOpts(parserOpts)
       const babelBackend = new BabelBackend({
         parserOptions: babelParser.parserOpts,
+        preserveFormat: 'generatorHack',
       })
       const backend: Backend =
         backendName === 'recast'

@@ -13,7 +13,10 @@ export function cloneAstWithOriginals<T extends Node>(ast: T, src: string): T {
     const result: any = { [original]: node, [source]: src }
     const { start, end } = node as any
     if (typeof start === 'number' && typeof end === 'number') {
-      result[rangeWithWhitespace] = { start: starts[start], end: ends[end] }
+      result[rangeWithWhitespace] = {
+        start: starts[start],
+        end: ends[end] ?? end,
+      }
     }
 
     for (const field in node) {

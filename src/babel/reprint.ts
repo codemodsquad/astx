@@ -3,7 +3,6 @@ import { Comment, Node } from '../types'
 import { original, rangeWithWhitespace, source } from '../util/symbols'
 
 const excludedNodeTypes = new Set([
-  'File',
   // @babel/generator prints ` ${ and } around TemplateElement
   // even though their range doesn't include those characters
   'TemplateElement',
@@ -43,8 +42,7 @@ export default function reprint(
           const src = (node as any)[source]
 
           if (orig && src) {
-            const { start: _start, end } =
-              (node as any)[rangeWithWhitespace] || orig
+            const { start: _start, end } = orig
             let start = _start
             if (
               start < lastPrintedRange.end &&
