@@ -25,13 +25,11 @@ astxTestcase({
   expected: dedent`
     class blahFoo {
       blahx() { }
-
     }
-
     function foo() {
       class blahBar {
         blahy() { }
-
+      
       }
     }
   `,

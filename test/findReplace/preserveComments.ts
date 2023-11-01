@@ -28,15 +28,12 @@ const d = 4;
 const a = 1 * 2;
 
 // test 1
-
 const b = 2 * 2;
 /* test 2 */
-
 const c = 3 * 2;
 /* test 3 */
 
 // test 43
-
 const d = 4 * 2;
 
 // test 5

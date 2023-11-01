@@ -71,7 +71,7 @@ export default class BabelBackend extends Backend<Node> {
         ? (node: Node) => {
             if (node.type !== 'File') return generator.default(node)
             detectChangedNodes(this.t, new t.NodePath(node))
-            return reprint(this.generator, node)
+            return reprint(node)
           }
         : generator.default
     this.location = (node: Node) => ({

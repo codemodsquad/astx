@@ -1,4 +1,4 @@
-import type * as babelGenerator from '@babel/generator'
+import { CodeGenerator, default as generate } from '@babel/generator'
 import { Comment, Node } from '../types'
 import { original, rangeWithWhitespace, source } from '../util/symbols'
 
@@ -8,11 +8,7 @@ const excludedNodeTypes = new Set([
   'TemplateElement',
 ])
 
-export default function reprint(
-  generator: typeof babelGenerator,
-  node: Node
-): { code: string } {
-  const { CodeGenerator, default: generate } = generator
+export default function reprint(node: Node): { code: string } {
   const gen: any = new CodeGenerator(node as any)
   const lastPrintedRange = { start: 0, end: 0 }
   if (gen._generator instanceof Object) {
@@ -42,8 +38,15 @@ export default function reprint(
           const src = (node as any)[source]
 
           if (orig && src) {
-            const { start: _start, end } = orig
-            let start = _start
+            const wsRange = (node as any)[rangeWithWhitespace]
+            const loc = wsRange || orig
+            let { start } = loc
+            const { end } = loc
+            if (start < orig.start) {
+              const leading = src.substring(start, orig.start)
+              if (/^\s+$/.test(leading) && !/\n/.test(leading))
+                start = orig.start
+            }
             if (
               start < lastPrintedRange.end &&
               orig.start >= lastPrintedRange.end
@@ -60,8 +63,9 @@ export default function reprint(
                 // the original source formatting,
                 // while letting @babel/generator decide if it needs
                 // to wrap in parens etc
+                const substr = src.substring(start, end)
                 this[node.type] = () =>
-                  this._append(src.substring(start, end), false)
+                  this._append(substr, /\n\s*$/.test(substr))
                 super.print(
                   node,
                   parent,
@@ -86,10 +90,6 @@ export default function reprint(
         )
       }
       _printComment(comment: Comment, skipNewLines?: boolean) {
-        if ((comment as any).ignore) return
-        if (this._printedComments.has(comment)) return
-        if (!this.format.shouldPrintComment(comment.value)) return
-
         const orig = (comment as any)[original]
         const src = (comment as any)[source]
         if (orig && src) {

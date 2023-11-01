@@ -37,7 +37,6 @@ astxTestcase({
         }
       }
     }
-
     function baz() {
       const bar = (props, test) => {
         useStyles()
