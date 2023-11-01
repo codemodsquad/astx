@@ -13,6 +13,7 @@ export default function convertToExpression(value: Node): Expression | void {
       if (value.expression?.type !== 'JSXEmptyExpression')
         return value.expression
   }
+  // @ts-expect-error @babel/types and ast-types aren't compatible atm
   if (t.isExpression(value)) return value
   const name = convertToIdentifierName(value)
   if (name) return t.identifier(name)

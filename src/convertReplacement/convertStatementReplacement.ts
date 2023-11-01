@@ -14,6 +14,7 @@ export default function convertStatementReplacement(value: Node): Node {
         type: 'FunctionDeclaration',
       } as any
   }
+  // @ts-expect-error @babel/types and ast-types aren't compatible atm
   if (!t.isStatement(value)) {
     const expression = convertToExpression(value)
     if (expression) return t.expressionStatement(expression as t.Expression)
