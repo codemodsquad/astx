@@ -105,9 +105,13 @@ export default function reprint(
           lastPrintedRange.start = start
           lastPrintedRange.end = end
 
+          let commentStr = src.substring(start, end)
+          if (comment.type === 'CommentLine' && !/\n\s*$/.test(commentStr))
+            commentStr += '\n'
+
           this._append(
-            src.substring(start, end),
-            src.charCodeAt(end - 1) === 10
+            commentStr,
+            comment.type === 'CommentLine' || src.charCodeAt(end - 1) === 10
           )
           this._printedComments.add(comment)
           return
