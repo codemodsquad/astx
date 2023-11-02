@@ -2,7 +2,7 @@ import { describe, it } from 'mocha'
 import { expect } from 'chai'
 import find, { FindOptions, Match } from '../src/find'
 import { replaceAll } from '../src/replace'
-import { Node, NodePath } from '../src/types'
+import { Node, NodePath, getAstxMatchInfo } from '../src/types'
 import mapValues from 'lodash/mapValues'
 import prettier from 'prettier'
 import { jsParser, tsParser } from 'babel-parse-wild-code'
@@ -51,18 +51,16 @@ export function extractMatchSource(
     const { start, end } = backend.location(node)
     if (start == null || end == null)
       throw new Error(`failed to get node source range`)
-    const { type, astx, typeAnnotation } = node as any
-
-    if (astx?.excludeTypeAnnotationFromCapture && typeAnnotation) {
-      const { start: typeAnnotationStart } = backend.location(typeAnnotation)
-      if (typeAnnotationStart != null && Number.isFinite(typeAnnotationStart)) {
-        return source.substring(start, typeAnnotationStart)
-      }
+    // const { typeAnnotation } = node as any
+    const astx = getAstxMatchInfo(node)
+    if (astx?.subcapture) {
+      return backend.generate(astx.subcapture).code
     }
-    if (type === 'TSPropertySignature' || type === 'TSMethodSignature') {
-      if (astx?.excludeTypeAnnotationFromCapture && typeAnnotation) {
-        return toSource((path as any).get('key'))
-      }
+
+    if (
+      node.type === 'TSPropertySignature' ||
+      node.type === 'TSMethodSignature'
+    ) {
       return source.substring(start, end).replace(/[,;]$/, '')
     }
 
