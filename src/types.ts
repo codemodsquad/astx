@@ -4,6 +4,30 @@ import * as k from 'ast-types/gen/kinds'
 
 type ArrayElement<A> = A extends readonly (infer T)[] ? T : never
 
+export type AstxMatchInfo = {
+  /**
+   * Used for cases like when capturing only the name of an identifier with a type annotation
+   * like `$a: number`.  The name property isn't a node, so we have to capture the Identifier
+   * node, which includes the `number` TypeAnnotation.  But we don't want the TypeAnnotation
+   * to be included when interpolating the capture in replcements, so we set a `subcapture`
+   * that's a copy of the Identifier without the TypeAnnotation, and when replacing, we use
+   * any `subcapture` in place of the captured node.
+   */
+  subcapture?: Node
+}
+
+export function getAstxMatchInfo(node: Node): AstxMatchInfo | undefined {
+  return (node as any).astx
+}
+
+export function setAstxMatchInfo(
+  node: Node,
+  info: AstxMatchInfo | undefined
+): void {
+  if (!info) delete (node as any).astx
+  else (node as any).astx = info
+}
+
 export type Location = {
   start?: number | null
   end?: number | null

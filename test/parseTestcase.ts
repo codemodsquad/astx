@@ -1,11 +1,11 @@
 import { describe, it } from 'mocha'
 import { expect } from 'chai'
-import { Node, NodePath } from '../src/types'
 import { jsParser, tsParser } from 'babel-parse-wild-code'
 import { ParserOptions } from '@babel/parser'
 import RecastBackend from '../src/recast/RecastBackend'
 import BabelBackend from '../src/babel/BabelBackend'
 import { Backend } from '../src/backend/Backend'
+import { extractSource } from './extractSource'
 
 type Fixture = {
   file: string
@@ -15,45 +15,6 @@ type Fixture = {
   parsers?: string[]
   only?: boolean
   skip?: boolean
-}
-
-export function extractSource(
-  path: NodePath<Node, any>,
-  source: string,
-  backend: Backend
-): string
-export function extractSource(
-  path: NodePath<Node, any>[],
-  source: string,
-  backend: Backend
-): string[]
-export function extractSource(
-  path: NodePath<Node, any> | NodePath<Node, any>[],
-  source: string,
-  backend: Backend
-): string | string[] {
-  if (Array.isArray(path))
-    return path.map((p) => extractSource(p, source, backend))
-  const { node } = path
-  const { start, end } = backend.location(node)
-  if (start == null || end == null)
-    throw new Error(`failed to get node source range`)
-  const { type, astx, typeAnnotation } = node as any
-
-  if (astx?.excludeTypeAnnotationFromCapture && typeAnnotation) {
-    const { start: typeAnnotationStart } = backend.location(typeAnnotation)
-    if (typeAnnotationStart != null && Number.isFinite(typeAnnotationStart)) {
-      return source.substring(start, typeAnnotationStart)
-    }
-  }
-  if (type === 'TSPropertySignature' || type === 'TSMethodSignature') {
-    if (astx?.excludeTypeAnnotationFromCapture && typeAnnotation) {
-      return extractSource((path as any).get('key'), source, backend)
-    }
-    return source.substring(start, end).replace(/[,;]$/, '')
-  }
-
-  return source.substring(start, end)
 }
 
 export function parseTestcase(testcase: Fixture): void {

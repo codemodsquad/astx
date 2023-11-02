@@ -3,7 +3,7 @@ import {
   CompiledReplacement,
   ReplaceableMatch,
 } from '.'
-import { Node, NodePath } from '../types'
+import { Node, NodePath, getAstxMatchInfo } from '../types'
 import {
   getArrayPlaceholder,
   getPlaceholder,
@@ -55,8 +55,8 @@ export default function compilePlaceholderReplacement(
         const capture = match.captures?.[placeholder]
         if (capture) {
           const clone = cloneNode(capture)
-          if ((capture as any).astx?.excludeTypeAnnotationFromCapture)
-            delete (clone as any).typeAnnotation
+          const astx = getAstxMatchInfo(capture)
+          if (astx?.subcapture) return convertReplacement(astx.subcapture)
           return convertReplacement(clone)
         }
         return convertReplacement(cloneNode(pattern.value))

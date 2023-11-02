@@ -1,4 +1,4 @@
-import { Identifier, NodePath } from '../types'
+import { Identifier, NodePath, setAstxMatchInfo } from '../types'
 import compileMatcher, { CompiledMatcher, CompileOptions, MatchResult } from '.'
 import compilePlaceholderMatcher, { unescapeIdentifier } from './Placeholder'
 
@@ -71,9 +71,12 @@ export default function compileIdentifierMatcher(
             : null
 
           if (captured) {
-            ;(captured.node as any).astx = {
-              excludeTypeAnnotationFromCapture: true,
-            }
+            setAstxMatchInfo(captured.node, {
+              subcapture: {
+                type: 'Identifier',
+                name: (captured.node as Identifier).name,
+              },
+            })
           }
 
           return typeAnnotationMatcher.match(
