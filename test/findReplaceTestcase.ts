@@ -251,7 +251,7 @@ export function findReplaceTestcase(fixture: Fixture): void {
               )
             }).to.throw(expectedError)
           }
-          if (expectedReplace) {
+          if (expectedReplace != null) {
             const expected =
               typeof expectedReplace === 'function'
                 ? expectedReplace(parser)

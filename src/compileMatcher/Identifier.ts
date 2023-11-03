@@ -1,6 +1,7 @@
 import { Identifier, NodePath, setAstxMatchInfo } from '../types'
 import compileMatcher, { CompiledMatcher, CompileOptions, MatchResult } from '.'
 import compilePlaceholderMatcher, { unescapeIdentifier } from './Placeholder'
+import cloneNode from '../util/cloneNode'
 
 export default function compileIdentifierMatcher(
   path: NodePath<Identifier, Identifier>,
@@ -71,12 +72,9 @@ export default function compileIdentifierMatcher(
             : null
 
           if (captured) {
-            setAstxMatchInfo(captured.node, {
-              subcapture: {
-                type: 'Identifier',
-                name: (captured.node as Identifier).name,
-              },
-            })
+            const subcapture = cloneNode(captured.node)
+            delete (subcapture as any).typeAnnotation
+            setAstxMatchInfo(captured.node, { subcapture })
           }
 
           return typeAnnotationMatcher.match(

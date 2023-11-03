@@ -22,7 +22,6 @@ export default function compileAndMatcher(
   return {
     pattern: path,
     nodeType: nodeType.size ? [...nodeType] : undefined,
-    optional: true,
     match: (path: NodePath, matchSoFar: MatchResult): MatchResult => {
       debug('$And')
       for (const matcher of matchers) {

@@ -15,7 +15,6 @@ export default function compileOrMatcher(
   return {
     pattern: path,
     nodeType: nodeType.size ? [...nodeType] : undefined,
-    optional: true,
     match: (path: NodePath, matchSoFar: MatchResult): MatchResult => {
       for (const matcher of matchers) {
         const result = matcher.match(path, matchSoFar)
