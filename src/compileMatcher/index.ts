@@ -72,6 +72,7 @@ export function mergeCaptures(...results: MatchResult[]): MatchResult {
   let current: MatchResult = null
   for (const result of results) {
     if (!result) continue
+    if (!current) current = {}
     if (result.captures && hasCapturePlaceholder(result.captures)) {
       if (!current) current = {}
       if (!current.captures) current.captures = {}
