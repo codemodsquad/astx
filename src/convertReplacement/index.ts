@@ -1,5 +1,6 @@
 import { Node, NodePath } from '../types'
 import convertJSXChildReplacement from './convertJSXChildReplacement'
+import convertJSXAttributeReplacement from './convertJSXAttributeReplacement'
 import convertJSXAttributeValueReplacement from './convertJSXAttributeValueReplacement'
 import TypeParameter from './convertTypeParameterReplacement'
 import TSTypeParameter from './convertTSTypeParameterReplacement'
@@ -25,6 +26,7 @@ const nodeConverters: Record<string, (path: NodePath) => ReplacementConverter> =
     TSTypeParameter,
     ImportSpecifier: convertImportSpecifierReplacement,
     ImportDefaultSpecifier: convertImportSpecifierReplacement,
+    JSXAttribute: convertJSXAttributeReplacement,
   }
 
 export default function createReplacementConverter(

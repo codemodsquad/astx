@@ -23,7 +23,9 @@ export default function convertToJSXIdentifierNameExpressionPair(
     }
     case 'JSXAttribute': {
       const key = convertToJSXIdentifierName(node.name)
-      const value = convertToExpression(node.value || node.name)
+      const value = node.value
+        ? convertToExpression(node.value)
+        : t.booleanLiteral(true)
       if (key && value) return [key, value]
       break
     }
