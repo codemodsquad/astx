@@ -1,0 +1,1 @@
+export { Minimatch } from 'minimatch'

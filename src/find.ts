@@ -1,5 +1,6 @@
 import { NodeType, NodePath, Node, Statement, Block } from './types'
-import { mapValues } from 'lodash'
+import lodash from 'lodash'
+const { mapValues } = lodash
 import compileMatcher, {
   CompiledMatcher,
   MatchResult,

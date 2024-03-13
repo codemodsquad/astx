@@ -1,6 +1,7 @@
 import defaultFs from 'fs-extra'
 import Path from 'path'
-import { memoize } from 'lodash'
+import lodash from 'lodash'
+const { memoize } = lodash
 import { promisify } from 'util'
 import _resolve from 'resolve'
 import { Match } from '../find'

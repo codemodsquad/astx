@@ -2,32 +2,6 @@
   "name": "astx",
   "version": "0.0.0-development",
   "description": "super powerful structural search and replace for JavaScript and TypeScript to automate your refactoring",
-  "bin": {
-    "astx": "./cjs/cli/index.js"
-  },
-  "exports": {
-    "./package.json": "./package.json",
-    ".": {
-      "import": "./mjs/index.mjs",
-      "require": "./cjs/index.js",
-      "types": "./types/index.d.ts"
-    },
-    "./node": {
-      "import": "./mjs/node/index.mjs",
-      "require": "./cjs/node/index.js",
-      "types": "./types/node/index.d.ts"
-    },
-    "./cli": {
-      "import": "./mjs/cli/index.mjs",
-      "require": "./cjs/cli/index.js",
-      "types": "./types/cli/index.d.ts"
-    }
-  },
-  "files": [
-    "mjs",
-    "cjs",
-    "types"
-  ],
   "astx": {
     "parser": "babel",
     "workers": 1,
@@ -36,31 +10,14 @@
     },
     "preferSimpleReplacement": true
   },
-  "main": "./cjs/index.js",
-  "types": "./types/index.d.ts",
   "sideEffects": false,
   "scripts": {
     "cli": "babel-node --extensions .ts src/cli/index.ts",
-    "lint": "eslint $npm_package_config_lint",
-    "lint:fix": "eslint $npm_package_config_lint",
-    "prettier": "prettier --write $npm_package_config_prettier",
-    "prettier:check": "prettier --list-different $npm_package_config_prettier",
-    "tsc": "tsc",
     "tsc:watch": "npm run tsc -- --watch",
-    "clean": "rimraf mjs cjs types",
-    "build": "npm run clean && npm run build:types && npm run build:cjs && npm run check:cjs && npm run build:mjs && npm run check:mjs",
-    "build:types": "tsc -p tsconfig.build.json && mkdir -p cjs && copy 'src/**/*.js.flow' cjs && mkdir -p mjs && copy 'src/**/*.js.flow' mjs",
-    "build:cjs": "cross-env BABEL_ENV=es5 babel src --out-dir cjs --extensions .ts && babel-node --extensions .ts src/cli/index.ts -t convertCjsBuild.ts --parser babel --no-gitignore -y cjs",
-    "check:cjs": "node cjs/cli/index.js -f 'export type TransformOptions = $T' 'src/**/*.ts'",
-    "build:mjs": "cross-env OUTPUT_ESM=1 babel src --out-dir mjs --out-file-extension .mjs --extensions .ts --source-maps inline && babel-node --extensions .ts src/cli/index.ts -t convertMjsBuild.ts --parser babel --no-gitignore -y mjs",
-    "check:mjs": "node mjs/cli/index.mjs -f 'export type TransformOptions = $T' 'src/**/*.ts'",
-    "test": "cross-env NODE_ENV=test BABEL_ENV=coverage nyc --reporter=lcov --reporter=text mocha",
-    "test:watch": "cross-env NODE_ENV=test BABEL_ENV=test mocha --watch",
-    "test:debug": "cross-env NODE_ENV=test BABEL_ENV=test mocha --inspect-brk",
-    "codecov": "nyc report --reporter=text-lcov > coverage.lcov; codecov",
-    "prepublishOnly": "npm run clean && npm run prettier:check && npm run lint && npm test && npm run build",
-    "open:coverage": "open coverage/lcov-report/index.html",
-    "semantic-release": "semantic-release"
+    "tc": "toolchain",
+    "toolchain": "toolchain",
+    "test": "toolchain test",
+    "prepublishOnly": "echo This package is meant to be published by semantic-release from the dist build directory. && exit 1"
   },
   "release": {
     "branches": [
@@ -70,41 +27,6 @@
         "prerelease": true
       }
     ]
-  },
-  "config": {
-    "lint": "--cache --ext .js,.ts src test",
-    "prettier": ".babelrc.js *.{json,md} {src,test}/**/*.{js,ts,flow}",
-    "commitizen": {
-      "path": "cz-conventional-changelog"
-    }
-  },
-  "lint-staged": {
-    "*.{js,ts,json,css,md,flow}": [
-      "prettier --write"
-    ]
-  },
-  "commitlint": {
-    "extends": [
-      "@jedwards1211/commitlint-config"
-    ]
-  },
-  "prettier": {
-    "semi": false,
-    "singleQuote": true,
-    "trailingComma": "es5"
-  },
-  "nyc": {
-    "include": [
-      "src/**/*.ts"
-    ],
-    "exclude": [
-      "src/**/*.spec.ts"
-    ],
-    "require": [
-      "@babel/register"
-    ],
-    "sourceMap": false,
-    "instrument": false
   },
   "repository": {
     "type": "git",
@@ -139,22 +61,20 @@
   },
   "homepage": "https://github.com/codemodsquad/astx#readme",
   "devDependencies": {
-    "@babel/cli": "^7.12.10",
-    "@babel/core": "^7.18.13",
     "@babel/node": "^7.13.13",
-    "@babel/plugin-transform-runtime": "^7.12.10",
-    "@babel/preset-env": "^7.18.10",
-    "@babel/preset-typescript": "^7.18.6",
-    "@babel/register": "^7.18.9",
-    "@commitlint/cli": "^11.0.0",
-    "@commitlint/config-conventional": "^11.0.0",
-    "@jedwards1211/commitlint-config": "^1.0.2",
-    "@jedwards1211/eslint-config": "^2.0.2",
-    "@jedwards1211/eslint-config-typescript": "^2.0.2",
+    "@babel/plugin-syntax-flow": "^7.14.5",
+    "@babel/plugin-transform-react-jsx": "^7.14.9",
+    "@jcoreio/eslint-plugin-implicit-dependencies": "^1.0.2",
+    "@jcoreio/toolchain": "^3.9.3",
+    "@jcoreio/toolchain-circle": "^3.9.3",
+    "@jcoreio/toolchain-esnext": "^3.9.3",
+    "@jcoreio/toolchain-mocha": "^3.9.3",
+    "@jcoreio/toolchain-semantic-release": "^3.9.3",
+    "@jcoreio/toolchain-typescript": "^3.9.3",
     "@types/babel__code-frame": "^7.0.3",
     "@types/babel__generator": "^7.6.5",
     "@types/babel__parser": "^7.1.1",
-    "@types/chai": "^4.2.14",
+    "@types/chai": "^4.3.5",
     "@types/chai-as-promised": "^7.1.5",
     "@types/chai-subset": "^1.3.3",
     "@types/debug": "^4.1.5",
@@ -164,43 +84,36 @@
     "@types/inquirer": "^7.3.1",
     "@types/lodash": "^4.14.165",
     "@types/minimatch": "^5.1.2",
-    "@types/mocha": "^8.2.0",
-    "@types/node": "^14.14.22",
+    "@types/mocha": "^10.0.1",
+    "@types/node": "^14.18.26",
     "@types/prettier": "^2.2.2",
     "@types/resolve": "^1.17.1",
     "@types/shallowequal": "^1.1.1",
     "@types/yargs": "^17.0.13",
-    "@typescript-eslint/eslint-plugin": "^4.14.1",
-    "@typescript-eslint/parser": "^4.14.1",
+    "@typescript-eslint/eslint-plugin": "^5.60.0",
+    "@typescript-eslint/parser": "^5.60.0",
     "@typescript-eslint/typescript-estree": "^4.14.1",
-    "ansi-escapes": "^4.0.0",
-    "babel-eslint": "^10.1.0",
-    "babel-plugin-istanbul": "^6.0.0",
-    "chai": "^4.2.0",
+    "chai": "^4.3.7",
     "chai-as-promised": "^7.1.1",
     "chai-subset": "^1.6.0",
-    "codecov": "^3.8.1",
     "copy": "^0.3.2",
     "cross-env": "^7.0.3",
-    "eslint": "^7.18.0",
+    "eslint": "^8.43.0",
     "eslint-config-prettier": "^7.2.0",
-    "flow-bin": "^0.144.0",
-    "istanbul": "^0.4.5",
-    "lint-staged": "^10.5.3",
-    "mocha": "^10.1.0",
-    "nyc": "^15.1.0",
-    "prettier-eslint": "^12.0.0",
+    "eslint-plugin-flowtype": "^8.0.3",
+    "mocha": "^10.2.0",
     "require-glob": "^3.2.0",
     "rimraf": "^3.0.2",
-    "semantic-release": "^17.3.7",
-    "typescript": "^4.9.5"
+    "typescript": "^5.1.0"
   },
   "dependencies": {
     "@babel/code-frame": "^7.22.13",
     "@babel/generator": "^7.23.0",
     "@babel/parser": "^7.23.0",
+    "@babel/register": "^7.23.7",
     "@babel/runtime": "^7.23.2",
     "@babel/types": "^7.23.0",
+    "ansi-escapes": "^4.3.2",
     "ast-types": "^0.14.2",
     "babel-parse-wild-code": "^2.1.5",
     "chalk": "^4.1.0",
@@ -223,5 +136,33 @@
     "ts-node": "^10.9.1",
     "typed-validators": "^4.5.1",
     "yargs": "^17.6.2"
-  }
+  },
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "astx": "./dist/cli/index.js"
+  },
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./node": {
+      "import": "./dist/node/index.mjs",
+      "require": "./dist/node/index.js",
+      "types": "./dist/node/index.d.ts"
+    },
+    "./cli": {
+      "import": "./dist/cli/index.mjs",
+      "require": "./dist/cli/index.js",
+      "types": "./dist/cli/index.d.ts"
+    }
+  },
+  "engines": {
+    "node": ">=16"
+  },
+  "packageManager": "pnpm@8.11.0"
 }

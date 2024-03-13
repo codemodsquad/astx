@@ -4,6 +4,7 @@ import { Worker } from 'worker_threads'
 import { RunTransformOnFileOptions } from './runTransformOnFile'
 import emitted from 'p-event'
 import { IpcTransformResult } from './ipc'
+import AstxWorkerFile from './AstxWorkerFile'
 
 export default class AstxWorker {
   private worker: Worker | undefined
@@ -27,7 +28,7 @@ export default class AstxWorker {
 
   private startWorker() {
     if (this.ended) return
-    const worker = new Worker(require.resolve('./AstxWorkerEntry.babel.js'))
+    const worker = new Worker(AstxWorkerFile)
     this.worker = worker
     worker.once('exit', async () => {
       this.worker = undefined
