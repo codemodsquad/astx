@@ -3,8 +3,9 @@
   "include": ["./src"],
   "exclude": ["node_modules", "./src/**/*.spec.ts", "./test"],
   "compilerOptions": {
+    "outDir": "./dist",
     "declaration": true,
-    "emitDeclarationOnly": true,
-    "noEmit": false
+    "noEmit": false,
+    "emitDeclarationOnly": true
   }
 }

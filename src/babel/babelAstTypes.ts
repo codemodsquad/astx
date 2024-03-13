@@ -2,7 +2,8 @@ import _typesPlugin from 'ast-types/lib/types'
 const typesPlugin: typeof _typesPlugin =
   (_typesPlugin as any)['default'] || _typesPlugin
 import * as defaultTypes from '@babel/types'
-import { memoize, omit, mapValues } from 'lodash'
+import lodash from 'lodash'
+const { memoize, omit, mapValues } = lodash
 import fork from 'ast-types/fork'
 import { Fork } from 'ast-types/types'
 import nodePathPlugin from 'ast-types/lib/node-path'

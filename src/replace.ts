@@ -4,7 +4,8 @@ import compileReplacement, { CompiledReplacement } from './compileReplacement'
 import createReplacementConverter, { bulkConvert } from './convertReplacement'
 import { Backend } from './backend/Backend'
 import pipeline from './util/pipeline'
-import { last } from 'lodash'
+import lodash from 'lodash'
+const { last } = lodash
 import { SimpleReplacementInterface } from './util/SimpleReplacementCollector'
 
 export type ReplaceOptions = {

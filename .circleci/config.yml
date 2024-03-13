@@ -1,36 +1,38 @@
-version: 2
+# created by @jcoreio/toolchain-circle
+
+version: 2.1
 jobs:
   build:
     docker:
-      - image: cimg/node:16.18.1
+      - image: cimg/node:20.3.0
 
     steps:
       - checkout
       - run:
           name: Setup NPM Token
           command: |
-            echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > ~/.npmrc
-            echo "registry=https://registry.npmjs.org/" >> ~/.npmrc
+            npm config set \
+              "//registry.npmjs.org/:_authToken=$NPM_TOKEN" \
+              "registry=https://registry.npmjs.org/"
       - run:
-          name: Install pnpm
-          command: sudo npm install --global pnpm
+          name: Corepack enable
+          command: sudo corepack enable
       - run:
           name: Install Dependencies
           command: pnpm install --frozen-lockfile
       - run:
-          name: build
-          command: pnpm prepublishOnly
+          name: Prepublish
+          command: |
+            [[ $(netstat -tnlp | grep -F 'circleci-agent') ]] || pnpm run tc prepublish
       - run:
-          name: upload test coverage
-          command: pnpm codecov
-      - run:
-          name: release
-          command: pnpm semantic-release
+          name: Release
+          command: |
+            [[ $(netstat -tnlp | grep -F 'circleci-agent') ]] || pnpm run tc release
+
 workflows:
-  version: 2
   build:
     jobs:
       - build:
           context:
-            - github-release
             - npm-release
+            - github-release

@@ -1,7 +1,7 @@
 import fs from 'fs-extra'
 import Gitignore from 'gitignore-fs'
 import path from 'path'
-import { Minimatch } from 'minimatch'
+import { Minimatch } from './minimatch'
 
 interface FsEntry {
   name: string

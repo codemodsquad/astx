@@ -1,4 +1,5 @@
-import { mapValues, map } from 'lodash/fp'
+import lodashFp from 'lodash/fp'
+const { mapValues, map } = lodashFp
 import { TransformResult } from '../Astx'
 import { Backend } from '../backend/Backend'
 import { Match } from '../find'

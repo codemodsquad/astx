@@ -1,0 +1,11 @@
+[ignore]
+<PROJECT_ROOT>/dist/.*
+.*/malformed_package_json/.*
+
+[include]
+./src
+./test
+
+[libs]
+
+[options]

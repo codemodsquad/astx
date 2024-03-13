@@ -1,4 +1,5 @@
-import { memoize } from 'lodash'
+import lodash from 'lodash'
+const { memoize } = lodash
 
 const sortFlags = memoize((flags: string): string =>
   flags.split('').sort().join('')

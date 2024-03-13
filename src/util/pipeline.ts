@@ -1,4 +1,5 @@
-import { flow } from 'lodash/fp'
+import lodashFp from 'lodash/fp'
+const { flow } = lodashFp
 
 function pipeline<T0, T1>(t: T0, t0: (t: T0) => T1): T1
 function pipeline<T0, T1, T2>(t: T0, t0: (t: T0) => T1, t1: (t: T1) => T2): T2

@@ -1,5 +1,6 @@
 import { clearCache } from 'babel-parse-wild-code'
-import { range } from 'lodash'
+import lodash from 'lodash'
+const { range } = lodash
 import { cpus } from 'os'
 import { IpcTransformResult } from './ipc'
 import astxGlob from './astxGlob'
