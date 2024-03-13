@@ -7,7 +7,7 @@
       "options": { "shell": { "executable": "bash", "args": ["-c", "-l"] } },
       "command": "pnpm",
       "isBackground": false,
-      "args": ["test", "--", "${file}"],
+      "args": ["tc", "test", "${file}"],
       "group": "test",
       "presentation": {
         "panel": "dedicated",
@@ -20,7 +20,7 @@
       "options": { "shell": { "executable": "bash", "args": ["-c", "-l"] } },
       "command": "pnpm",
       "isBackground": true,
-      "args": ["test:watch", "--", "${file}"],
+      "args": ["tc", "test", "--watch", "${file}"],
       "group": "test",
       "presentation": {
         "panel": "dedicated",
@@ -33,7 +33,7 @@
       "options": { "shell": { "executable": "bash", "args": ["-c", "-l"] } },
       "command": "pnpm",
       "isBackground": true,
-      "args": ["test:debug", "--", "${file}"],
+      "args": ["tc", "test", "-n", "inspect-brk", "${file}"],
       "group": "test",
       "presentation": {
         "panel": "dedicated",
