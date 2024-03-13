@@ -59,9 +59,6 @@ dependencies:
   lodash:
     specifier: ^4.17.20
     version: 4.17.21
-  lodash-es:
-    specifier: ^4.17.21
-    version: 4.17.21
   minimatch:
     specifier: ^5.1.0
     version: 5.1.0
@@ -5331,6 +5328,7 @@ packages:
 
   /lodash-es@4.17.21:
     resolution: {integrity: sha512-mKnC+QJ9pWVzv+C4/U3rRsHapFfHvQFoFB92e52xeyGMcX6/OlIl78je1u8vePzYZSkkogMPJ2yjxxsb89cxyw==}
+    dev: true
 
   /lodash.capitalize@4.2.1:
     resolution: {integrity: sha512-kZzYOKspf8XVX5AvmQF94gQW0lejFVgb80G85bU4ZWzoJ6C03PQg3coYAUpSTpQWelrZELd3XWgHzw4Ck5kaIw==}
