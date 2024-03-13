@@ -23,6 +23,9 @@ dependencies:
   '@babel/types':
     specifier: ^7.23.0
     version: 7.23.0
+  ansi-escapes:
+    specifier: ^4.3.2
+    version: 4.3.2
   ast-types:
     specifier: ^0.14.2
     version: 0.14.2
@@ -190,9 +193,6 @@ devDependencies:
   '@typescript-eslint/typescript-estree':
     specifier: ^4.14.1
     version: 4.33.0(typescript@5.4.2)
-  ansi-escapes:
-    specifier: ^4.3.2
-    version: 4.3.2
   chai:
     specifier: ^4.3.7
     version: 4.4.1
