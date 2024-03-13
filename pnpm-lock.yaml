@@ -86,12 +86,12 @@ dependencies:
   ts-node:
     specifier: ^10.9.1
     version: 10.9.1(@types/node@14.18.26)(typescript@5.4.2)
-  typed-validators:
-    specifier: ^4.5.1
-    version: 4.5.1
   yargs:
     specifier: ^17.6.2
     version: 17.6.2
+  zod:
+    specifier: ^3.22.4
+    version: 3.22.4
 
 devDependencies:
   '@babel/node':
@@ -7259,12 +7259,6 @@ packages:
     engines: {node: '>=16'}
     dev: true
 
-  /typed-validators@4.5.1:
-    resolution: {integrity: sha512-MkYRwvJDKM7plWp8mWTGnX0aJRtvoBlDFw9XqmmTAb5B1L0GyTcy5SI+77gnYRl2qdVwPWmx6KEH7toQtIayVQ==}
-    dependencies:
-      '@babel/runtime': 7.23.2
-    dev: false
-
   /typedarray-to-buffer@3.1.5:
     resolution: {integrity: sha512-zdu8XMNEDepKKR+XYOXAVPtWui0ly0NtohUscw+UmaHiAWT8hrV1rr//H6V+0DvJ3OQ19S979M0laLfX8rm82Q==}
     dependencies:
@@ -7613,4 +7607,3 @@ packages:
 
   /zod@3.22.4:
     resolution: {integrity: sha512-iC+8Io04lddc+mVqQ9AZ7OQ2MrUKGN+oIQyq1vemgt46jwCwLfhq7/pwnBnNXXXZb8VTVLKwp9EDkx+ryxIWmg==}
-    dev: true

@@ -9,7 +9,7 @@ export const astxCosmiconfig = cosmiconfig('astx', {
     if (result) {
       return {
         ...result,
-        config: AstxConfigType.assert(result.config || {}),
+        config: AstxConfigType.parse(result.config || {}),
       }
     }
     return null
