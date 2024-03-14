@@ -602,7 +602,10 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
     const { parsePatternToNodes } = backend
     try {
       if (typeof arg0 === 'function') {
-        for (const astx of this) {
+        // Always replace in reverse so that if there are matches inside of
+        // matches, the inner matches get replaced first (since they come
+        // later in the code)
+        for (const astx of [...this].reverse()) {
           const replacement = arg0(astx, parsePatternToNodes)
           replace(
             astx.match,
@@ -614,12 +617,12 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
         }
       } else if (typeof arg0 === 'string') {
         const replacement = parsePatternToNodes(arg0)
-        for (const match of this._matches) {
-          replace(match, replacement, this.context)
+        for (let i = this._matches.length - 1; i >= 0; i--) {
+          replace(this._matches[i], replacement, this.context)
         }
       } else if (isNode(arg0) || isNodeArray(arg0)) {
-        for (const match of this._matches) {
-          replace(match, arg0, this.context)
+        for (let i = this._matches.length - 1; i >= 0; i--) {
+          replace(this._matches[i], arg0, this.context)
         }
       } else {
         const finalPaths = parsePatternToNodes(arg0, ...quasis)
