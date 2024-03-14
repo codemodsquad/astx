@@ -11,7 +11,7 @@ export default function forEachNode(
 ): void {
   const visited = new Set()
   function visitNode(this: any, path: NodePath) {
-    if (visited.has(path.node)) return
+    if (visited.has(path.node)) return false
     visited.add(path.node)
     iteratee(path)
     this.traverse(path)
