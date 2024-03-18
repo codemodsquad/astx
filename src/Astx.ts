@@ -30,7 +30,12 @@ export type TransformOptions = {
 
 export type TransformFunction = (
   options: TransformOptions
-) => string | null | undefined | void
+) =>
+  | string
+  | null
+  | undefined
+  | void
+  | Promise<string | null | undefined | void>
 
 export type Transform = {
   astx?: TransformFunction
