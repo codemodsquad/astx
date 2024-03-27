@@ -14,6 +14,7 @@ import ExpressionStatement from './ExpressionStatement'
 import FunctionTypeParam from './FunctionTypeParam'
 import GenericTypeAnnotation from './GenericTypeAnnotation'
 import Identifier from './Identifier'
+import ImportDeclaration from './ImportDeclaration'
 import ImportSpecifier from './ImportSpecifier'
 import JSXAttribute from './JSXAttribute'
 import JSXElement from './JSXElement'
@@ -129,6 +130,7 @@ const nodeMatchers: Record<
   FunctionTypeParam,
   GenericTypeAnnotation,
   Identifier,
+  ImportDeclaration,
   ImportSpecifier,
   JSXAttribute,
   JSXElement,

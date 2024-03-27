@@ -1,4 +1,10 @@
-import { Expression, Statement, Node, NodePath } from './types'
+import {
+  Expression,
+  Statement,
+  Node,
+  NodePath,
+  ImportDeclaration,
+} from './types'
 import { Backend } from './backend/Backend'
 import find, { Match, convertWithCaptures, createMatch } from './find'
 import replace from './replace'
@@ -14,6 +20,11 @@ import {
 } from './compileMatcher/Placeholder'
 import { SimpleReplacementInterface } from './util/SimpleReplacementCollector'
 import forEachNode from './util/forEachNode'
+import addImports from './util/addImports'
+import findImports from './util/findImports'
+import removeImports from './util/removeImports'
+import createReplacementConverter from './convertReplacement'
+import compileReplacement, { CompiledReplacement } from './compileReplacement'
 
 export type TransformOptions = {
   /** The absolute path to the current file. */
@@ -254,11 +265,12 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
   }
 
   withCaptures(
-    ...captures: (
-      | Match
-      | Astx
-      | { [name: `$${string}` | `$$${string}` | `$$$${string}`]: Astx }
-    )[]
+    ...captures:
+      | (
+          | Match
+          | Astx
+          | { [name: `$${string}` | `$$${string}` | `$$$${string}`]: Astx }
+        )[]
   ): Astx {
     const withCaptures: Match[] = [...this._withCaptures]
     for (const item of captures) {
@@ -331,12 +343,12 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
     )
   }
 
-  private _execPattern<Options>(
+  private _execPattern<Options, Return>(
     name: string,
     exec: (
       pattern: NodePath<Node, any> | readonly NodePath<Node, any>[],
       options?: Options
-    ) => Astx,
+    ) => Return,
     arg0:
       | string
       | Node
@@ -346,7 +358,7 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
       | string[]
       | TemplateStringsArray,
     ...rest: any[]
-  ): Astx | ((options?: Options) => Astx) {
+  ): Return | ((options?: Options) => Return) {
     const { backend } = this
     const { parsePattern } = backend
     const { NodePath } = backend.t
@@ -382,9 +394,9 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
     }
   }
 
-  private _execPatternOrPredicate<Options>(
+  private _execPatternOrPredicate<Options, Return>(
     name: string,
-    exec: (match: CompiledMatcher['match'], options?: Options) => Astx,
+    exec: (match: CompiledMatcher['match'], options?: Options) => Return,
     arg0:
       | string
       | Node
@@ -395,7 +407,7 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
       | TemplateStringsArray
       | FindPredicate,
     ...rest: any[]
-  ): Astx | ((options?: Options) => Astx) {
+  ): Return | ((options?: Options) => Return) {
     const { backend } = this
     if (arg0 instanceof Function) {
       const predicate = arg0
@@ -646,5 +658,222 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
 
   remove(): void {
     this.replace([])
+  }
+
+  addImports(
+    strings: string[] | TemplateStringsArray,
+    ...quasis: any[]
+  ): () => Astx
+  addImports(
+    pattern: string | Node | Node[] | NodePath<any> | NodePath<any>[]
+  ): Astx
+  addImports(
+    arg0:
+      | string
+      | Node
+      | Node[]
+      | NodePath<any>
+      | NodePath<any>[]
+      | string[]
+      | TemplateStringsArray,
+    ...rest: any[]
+  ): Astx | (() => Astx) {
+    return this._execPattern(
+      'addImports',
+      (pattern: NodePath<Node, any> | readonly NodePath<Node, any>[]): Astx =>
+        addImports(this, Array.isArray(pattern) ? pattern : [pattern]),
+      arg0,
+      ...rest
+    )
+  }
+
+  findImports(
+    strings: string[] | TemplateStringsArray,
+    ...quasis: any[]
+  ): () => Astx
+  findImports(
+    pattern: string | Node | Node[] | NodePath<any> | NodePath<any>[]
+  ): Astx
+  findImports(
+    arg0:
+      | string
+      | Node
+      | Node[]
+      | NodePath<any>
+      | NodePath<any>[]
+      | string[]
+      | TemplateStringsArray,
+    ...rest: any[]
+  ): Astx | (() => Astx) {
+    return this._execPattern(
+      'findImports',
+      (pattern: NodePath<Node, any> | readonly NodePath<Node, any>[]): Astx =>
+        findImports(this, Array.isArray(pattern) ? pattern : [pattern]),
+      arg0,
+      ...rest
+    )
+  }
+
+  removeImports(
+    strings: string[] | TemplateStringsArray,
+    ...quasis: any[]
+  ): () => boolean
+  removeImports(
+    pattern: string | Node | Node[] | NodePath<any> | NodePath<any>[]
+  ): boolean
+  removeImports(
+    arg0:
+      | string
+      | Node
+      | Node[]
+      | NodePath<any>
+      | NodePath<any>[]
+      | string[]
+      | TemplateStringsArray,
+    ...rest: any[]
+  ): boolean | (() => boolean) {
+    return this._execPattern(
+      'removeImports',
+      (
+        pattern: NodePath<Node, any> | readonly NodePath<Node, any>[]
+      ): boolean =>
+        removeImports(this, Array.isArray(pattern) ? pattern : [pattern]),
+      arg0,
+      ...rest
+    )
+  }
+
+  replaceImport(
+    strings: string[] | TemplateStringsArray,
+    ...quasis: any[]
+  ): () => ImportReplacer
+  replaceImport(
+    pattern: string | Node | Node[] | NodePath<any> | NodePath<any>[]
+  ): ImportReplacer
+  replaceImport(
+    arg0:
+      | string
+      | Node
+      | Node[]
+      | NodePath<any>
+      | NodePath<any>[]
+      | string[]
+      | TemplateStringsArray,
+    ...rest: any[]
+  ): ImportReplacer | (() => ImportReplacer) {
+    return this._execPattern(
+      'replaceImport',
+      (
+        _pattern: NodePath<Node, any> | readonly NodePath<Node, any>[]
+      ): ImportReplacer => {
+        const pattern = Array.isArray(_pattern) ? _pattern : [_pattern]
+        if (
+          pattern.length !== 1 ||
+          pattern[0].node.type !== 'ImportDeclaration'
+        ) {
+          throw new Error(`pattern must contain exactly one import declaration`)
+        }
+        const decl: ImportDeclaration = pattern[0]?.node as any
+        if (decl.specifiers && decl.specifiers.length > 1) {
+          throw new Error(
+            `pattern may not contain more than one import specifier`
+          )
+        }
+        const found = findImports(this, pattern)
+        return new ImportReplacer(this, found, pattern)
+      },
+      arg0,
+      ...rest
+    )
+  }
+}
+
+class ImportReplacer {
+  constructor(
+    public astx: Astx,
+    public match: Astx,
+    public findPattern: readonly NodePath<Node, any>[]
+  ) {}
+
+  with(
+    strings: string[] | TemplateStringsArray,
+    ...quasis: any[]
+  ): () => boolean
+  with(
+    pattern:
+      | string
+      | Node
+      | Node[]
+      | NodePath<any>
+      | NodePath<any>[]
+      | GetReplacement
+  ): boolean
+  with(
+    arg0:
+      | string
+      | Node
+      | Node[]
+      | NodePath<any>
+      | NodePath<any>[]
+      | GetReplacement
+      | string[]
+      | TemplateStringsArray,
+    ...rest: any[]
+  ): boolean | (() => boolean) {
+    const { backend } = this.astx
+    const { parsePatternToNodes } = backend
+
+    const doReplace = (rawReplacement: any): boolean => {
+      if (!this.match.matched) return false
+      const match = this.match.match
+      const path =
+        match.path.parentPath?.node?.type === 'ExpressionStatement'
+          ? match.path.parentPath
+          : match.path
+      const converter = createReplacementConverter(path)
+      const generated = (
+        rawReplacement instanceof Object &&
+        typeof (rawReplacement as any).generate === 'function'
+          ? (rawReplacement as CompiledReplacement)
+          : compileReplacement(
+              Array.isArray(rawReplacement)
+                ? rawReplacement.map((n) => new backend.t.NodePath(n))
+                : new backend.t.NodePath(rawReplacement),
+              { backend }
+            )
+      ).generate(match)
+
+      const converted = converter(
+        Array.isArray(generated) ? generated[0] : generated
+      )
+
+      removeImports(this.astx, this.findPattern)
+      this.astx.addImports(converted)
+      return true
+    }
+
+    try {
+      if (typeof arg0 === 'function') {
+        // Always replace in reverse so that if there are matches inside of
+        // matches, the inner matches get replaced first (since they come
+        // later in the code)
+        return doReplace((arg0 as any)(this.match, parsePatternToNodes))
+      } else if (typeof arg0 === 'string') {
+        return doReplace(parsePatternToNodes(arg0))
+      } else if (isNode(arg0) || isNodeArray(arg0)) {
+        return doReplace(arg0)
+      } else {
+        const rawReplacement = parsePatternToNodes(arg0 as any, ...rest)
+        return () => doReplace(rawReplacement)
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        CodeFrameError.rethrow(error, {
+          filename: 'replace pattern',
+          source: typeof arg0 === 'string' ? arg0 : undefined,
+        })
+      }
+      throw error
+    }
   }
 }

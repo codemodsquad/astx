@@ -7,6 +7,7 @@ import RecastBackend from '../src/recast/RecastBackend'
 import BabelBackend from '../src/babel/BabelBackend'
 import { Backend } from '../src/backend/Backend'
 import { SimpleReplacementCollector } from '../src/util/SimpleReplacementCollector'
+import prettier from 'prettier'
 
 type Fixture = {
   file: string
@@ -19,6 +20,7 @@ type Fixture = {
   only?: boolean
   skip?: boolean
   preferSimpleReplacement?: boolean
+  format?: boolean
 }
 
 export function astxTestcase(testcase: Fixture): void {
@@ -33,6 +35,7 @@ export function astxTestcase(testcase: Fixture): void {
     only,
     skip,
     preferSimpleReplacement,
+    format: _format,
   } = testcase
 
   describe(file, function () {
@@ -86,6 +89,22 @@ export function astxTestcase(testcase: Fixture): void {
         if (expectedError) {
           await expect(transform(options)).to.be.rejectedWith(expectedError)
         } else {
+          const prettierOptions = {
+            parser: actualParser === 'babel/tsx' ? 'babel-ts' : 'babel-flow',
+          }
+
+          const format = async (code: string) =>
+            _format === false
+              ? code
+              : (await prettier.format(code, prettierOptions))
+                  .trim()
+                  .replace(/\n{2,}/gm, '\n')
+
+          const reformat = async (code: string) =>
+            _format === false
+              ? code
+              : await format(backend.generate(backend.parse(code)).code)
+
           let transformed = await transform(options)
           if (transformed !== null && transformed == undefined) {
             transformed =
@@ -94,7 +113,9 @@ export function astxTestcase(testcase: Fixture): void {
                 : backend.generate(root.node).code
           }
           if (expected != null) {
-            expect(transformed?.trim()).to.equal(expected?.trim())
+            expect(await reformat(transformed || '')).to.equal(
+              await reformat(expected)
+            )
           }
           if (expectedReports) {
             expect(reports).to.deep.equal(expectedReports)
