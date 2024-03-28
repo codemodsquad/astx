@@ -22,7 +22,7 @@ import { SimpleReplacementInterface } from './util/SimpleReplacementCollector'
 import forEachNode from './util/forEachNode'
 import addImports from './util/addImports'
 import findImports from './util/findImports'
-import removeImports from './util/removeImports'
+import removeImports, { removeFoundImport } from './util/removeImports'
 import createReplacementConverter from './convertReplacement'
 import compileReplacement, { CompiledReplacement } from './compileReplacement'
 
@@ -780,7 +780,7 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
           )
         }
         const found = findImports(this, pattern)
-        return new ImportReplacer(this, found, pattern)
+        return new ImportReplacer(this, found, decl)
       },
       arg0,
       ...rest
@@ -791,8 +791,8 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
 class ImportReplacer {
   constructor(
     public astx: Astx,
-    public match: Astx,
-    public findPattern: readonly NodePath<Node, any>[]
+    public found: Astx,
+    public decl: ImportDeclaration
   ) {}
 
   with(
@@ -824,8 +824,8 @@ class ImportReplacer {
     const { parsePatternToNodes } = backend
 
     const doReplace = (rawReplacement: any): boolean => {
-      if (!this.match.matched) return false
-      const match = this.match.match
+      if (!this.found.matched) return false
+      const match = this.found.match
       const path =
         match.path.parentPath?.node?.type === 'ExpressionStatement'
           ? match.path.parentPath
@@ -847,7 +847,7 @@ class ImportReplacer {
         Array.isArray(generated) ? generated[0] : generated
       )
 
-      removeImports(this.astx, this.findPattern)
+      removeFoundImport(this.astx, this.decl as any, this.found)
       this.astx.addImports(converted)
       return true
     }
@@ -857,7 +857,7 @@ class ImportReplacer {
         // Always replace in reverse so that if there are matches inside of
         // matches, the inner matches get replaced first (since they come
         // later in the code)
-        return doReplace((arg0 as any)(this.match, parsePatternToNodes))
+        return doReplace((arg0 as any)(this.found, parsePatternToNodes))
       } else if (typeof arg0 === 'string') {
         return doReplace(parsePatternToNodes(arg0))
       } else if (isNode(arg0) || isNodeArray(arg0)) {

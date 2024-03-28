@@ -23,6 +23,7 @@ export default function addImports(
   }
 
   function addDeclaration(decl: t.ImportDeclaration) {
+    astx.context.simpleReplacements?.bail()
     const before =
       astx.find(
         (a) =>
@@ -100,6 +101,7 @@ export default function addImports(
         if (existingImportKind.matched) {
           const existingDecl: t.ImportDeclaration =
             existingImportKind.node as any
+          astx.context.simpleReplacements?.bail()
           addSpecifierToDeclaration(existingDecl, t.cloneNode(specifier))
         } else {
           addDeclaration(t.cloneNode({ ...decl, specifiers: [specifier] }))
