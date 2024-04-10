@@ -1,6 +1,5 @@
 import { clearCache } from 'babel-parse-wild-code'
-import lodash from 'lodash'
-const { range } = lodash
+import { range } from 'lodash'
 import { cpus } from 'os'
 import { IpcTransformResult } from './ipc'
 import astxGlob from './astxGlob'
@@ -15,8 +14,11 @@ class AbortedError extends Error {}
 
 export default class AstxWorkerPool {
   pool: AsyncPool<AstxWorker>
-
-  constructor({ capacity = cpus().length }: { capacity?: number } = {}) {
+  constructor({
+    capacity = cpus().length,
+  }: {
+    capacity?: number
+  } = {}) {
     this.pool = new AsyncPool(range(capacity).map(() => new AstxWorker()))
   }
 
@@ -43,16 +45,31 @@ export default class AstxWorkerPool {
     queueCapacity,
   }: RunTransformOptions & {
     queueCapacity?: number
-  }): AsyncIterable<{ type: 'result'; result: IpcTransformResult } | Progress> {
+  }): AsyncIterable<
+    | {
+        type: 'result'
+        result: IpcTransformResult
+      }
+    | Progress
+  > {
     clearCache()
     astxCosmiconfig.clearSearchCache()
 
     const events = new PushPullIterable<
-      { type: 'result'; result: IpcTransformResult } | Progress
+      | {
+          type: 'result'
+          result: IpcTransformResult
+        }
+      | Progress
     >(queueCapacity || 1000)
 
     async function emit(
-      event: { type: 'result'; result: IpcTransformResult } | Progress
+      event:
+        | {
+            type: 'result'
+            result: IpcTransformResult
+          }
+        | Progress
     ): Promise<void> {
       if (!(await events.push(event)) || signal?.aborted) {
         throw new AbortedError()
@@ -102,7 +119,10 @@ export default class AstxWorkerPool {
               .then(async (result) => {
                 if (signal?.aborted) return
                 completed++
-                await emit({ type: 'result', result })
+                await emit({
+                  type: 'result',
+                  result,
+                })
                 if (signal?.aborted) return
                 await emit(progress())
                 if (signal?.aborted) return

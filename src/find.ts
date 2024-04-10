@@ -1,6 +1,5 @@
 import { NodeType, NodePath, Node, Statement, Block } from './types'
-import lodash from 'lodash'
-const { mapValues } = lodash
+import { mapValues } from 'lodash'
 import compileMatcher, {
   CompiledMatcher,
   MatchResult,
@@ -25,7 +24,9 @@ export type Match = {
 
 export type FindOptions = {
   backend: Backend
-  where?: { [captureName: string]: (path: NodePath) => boolean }
+  where?: {
+    [captureName: string]: (path: NodePath) => boolean
+  }
   matchSoFar?: MatchResult
 }
 
@@ -239,7 +240,9 @@ function findStatements(
           if (!arrayPlaceholder) continue
           if (!result?.arrayCaptures?.[arrayPlaceholder])
             result = mergeCaptures(result, {
-              arrayCaptures: { [arrayPlaceholder]: [] },
+              arrayCaptures: {
+                [arrayPlaceholder]: [],
+              },
             })
         }
 

@@ -4,8 +4,7 @@ import compileReplacement, { CompiledReplacement } from './compileReplacement'
 import createReplacementConverter, { bulkConvert } from './convertReplacement'
 import { Backend } from './backend/Backend'
 import pipeline from './util/pipeline'
-import lodash from 'lodash'
-const { last } = lodash
+import { last } from 'lodash'
 import { SimpleReplacementInterface } from './util/SimpleReplacementCollector'
 import transferComments from './util/transferComments'
 
@@ -32,7 +31,9 @@ export default function replace(
             Array.isArray(replace)
               ? replace.map((n) => new backend.t.NodePath(n))
               : new backend.t.NodePath(replace),
-            { backend }
+            {
+              backend,
+            }
           )
       ).generate(match),
       createReplacementConverter(path)
@@ -77,7 +78,9 @@ export function replaceAll(
                     ? replacement.map((n) => new backend.t.NodePath(n))
                     : new backend.t.NodePath(replacement)
               ),
-              { backend }
+              {
+                backend,
+              }
             )
         ).generate(match),
         createReplacementConverter(path)
@@ -100,7 +103,9 @@ function doReplace(match: Match, replacements: Node[]) {
   )
 
   if (replacements.length) {
-    transferComments(replacedPaths[0]?.node, replacements[0], { leading: true })
+    transferComments(replacedPaths[0]?.node, replacements[0], {
+      leading: true,
+    })
     transferComments(last(replacedPaths)?.node, last(replacements), {
       trailing: true,
     })

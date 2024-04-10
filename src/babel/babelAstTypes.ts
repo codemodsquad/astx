@@ -2,8 +2,7 @@ import _typesPlugin from 'ast-types/lib/types'
 const typesPlugin: typeof _typesPlugin =
   (_typesPlugin as any)['default'] || _typesPlugin
 import * as defaultTypes from '@babel/types'
-import lodash from 'lodash'
-const { memoize, omit, mapValues } = lodash
+import { memoize, omit, mapValues } from 'lodash'
 import fork from 'ast-types/fork'
 import { Fork } from 'ast-types/types'
 import nodePathPlugin from 'ast-types/lib/node-path'
@@ -68,7 +67,11 @@ const babelAstTypes: (t?: typeof defaultTypes) => ReturnType<typeof fork> =
         if (validate.oneOfNodeOrValueTypes) {
           return or(
             ...validate.oneOfNodeOrValueTypes.map((type: string) =>
-              /^[A-Z]/.test(type) ? def(type) : convertValidate({ type })
+              /^[A-Z]/.test(type)
+                ? def(type)
+                : convertValidate({
+                    type,
+                  })
             )
           )
         }

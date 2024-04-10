@@ -1,7 +1,6 @@
 import defaultFs from 'fs-extra'
 import Path from 'path'
-import lodash from 'lodash'
-const { memoize } = lodash
+import { memoize } from 'lodash'
 import { promisify } from 'util'
 import _resolve from 'resolve'
 import { Match } from '../find'
@@ -80,7 +79,10 @@ export default async function runTransformOnFile({
     ...configOverrides,
     parserOptions:
       baseConfig?.parserOptions || configOverrides?.parserOptions
-        ? { ...baseConfig?.parserOptions, ...configOverrides?.parserOptions }
+        ? {
+            ...baseConfig?.parserOptions,
+            ...configOverrides?.parserOptions,
+          }
         : undefined,
   }
 
@@ -136,7 +138,10 @@ export default async function runTransformOnFile({
         root = new backend.t.NodePath(ast)
       } catch (error) {
         if (error instanceof Error) {
-          CodeFrameError.rethrow(error, { filename: file, source })
+          CodeFrameError.rethrow(error, {
+            filename: file,
+            source,
+          })
         }
         throw error
       }
@@ -152,11 +157,21 @@ export default async function runTransformOnFile({
         t: backend.t,
         report: (msg: unknown) => {
           if (msg instanceof Astx && !msg.size) return
-          if (!forWorker) transform.onReport?.({ file, report: msg })
+          if (!forWorker)
+            transform.onReport?.({
+              file,
+              report: msg,
+            })
           reports.push(msg)
         },
         ...backend.template,
-        astx: new Astx({ backend, simpleReplacements }, [root]),
+        astx: new Astx(
+          {
+            backend,
+            simpleReplacements,
+          },
+          [root]
+        ),
         mark,
       }
       const [_result, prettier] = await Promise.all([

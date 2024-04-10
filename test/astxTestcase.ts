@@ -1,6 +1,6 @@
 import { describe, it } from 'mocha'
 import { expect } from 'chai'
-import { Astx, TransformFunction, TransformOptions } from '../src'
+import { Astx, Match, TransformFunction, TransformOptions } from '../src'
 import { jsParser, tsParser } from 'babel-parse-wild-code'
 import { ParserOptions } from '@babel/parser'
 import RecastBackend from '../src/recast/RecastBackend'
@@ -65,6 +65,7 @@ export function astxTestcase(testcase: Fixture): void {
             })
           : babelBackend
 
+      // eslint-disable-next-line no-only-tests/no-only-tests
       ;(skip ? it.skip : only ? it.only : it)(parser, async function () {
         const root = new backend.t.NodePath(backend.parse(input))
         const simpleReplacements = preferSimpleReplacement
@@ -78,12 +79,24 @@ export function astxTestcase(testcase: Fixture): void {
           [root]
         )
         const reports: any[] = []
+        const marks: Match[] = []
         const options: TransformOptions = {
           astx,
           file: './file',
           source: input,
           t: backend.t,
           report: (message) => reports.push(message),
+          mark: (...args: (Match | Match[] | Astx | Astx[])[]) => {
+            for (const arg of args) {
+              for (const elem of Array.isArray(arg) ? arg : [arg]) {
+                if (elem instanceof Astx) {
+                  marks.push(...elem.matches)
+                } else {
+                  marks.push(elem)
+                }
+              }
+            }
+          },
           ...backend.template,
         }
         if (expectedError) {

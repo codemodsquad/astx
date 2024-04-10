@@ -3,8 +3,7 @@ import { expect } from 'chai'
 import find, { FindOptions, Match } from '../src/find'
 import { replaceAll } from '../src/replace'
 import { Node, NodePath, getAstxMatchInfo } from '../src/types'
-import lodash from 'lodash'
-const { mapValues } = lodash
+import { mapValues } from 'lodash'
 import prettier from 'prettier'
 import { jsParser, tsParser } from 'babel-parse-wild-code'
 import { ParserOptions } from '@babel/parser'
@@ -71,8 +70,13 @@ export function extractMatchSource(
   const result: ExpectedMatch[] = []
   matches.forEach((_match: Match) => {
     const { type, pathCaptures, arrayPathCaptures, stringCaptures } = _match
-    const { path, paths }: { path?: NodePath; paths?: NodePath[] } =
-      _match as any
+    const {
+      path,
+      paths,
+    }: {
+      path?: NodePath
+      paths?: NodePath[]
+    } = _match as any
     const match: ExpectedMatch = {}
     if (type === 'node' && path) match.node = toSource(path)
     if (type === 'nodes' && paths) match.nodes = paths.map(toSource)
@@ -99,8 +103,13 @@ export function formatMatches(
   const result: ExpectedMatch[] = []
   matches.forEach((_match: Match) => {
     const { type, pathCaptures, arrayPathCaptures, stringCaptures } = _match
-    const { path, paths }: { path?: NodePath; paths?: NodePath[] } =
-      _match as any
+    const {
+      path,
+      paths,
+    }: {
+      path?: NodePath
+      paths?: NodePath[]
+    } = _match as any
     const match: ExpectedMatch = {}
     if (type === 'node' && path) match.node = toSource(path)
     if (type === 'nodes' && paths) match.nodes = paths.map(toSource)
@@ -248,7 +257,9 @@ export function findReplaceTestcase(fixture: Fixture): void {
                         ? backend.parsePatternToNodes(result)
                         : result
                     },
-                { backend }
+                {
+                  backend,
+                }
               )
             }).to.throw(expectedError)
           }
@@ -267,7 +278,9 @@ export function findReplaceTestcase(fixture: Fixture): void {
                       ? backend.parsePatternToNodes(result)
                       : result
                   },
-              { backend }
+              {
+                backend,
+              }
             )
             const actual = backend.generate(ast).code
             expect(await reformat(await format(actual))).to.deep.equal(

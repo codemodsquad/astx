@@ -2,8 +2,7 @@ import { Arguments, Argv, CommandModule } from 'yargs'
 import path from 'path'
 import chalk from 'chalk'
 import formatDiff from '../util/formatDiff'
-import lodash from 'lodash'
-const { isEmpty, once } = lodash
+import { isEmpty, once } from 'lodash'
 import inquirer from 'inquirer'
 import fs from 'fs-extra'
 import dedent from 'dedent-js'
@@ -131,12 +130,20 @@ const transform: CommandModule<Options> = {
         // yargs Eats quotes, not cool...
         const find = getOpt(/^(-f|--find)$/)
         const replace = getOpt(/^(-r|--replace)$/)
-        return { transform: { find, replace } }
+        return {
+          transform: {
+            find,
+            replace,
+          },
+        }
       } else {
         const files = [path.resolve('astx.ts'), path.resolve('astx.js')]
         for (const transformFile of files) {
           if (await fs.pathExists(transformFile)) {
-            return { transformFile, transform: await import(transformFile) }
+            return {
+              transformFile,
+              transform: await import(transformFile),
+            }
           }
         }
         throw new Error(`missing transform file: ${files.join(' or ')}`)
@@ -193,7 +200,11 @@ const transform: CommandModule<Options> = {
         : undefined) ??
       config?.workers
     const pool =
-      workers === 0 ? null : new AstxWorkerPool({ capacity: workers })
+      workers === 0
+        ? null
+        : new AstxWorkerPool({
+            capacity: workers,
+          })
     try {
       if (interactive) {
         spinnerInterval = setInterval(showProgress, 30)
@@ -204,21 +215,37 @@ const transform: CommandModule<Options> = {
         transformFile,
         paths,
         config: {
-          ...(parser ? { parser: parser as any } : null),
+          ...(parser
+            ? {
+                parser: parser as any,
+              }
+            : null),
           ...(parserOptions
-            ? { parserOptions: JSON.parse(parserOptions) }
+            ? {
+                parserOptions: JSON.parse(parserOptions),
+              }
             : null),
           ...(preferSimpleReplacement != null
-            ? { preferSimpleReplacement }
+            ? {
+                preferSimpleReplacement,
+              }
             : null),
         },
       }
       for await (const _event of pool
         ? pool.runTransform(runTransformOptions)
         : runTransform(runTransformOptions)) {
-        const event: { type: 'result'; result: IpcTransformResult } | Progress =
+        const event:
+          | {
+              type: 'result'
+              result: IpcTransformResult
+            }
+          | Progress =
           !pool && _event.type === 'result'
-            ? { type: 'result', result: makeIpcTransformResult(_event as any) }
+            ? {
+                type: 'result',
+                result: makeIpcTransformResult(_event as any),
+              }
             : (_event as any)
         if (event.type === 'progress') {
           progress = event
@@ -346,7 +373,10 @@ const transform: CommandModule<Options> = {
           console.error(`Wrote ${file}`)
         }
       }
-      if (process.send) process.send({ exit: 0 })
+      if (process.send)
+        process.send({
+          exit: 0,
+        })
     }
     await pool?.end()
     process.exit(0)

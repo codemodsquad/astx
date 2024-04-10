@@ -2,7 +2,6 @@ import { Node } from '../types'
 import * as t from '@babel/types'
 import { ReplacementConverter } from './'
 import convertToIdentifierPair from './convertToIdentifierPair'
-import convertToIdentifier from './Identifier'
 
 export default function convertImportSpecifierReplacement(): ReplacementConverter {
   const convert = (node: Node): Node | Node[] => {
@@ -32,9 +31,8 @@ export default function convertImportSpecifierReplacement(): ReplacementConverte
         return result
       }
     }
-    const identifier = convertToIdentifier(node)
-    if (identifier) {
-      return t.importDefaultSpecifier(identifier as t.Identifier)
+    if (node.type === 'Identifier') {
+      return t.importDefaultSpecifier(node as t.Identifier)
     }
     const keyValue = convertToIdentifierPair(node)
     if (keyValue) {
