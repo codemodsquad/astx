@@ -1,0 +1,16 @@
+.AstxEditor-match {
+  background-color: yellow;
+}
+
+.AstxEditor-capture {
+  background-color: gold;
+}
+
+.AstxEditor-captureName {
+  background-color: orange;
+  border-radius: 2px;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  padding: 2px;
+  padding-right: 4px;
+}

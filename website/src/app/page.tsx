@@ -1,3 +1,4 @@
+'use client'
 import * as React from 'react'
 import Container from '@mui/material/Container'
 import Typography from '@mui/material/Typography'
@@ -5,7 +6,8 @@ import Box from '@mui/material/Box'
 import AstxEditor from '@/components/AstxEditor'
 
 const initTransformCode = `
-exports.astx = ({ astx }) => {
+exports.astx = ({ astx, mark }) => {
+  mark(astx.find\`$a + $b\`) 
   astx.find\`$a + $b\`.replace\`$b + $a\`
 }
 `
