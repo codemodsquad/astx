@@ -149,6 +149,11 @@
       "import": "./dist/cli/index.mjs",
       "require": "./dist/cli/index.js",
       "types": "./dist/cli/index.d.ts"
+    },
+    "./*": {
+      "import": "./dist/*.mjs",
+      "require": "./dist/*.js",
+      "types": "./dist/*.d.ts"
     }
   },
   "engines": {
