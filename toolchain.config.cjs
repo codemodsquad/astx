@@ -20,13 +20,13 @@ module.exports = {
           await execa(process.execPath, [
             `dist/cli/index.${ext}`,
             '-t',
-            'test/findScript.cts',
+            'smoke-test/findScript.cts',
             'src/Astx.ts',
           ])
           await execa(process.execPath, [
             `dist/cli/index.${ext}`,
             '-t',
-            'test/findScript.mts',
+            'smoke-test/findScript.mts',
             'src/Astx.ts',
           ])
         }
