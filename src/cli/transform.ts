@@ -22,9 +22,9 @@ import {
 import { Transform } from '../Astx'
 import ansiEscapes from 'ansi-escapes'
 import { spinner } from './spinner'
-import '../node/registerTsNode'
 import isInteractive from '../util/isInteractive'
 import { debugConfig } from '../AstxConfig'
+import { importTransformFile } from '../node/importTransformFile'
 
 /* eslint-disable no-console */
 
@@ -120,7 +120,7 @@ const transform: CommandModule<Options> = {
         const transformFile = path.resolve(argv.transform)
         return {
           transformFile,
-          transform: await import(transformFile),
+          transform: await importTransformFile(transformFile),
         }
       } else if (argv.find) {
         const getOpt = (regex: RegExp): string | undefined => {

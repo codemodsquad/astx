@@ -11,8 +11,9 @@ import chooseGetBackend from '../chooseGetBackend'
 import { astxCosmiconfig } from './astxCosmiconfig'
 import Astx, { Transform, TransformOptions, TransformResult } from '../Astx'
 import { Node } from '../types'
-import './registerTsNode'
 import { SimpleReplacementCollector } from '../util/SimpleReplacementCollector'
+import { importTransformFile } from './importTransformFile'
+
 const resolve = promisify(_resolve) as any
 
 const getPrettier = memoize(async (path: string): Promise<any> => {
@@ -65,7 +66,7 @@ export default async function runTransformOnFile({
   fs = defaultFs,
 }: RunTransformOnFileOptions): Promise<TransformResult> {
   const transform: Transform = transformFile
-    ? await import(transformFile)
+    ? await importTransformFile(transformFile)
     : _transform ??
       ((): Transform => {
         throw new Error('transformFile or transform is required')

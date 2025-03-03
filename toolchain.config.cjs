@@ -17,6 +17,18 @@ module.exports = {
             'export type TransformOptions = $T',
             'src/**/*.ts',
           ])
+          await execa(process.execPath, [
+            `dist/cli/index.${ext}`,
+            '-t',
+            'test/findScript.cts',
+            'src/Astx.ts',
+          ])
+          await execa(process.execPath, [
+            `dist/cli/index.${ext}`,
+            '-t',
+            'test/findScript.mts',
+            'src/Astx.ts',
+          ])
         }
       },
     },
