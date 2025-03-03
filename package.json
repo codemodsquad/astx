@@ -123,7 +123,7 @@
     "resolve": "^1.19.0",
     "shallowequal": "^1.1.0",
     "tiny-typed-emitter": "^2.1.0",
-    "ts-node": "^10.9.1",
+    "tsx": "^4.19.3",
     "yargs": "^17.6.2",
     "zod": "^3.22.4"
   },
