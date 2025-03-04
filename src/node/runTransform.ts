@@ -22,7 +22,7 @@ export type RunTransformOptions = {
   gitignore?: Gitignore | null
   transform?: Transform
   transformFile?: string
-  getResolveAgainstDir?: () => string
+  getResolveAgainstDir?: (flie: string) => string
   paths?: readonly string[]
   exclude?: string
   cwd?: string
@@ -86,7 +86,9 @@ export default async function* runTransform({
         transformed = await runTransformOnFile({
           file,
           transform,
-          getResolveAgainstDir,
+          getResolveAgainstDir: getResolveAgainstDir
+            ? () => getResolveAgainstDir(file)
+            : undefined,
           config,
           signal,
           fs,

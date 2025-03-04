@@ -36,6 +36,7 @@ export default class AstxWorkerPool {
     gitignore,
     transform,
     transformFile,
+    getResolveAgainstDir,
     paths,
     exclude,
     fs,
@@ -113,6 +114,9 @@ export default class AstxWorkerPool {
               source: fs ? await fs.readFile(file, 'utf8') : undefined,
               transform,
               transformFile,
+              getResolveAgainstDir: getResolveAgainstDir
+                ? () => getResolveAgainstDir(file)
+                : undefined,
               config,
               signal,
             })
