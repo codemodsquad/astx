@@ -268,6 +268,8 @@ export function findReplaceTestcase(fixture: Fixture): void {
                     },
                 {
                   backend,
+                  getResolveAgainstDir: findOptions.getResolveAgainstDir,
+                  filename: findOptions.filename,
                 }
               )
             }).to.throw(expectedError)
@@ -289,6 +291,8 @@ export function findReplaceTestcase(fixture: Fixture): void {
                   },
               {
                 backend,
+                getResolveAgainstDir: findOptions.getResolveAgainstDir,
+                filename: findOptions.filename,
               }
             )
             const actual = backend.generate(ast).code

@@ -1,4 +1,4 @@
-import { ImportDeclaration, NodePath, Node, StringLiteral } from '../types'
+import { ExportAllDeclaration, NodePath, Node, StringLiteral } from '../types'
 import {
   CompiledReplacement,
   CompileReplacementOptions,
@@ -9,11 +9,10 @@ import compileGenericNodeReplacement from './GenericNodeReplacement'
 import transferComments from '../util/transferComments'
 import compileRelativeSourceReplacement from './RelativeSource'
 
-export default function compileImportDeclarationReplacement(
-  path: NodePath<ImportDeclaration, ImportDeclaration>,
+export default function compileExportAllDeclarationReplacement(
+  path: NodePath<ExportAllDeclaration, ExportAllDeclaration>,
   compileOptions: CompileReplacementOptions
 ): CompiledReplacement | void {
-  const n = compileOptions.backend.t.namedTypes
   const replacement = compileGenericNodeReplacement(path, compileOptions)
 
   const sourceReplacement = compileRelativeSourceReplacement(
@@ -26,7 +25,7 @@ export default function compileImportDeclarationReplacement(
       match: ReplaceableMatch,
       options: GenerateReplacementOptions
     ): Node | Node[] => {
-      const result: ImportDeclaration = replacement.generate(
+      const result: ExportAllDeclaration = replacement.generate(
         match,
         options
       ) as any
@@ -35,18 +34,6 @@ export default function compileImportDeclarationReplacement(
           match,
           options
         ) as StringLiteral
-      }
-      if (result.specifiers) {
-        // move ImportDefaultSpecifier to beginning if necessary
-        // because @babel/generator craps out otherwise
-        const defaultIndex = result.specifiers.findIndex((s) =>
-          n.ImportDefaultSpecifier.check(s)
-        )
-        if (defaultIndex > 0) {
-          result.specifiers.unshift(
-            ...(result.specifiers.splice(defaultIndex, 1) as any)
-          )
-        }
       }
       transferComments(path.node, result)
       return result

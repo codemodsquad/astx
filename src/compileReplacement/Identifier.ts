@@ -2,6 +2,7 @@ import { Node, Identifier, NodePath } from '../types'
 import {
   CompiledReplacement,
   CompileReplacementOptions,
+  GenerateReplacementOptions,
   ReplaceableMatch,
 } from './'
 import compilePlaceholderReplacement from './Placeholder'
@@ -29,11 +30,14 @@ export default function compileIdentifierReplacement(
       )
       return {
         ...placeholderReplacement,
-        generate: (match: ReplaceableMatch): Node | Node[] => {
-          const generated = placeholderReplacement.generate(match)
+        generate: (
+          match: ReplaceableMatch,
+          options: GenerateReplacementOptions
+        ): Node | Node[] => {
+          const generated = placeholderReplacement.generate(match, options)
           if (!Array.isArray(generated)) {
             ;(generated as any).typeAnnotation =
-              typeAnnotationReplacement.generate(match)
+              typeAnnotationReplacement.generate(match, options)
           }
           return generated
         },

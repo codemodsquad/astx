@@ -2,8 +2,10 @@ import { Node, NodePath, Debugger } from '../types'
 import __debug from 'debug'
 import compileGenericNodeReplacement from './GenericNodeReplacement'
 import compileGenericArrayReplacement from './GenericArrayReplacement'
+import CallExpression from './CallExpression'
 import ClassImplements from './ClassImplements'
 import ClassProperty from './ClassProperty'
+import ExportAllDeclaration from './ExportAllDeclaration'
 import ExportNamedDeclaration from './ExportNamedDeclaration'
 import ExportDefaultSpecifier from './ExportDefaultSpecifier'
 import ExportSpecifier from './ExportSpecifier'
@@ -39,18 +41,27 @@ export interface ReplaceableMatch {
   stringCaptures?: Record<string, string>
 }
 
+export type GenerateReplacementOptions = {
+  filename?: string
+}
+
 export interface CompiledReplacement {
-  generate: (match: ReplaceableMatch) => Node | Node[]
+  generate: (
+    match: ReplaceableMatch,
+    options: GenerateReplacementOptions
+  ) => Node | Node[]
 }
 
 export type RootCompileReplacementOptions = {
   debug?: Debugger
   backend: Backend
+  getResolveAgainstDir?: () => string
 }
 
 export type CompileReplacementOptions = {
   debug: Debugger
   backend: Backend
+  getResolveAgainstDir?: () => string
 }
 
 const nodeCompilers: Record<
@@ -60,8 +71,10 @@ const nodeCompilers: Record<
     options: CompileReplacementOptions
   ) => CompiledReplacement | undefined | void
 > = {
+  CallExpression,
   ClassImplements,
   ClassProperty,
+  ExportAllDeclaration,
   ExportNamedDeclaration,
   ExportDefaultSpecifier,
   ExportSpecifier,

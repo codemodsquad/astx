@@ -5,9 +5,14 @@ import { unescapeIdentifier } from './Placeholder'
 import cloneNode from '../util/cloneNode'
 import * as t from '@babel/types'
 import transferComments from '../util/transferComments'
-
-function generateValue(cooked: string): { raw: string; cooked: string } {
-  return { raw: cooked.replace(/\\|`|\${/g, '\\$&'), cooked }
+function generateValue(cooked: string): {
+  raw: string
+  cooked: string
+} {
+  return {
+    raw: cooked.replace(/\\|`|\${/g, '\\$&'),
+    cooked,
+  }
 }
 
 export default function compileTemplateLiteralReplacement(

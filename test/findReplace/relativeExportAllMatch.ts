@@ -12,9 +12,16 @@ findReplaceTestcase({
   find: dedent`
     export * from '../../foo' 
   `,
+  replace: dedent`
+    export * from  '../bar/baz'
+  `,
   expectedFind: [
     {
       node: `export * from '../foo'`,
     },
   ],
+  expectedReplace: dedent`
+    export * from './bar/baz' 
+    export * from './foo' 
+  `,
 })

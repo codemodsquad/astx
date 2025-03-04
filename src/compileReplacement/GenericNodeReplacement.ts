@@ -2,6 +2,7 @@ import { Node, NodePath } from '../types'
 import compileReplacement, {
   CompiledReplacement,
   CompileReplacementOptions,
+  GenerateReplacementOptions,
   ReplaceableMatch,
 } from './index'
 import indentDebug from '../compileMatcher/indentDebug'
@@ -39,13 +40,16 @@ export default function compileGenericNodeReplacement(
   }
 
   return {
-    generate: (match: ReplaceableMatch): Node | Node[] => {
+    generate: (
+      match: ReplaceableMatch,
+      options: GenerateReplacementOptions
+    ): Node | Node[] => {
       const result: any = {
         type: pattern.type,
       }
 
       for (const [key, replacement] of childReplacements) {
-        const value = replacement.generate(match)
+        const value = replacement.generate(match, options)
 
         if (value !== undefined) result[key] = value
       }

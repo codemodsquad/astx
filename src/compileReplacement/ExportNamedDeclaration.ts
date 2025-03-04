@@ -1,11 +1,13 @@
-import { ExportNamedDeclaration, NodePath, Node } from '../types'
+import { ExportNamedDeclaration, NodePath, Node, StringLiteral } from '../types'
 import {
   CompiledReplacement,
   CompileReplacementOptions,
+  GenerateReplacementOptions,
   ReplaceableMatch,
 } from '.'
 import compileGenericNodeReplacement from './GenericNodeReplacement'
 import transferComments from '../util/transferComments'
+import compileRelativeSourceReplacement from './RelativeSource'
 
 export default function compileExportNamedDeclarationReplacement(
   path: NodePath<ExportNamedDeclaration, ExportNamedDeclaration>,
@@ -13,9 +15,27 @@ export default function compileExportNamedDeclarationReplacement(
 ): CompiledReplacement | void {
   const n = compileOptions.backend.t.namedTypes
   const replacement = compileGenericNodeReplacement(path, compileOptions)
+
+  const sourceReplacement = compileRelativeSourceReplacement(
+    path.get('source'),
+    compileOptions
+  )
+
   return {
-    generate: (match: ReplaceableMatch): Node | Node[] => {
-      const result: ExportNamedDeclaration = replacement.generate(match) as any
+    generate: (
+      match: ReplaceableMatch,
+      options: GenerateReplacementOptions
+    ): Node | Node[] => {
+      const result: ExportNamedDeclaration = replacement.generate(
+        match,
+        options
+      ) as any
+      if (sourceReplacement) {
+        result.source = sourceReplacement.generate(
+          match,
+          options
+        ) as StringLiteral
+      }
       if (result.specifiers) {
         // move ExportDefaultSpecifier to beginning if necessary
         // because @babel/generator craps out otherwise

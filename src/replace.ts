@@ -11,12 +11,19 @@ import transferComments from './util/transferComments'
 export type ReplaceOptions = {
   backend: Backend
   simpleReplacements?: SimpleReplacementInterface
+  getResolveAgainstDir?: () => string
+  filename?: string
 }
 
 export default function replace(
   match: Match,
   replace: CompiledReplacement | Node | readonly Node[],
-  { backend, simpleReplacements }: ReplaceOptions
+  {
+    backend,
+    simpleReplacements,
+    filename,
+    getResolveAgainstDir,
+  }: ReplaceOptions
 ): void {
   const path =
     match.path.parentPath?.node?.type === 'ExpressionStatement'
@@ -33,9 +40,10 @@ export default function replace(
               : new backend.t.NodePath(replace),
             {
               backend,
+              getResolveAgainstDir,
             }
           )
-      ).generate(match),
+      ).generate(match, { filename }),
       createReplacementConverter(path)
     ),
   ]
@@ -56,7 +64,12 @@ export function replaceAll(
     | Node
     | readonly Node[]
     | ((match: Match) => CompiledReplacement | Node | readonly Node[]),
-  { backend, simpleReplacements }: ReplaceOptions
+  {
+    backend,
+    simpleReplacements,
+    filename,
+    getResolveAgainstDir,
+  }: ReplaceOptions
 ): void {
   for (const match of matches) {
     const path =
@@ -80,9 +93,10 @@ export function replaceAll(
               ),
               {
                 backend,
+                getResolveAgainstDir,
               }
             )
-        ).generate(match),
+        ).generate(match, { filename }),
         createReplacementConverter(path)
       ),
     ]

@@ -12,10 +12,17 @@ findReplaceTestcase({
   find: dedent`
     export { $$a } from '../../foo' 
   `,
+  replace: dedent`
+    export { $$a } from '../bar/baz' 
+  `,
   expectedFind: [
     {
       arrayCaptures: { $$a: ['a'] },
       node: `export { a } from '../foo'`,
     },
   ],
+  expectedReplace: dedent`
+    export { a } from './bar/baz' 
+    export { b } from './foo' 
+  `,
 })

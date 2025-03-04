@@ -12,10 +12,17 @@ findReplaceTestcase({
   find: dedent`
     import $x from './foo' 
   `,
+  replace: dedent`
+    import $x from './bar/baz'
+  `,
   expectedFind: [
     {
       captures: { $x: 'a' },
       node: `import a from '../foo'`,
     },
   ],
+  expectedReplace: dedent`
+    import a from '../bar/baz' 
+    import b from './foo' 
+  `,
 })
