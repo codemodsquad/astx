@@ -17,10 +17,21 @@ parentPort.on('message', async (message: any) => {
       return
     }
     case 'runTransformOnFile': {
-      const { seq, file, source, transform, transformFile, config } =
-        message as RunTransformOnFileOptions & {
-          seq: number
-        }
+      const {
+        seq,
+        file,
+        source,
+        transform,
+        transformFile,
+        resolveAgainstDir,
+        getResolveAgainstDir = resolveAgainstDir
+          ? () => resolveAgainstDir
+          : undefined,
+        config,
+      } = message as RunTransformOnFileOptions & {
+        seq: number
+        resolveAgainstDir?: string
+      }
       let result
       try {
         const abortController = new AbortController()
@@ -31,6 +42,7 @@ parentPort.on('message', async (message: any) => {
           source,
           transform,
           transformFile,
+          getResolveAgainstDir,
           config,
           signal,
           forWorker: true,

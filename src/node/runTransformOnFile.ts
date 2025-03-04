@@ -49,6 +49,7 @@ export type RunTransformOnFileOptions = {
   source?: string
   transform?: Transform
   transformFile?: string
+  getResolveAgainstDir?: () => string
   config?: Partial<AstxConfig>
   signal?: AbortSignal
   forWorker?: boolean
@@ -58,6 +59,8 @@ export type RunTransformOnFileOptions = {
 export default async function runTransformOnFile({
   transform: _transform,
   transformFile,
+  getResolveAgainstDir = () =>
+    transformFile ? Path.dirname(transformFile) : process.cwd(),
   config: configOverrides,
   file,
   source,
@@ -67,8 +70,6 @@ export default async function runTransformOnFile({
 }: RunTransformOnFileOptions): Promise<TransformResult> {
   // might try using callsites for this in the future in case a transform
   // script is broken up into multiple files
-  const getResolveAgainstDir = () =>
-    transformFile ? Path.dirname(transformFile) : process.cwd()
 
   const transform: Transform = transformFile
     ? await importTransformFile(transformFile)

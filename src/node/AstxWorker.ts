@@ -55,6 +55,7 @@ export default class AstxWorker {
     source,
     transform,
     transformFile,
+    getResolveAgainstDir,
     config,
     signal,
   }: RunTransformOnFileOptions): Promise<IpcTransformResult> {
@@ -92,6 +93,7 @@ export default class AstxWorker {
         file,
         transform: transformFile ? undefined : transform,
         transformFile,
+        resolveAgainstDir: getResolveAgainstDir?.(),
         ...(source && { source }),
         ...(config && { config }),
       })
