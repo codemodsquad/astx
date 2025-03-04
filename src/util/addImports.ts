@@ -1,5 +1,6 @@
 import Astx from '../Astx'
 import { Node, NodePath } from '../types'
+import Path from 'path'
 import * as t from '@babel/types'
 import findImports from './findImports'
 import { stripImportKind } from './imports'
@@ -10,9 +11,10 @@ import {
 
 export default function addImports(
   astx: Astx,
-  pattern: readonly NodePath<Node, any>[],
-  options: { filename?: string }
+  pattern: readonly NodePath<Node, any>[]
 ): Astx {
+  const { getResolveAgainstDir, filename } = astx.context
+
   for (const { node } of pattern) {
     if (node.type !== 'ImportDeclaration') {
       throw new Error(
@@ -24,6 +26,14 @@ export default function addImports(
   }
 
   function addDeclaration(decl: t.ImportDeclaration) {
+    if (decl.source.value.startsWith('.') && getResolveAgainstDir && filename) {
+      const absolute = Path.resolve(getResolveAgainstDir(), decl.source.value)
+      const relative = Path.relative(Path.dirname(filename), absolute)
+      decl.source = t.stringLiteral(
+        relative.startsWith('.') ? relative : `./${relative}`
+      )
+    }
+
     astx.context.simpleReplacements?.bail()
     const before =
       astx.find(
@@ -53,11 +63,19 @@ export default function addImports(
 
     if (!decl.specifiers?.length) {
       if (
-        astx.find(
-          (a) =>
-            a.node.type === 'ImportDeclaration' &&
-            a.node.source.value === decl.source.value
-        ).matched
+        astx.find({
+          ...decl,
+          specifiers: [
+            t.importSpecifier(t.identifier('$$'), t.identifier('$$')),
+          ],
+        }).matched ||
+        astx.find({
+          ...decl,
+          importKind: 'value',
+          specifiers: [
+            t.importSpecifier(t.identifier('$$'), t.identifier('$$')),
+          ],
+        }).matched
       ) {
         continue
       }
@@ -88,17 +106,23 @@ export default function addImports(
             local: t.identifier(unescapeIdentifier(specifier.local.name)),
           }
         }
-        const existingImportKind = astx.find(
-          (a) =>
-            a.node.type === 'ImportDeclaration' &&
-            a.node.source.value === decl.source.value &&
-            (a.node.importKind || 'value') === (decl.importKind || 'value') &&
-            (specifier.type !== 'ImportNamespaceSpecifier' ||
-              !a.node.specifiers?.length) &&
-            !a.node.specifiers?.some(
-              (s) => s.type === 'ImportNamespaceSpecifier'
-            )
-        )
+        let existingImportKind = astx.find({
+          ...decl,
+          specifiers:
+            specifier.type === 'ImportNamespaceSpecifier'
+              ? []
+              : [t.importSpecifier(t.identifier('$$'), t.identifier('$$'))],
+        })
+        if (!existingImportKind.matched) {
+          existingImportKind = astx.find({
+            ...decl,
+            importKind: 'value',
+            specifiers:
+              specifier.type === 'ImportNamespaceSpecifier'
+                ? []
+                : [t.importSpecifier(t.identifier('$$'), t.identifier('$$'))],
+          })
+        }
         if (existingImportKind.matched) {
           const existingDecl: t.ImportDeclaration =
             existingImportKind.node as any
@@ -111,7 +135,7 @@ export default function addImports(
     }
   }
 
-  return findImports(astx, pattern, options)
+  return findImports(astx, pattern)
 }
 
 function addSpecifierToDeclaration(

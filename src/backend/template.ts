@@ -78,7 +78,7 @@ export function statements(
       {
         backend: this,
       }
-    ).generate({ captures, arrayCaptures })
+    ).generate({ captures, arrayCaptures }, {})
     return ensureArray(result).map(convertStatementReplacement) as Statement[]
   } catch (error) {
     if (error instanceof Error) {
@@ -118,7 +118,7 @@ export function expression(
       {
         backend: this,
       }
-    ).generate({ captures, arrayCaptures })
+    ).generate({ captures, arrayCaptures }, {})
     let expression
     if (Array.isArray(result)) {
       if (result.length !== 1) {

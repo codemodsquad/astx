@@ -1,6 +1,7 @@
 import { describe, it } from 'mocha'
 import { expect } from 'chai'
 import { Astx, Match, TransformFunction, TransformOptions } from '../src'
+import Path from 'path'
 import { jsParser, tsParser } from 'babel-parse-wild-code'
 import { ParserOptions } from '@babel/parser'
 import RecastBackend from '../src/recast/RecastBackend'
@@ -13,6 +14,7 @@ type Fixture = {
   file: string
   input: string
   astx: TransformFunction
+  transformFile?: string
   expectedReports?: any[]
   expected?: string
   expectedError?: string
@@ -36,6 +38,7 @@ export function astxTestcase(testcase: Fixture): void {
     skip,
     preferSimpleReplacement,
     format: _format,
+    transformFile,
   } = testcase
 
   describe(file, function () {
@@ -75,6 +78,8 @@ export function astxTestcase(testcase: Fixture): void {
           {
             backend,
             simpleReplacements,
+            filename: file,
+            getResolveAgainstDir: () => Path.dirname(transformFile || file),
           },
           [root]
         )

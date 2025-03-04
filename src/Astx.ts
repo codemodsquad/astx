@@ -107,6 +107,8 @@ export type FindOptions = {
 export type AstxContext = {
   backend: Backend
   simpleReplacements?: SimpleReplacementInterface
+  filename?: string
+  getResolveAgainstDir?: () => string
 }
 
 class ExtendableProxy {
@@ -437,7 +439,10 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
       | FindPredicate,
     ...rest: any[]
   ): Return {
-    const { backend } = this
+    const {
+      backend,
+      context: { getResolveAgainstDir },
+    } = this
     if (arg0 instanceof Function) {
       const predicate = arg0
       const match = (path: NodePath): MatchResult => {
@@ -466,6 +471,7 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
           }
           const matcher = compileMatcher(pattern[0], {
             backend,
+            getResolveAgainstDir,
           })
           return exec(matcher.match)
         },
@@ -498,6 +504,7 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
     ...rest: any[]
   ): Astx {
     const { context } = this
+    const { filename } = context
     return this._execPatternOrPredicate(
       'closest',
       (matcher: CompiledMatcher['match']): Astx => {
@@ -506,7 +513,7 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
         this.paths.forEach((path) => {
           for (let p = path.parentPath; p; p = p.parentPath) {
             if (matchedParents.has(p)) return
-            const match = matcher(p, this.initialMatch, {})
+            const match = matcher(p, this.initialMatch, { filename })
             if (match) {
               matchedParents.add(p)
               matches.push(createMatch(p, match))
@@ -544,12 +551,13 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
     ...rest: any[]
   ): Astx {
     const { context } = this
+    const { filename } = context
     return this._execPatternOrPredicate(
       'destruct',
       (matcher: CompiledMatcher['match']): Astx => {
         const matches: Match[] = []
         this.paths.forEach((path) => {
-          const match = matcher(path, this.initialMatch, {})
+          const match = matcher(path, this.initialMatch, { filename })
           if (match) matches.push(createMatch(path, match))
         })
         return new Astx(context, matches)
@@ -583,6 +591,7 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
     ...rest: any[]
   ): Astx {
     const { context, backend } = this
+    const { filename, getResolveAgainstDir } = context
     if (arg0 instanceof Function) {
       const predicate = arg0
       const matches: Match[] = []
@@ -608,6 +617,8 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
             ...options,
             backend,
             matchSoFar: this.initialMatch,
+            getResolveAgainstDir,
+            filename,
           })
         ),
       arg0,
@@ -690,7 +701,7 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
     return this._execPattern(
       'addImports',
       (pattern: NodePath<Node, any> | readonly NodePath<Node, any>[]): Astx =>
-        addImports(this, Array.isArray(pattern) ? pattern : [pattern], {}),
+        addImports(this, Array.isArray(pattern) ? pattern : [pattern]),
       arg0,
       ...rest
     )
@@ -714,7 +725,7 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
     return this._execPattern(
       'findImports',
       (pattern: NodePath<Node, any> | readonly NodePath<Node, any>[]): Astx =>
-        findImports(this, Array.isArray(pattern) ? pattern : [pattern], {}),
+        findImports(this, Array.isArray(pattern) ? pattern : [pattern]),
       arg0,
       ...rest
     )
@@ -785,7 +796,7 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
             `pattern may not contain more than one import specifier`
           )
         }
-        const found = findImports(this, pattern, {})
+        const found = findImports(this, pattern)
         return new ImportReplacer(this, found, decl)
       },
       arg0,
@@ -823,7 +834,7 @@ class ImportReplacer {
       | TemplateStringsArray,
     ...rest: any[]
   ): boolean {
-    const { backend } = this.astx
+    const { backend, context } = this.astx
     const { parsePatternToNodes } = backend
 
     const doReplace = (rawReplacement: any): boolean => {
@@ -842,9 +853,14 @@ class ImportReplacer {
               Array.isArray(rawReplacement)
                 ? rawReplacement.map((n) => new backend.t.NodePath(n))
                 : new backend.t.NodePath(rawReplacement),
-              { backend }
+              context
             )
-      ).generate(match)
+      ).generate(
+        match,
+        // omit filename for resolving relative imports since
+        // addImports will handle the relative paths
+        {}
+      )
 
       const converted = converter(
         Array.isArray(generated) ? generated[0] : generated

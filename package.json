@@ -106,7 +106,6 @@
     "ansi-escapes": "^4.3.2",
     "ast-types": "^0.14.2",
     "babel-parse-wild-code": "^2.1.5",
-    "callsites": "^4.2.0",
     "chalk": "^4.1.0",
     "cosmiconfig": "^7.0.1",
     "debug": "^4.3.1",

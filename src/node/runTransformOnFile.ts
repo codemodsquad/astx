@@ -65,6 +65,11 @@ export default async function runTransformOnFile({
   forWorker,
   fs = defaultFs,
 }: RunTransformOnFileOptions): Promise<TransformResult> {
+  // might try using callsites for this in the future in case a transform
+  // script is broken up into multiple files
+  const getResolveAgainstDir = () =>
+    transformFile ? Path.dirname(transformFile) : process.cwd()
+
   const transform: Transform = transformFile
     ? await importTransformFile(transformFile)
     : _transform ??
@@ -170,6 +175,8 @@ export default async function runTransformOnFile({
           {
             backend,
             simpleReplacements,
+            filename: file,
+            getResolveAgainstDir,
           },
           [root]
         ),

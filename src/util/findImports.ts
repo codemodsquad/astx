@@ -10,11 +10,11 @@ import {
   stripImportKind,
 } from './imports'
 import compileMatcher from '../compileMatcher'
+import { compileRelativeSourceMatcher } from '../compileMatcher/RelativeSource'
 
 export default function findImports(
   astx: Astx,
-  pattern: readonly NodePath<Node, any>[],
-  options: { filename?: string }
+  pattern: readonly NodePath<Node, any>[]
 ): Astx {
   for (const { node } of pattern) {
     if (node.type !== 'ImportDeclaration') {
@@ -41,16 +41,20 @@ export default function findImports(
   for (const path of pattern) {
     const { node } = path
     const decl: ImportDeclaration = node as any
-    const sourceMatcher = compileMatcher(path.get('source'), {
-      backend: astx.backend,
-    })
+    const sourceMatcher =
+      compileRelativeSourceMatcher(path.get('source'), {
+        debug: () => {},
+        backend: astx.backend,
+        getResolveAgainstDir: astx.context.getResolveAgainstDir,
+      }) || compileMatcher(path.get('source'), astx.context)
     // filter down to only declarations where the source matches to speed up
     // going through the various patterns for each import specifier in the pattern
     // const existing = allExisting.filter(
     //   (a) => (a.node as ImportDeclaration).source.value === decl.source.value
     // ).matched
     const existing = allExisting.filter(
-      (a) => sourceMatcher.match(a.path.get('source'), null, options) != null
+      (a) =>
+        sourceMatcher.match(a.path.get('source'), null, astx.context) != null
     )
     if (!existing) return new Astx(astx.context, [])
 
