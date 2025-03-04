@@ -9,12 +9,15 @@ import ClassImplements from './ClassImplements'
 import ClassProperty from './ClassProperty'
 import compileGenericArrayMatcher from './GenericArrayMatcher'
 import compileGenericNodeMatcher from './GenericNodeMatcher'
+import ExportAllDeclaration from './ExportAllDeclaration'
+import ExportNamedDeclaration from './ExportNamedDeclaration'
 import ExportSpecifier from './ExportSpecifier'
 import ExpressionStatement from './ExpressionStatement'
 import FunctionTypeParam from './FunctionTypeParam'
 import GenericTypeAnnotation from './GenericTypeAnnotation'
 import Identifier from './Identifier'
 import ImportDeclaration from './ImportDeclaration'
+import ImportExpression from './ImportExpression'
 import ImportSpecifier from './ImportSpecifier'
 import JSXAttribute from './JSXAttribute'
 import JSXElement from './JSXElement'
@@ -139,12 +142,15 @@ const nodeMatchers: Record<
   CallExpression,
   ClassImplements,
   ClassProperty,
+  ExportAllDeclaration,
+  ExportNamedDeclaration,
   ExportSpecifier,
   ExpressionStatement,
   FunctionTypeParam,
   GenericTypeAnnotation,
   Identifier,
   ImportDeclaration,
+  ImportExpression,
   ImportSpecifier,
   JSXAttribute,
   JSXElement,

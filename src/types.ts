@@ -104,6 +104,9 @@ export type CallExpression = b.CallExpression | k.CallExpressionKind
 export type ClassDeclaration = b.ClassImplements | k.ClassImplementsKind
 export type ClassImplements = b.ClassImplements | k.ClassImplementsKind
 export type ClassProperty = b.ClassProperty | k.ClassPropertyKind
+export type ExportAllDeclaration =
+  | b.ExportAllDeclaration
+  | k.ExportAllDeclarationKind
 export type ExportDeclaration = b.ExportDeclaration | k.ExportDeclarationKind
 export type ExportDefaultSpecifier =
   | b.ExportDefaultSpecifier
@@ -127,6 +130,7 @@ export type ImportDefaultSpecifier =
   | b.ImportDefaultSpecifier
   | k.ImportDefaultSpecifierKind
 export type ImportDeclaration = b.ImportDeclaration | k.ImportDeclarationKind
+export type ImportExpression = b.ImportExpression | k.ImportExpressionKind
 export type ImportNamespaceSpecifier =
   | b.ImportNamespaceSpecifier
   | k.ImportNamespaceSpecifierKind
