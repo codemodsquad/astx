@@ -1,5 +1,5 @@
 import { NodePath, TypeAnnotation } from '../types'
-import { CompiledMatcher, CompileOptions } from '.'
+import { CompiledMatcher, CompileOptions, MatchOptions } from '.'
 import compileMatcher, { MatchResult } from '.'
 
 export default function compileTypeAnnotationMatcher(
@@ -16,10 +16,17 @@ export default function compileTypeAnnotationMatcher(
       pattern: path,
       nodeType: 'TypeAnnotation',
       optional: true,
-
-      match: (path: NodePath, matchSoFar: MatchResult): MatchResult => {
+      match: (
+        path: NodePath,
+        matchSoFar: MatchResult,
+        options: MatchOptions
+      ): MatchResult => {
         if (!path.value) return matchSoFar || {}
-        return annotationMatcher.match(path.get('typeAnnotation'), matchSoFar)
+        return annotationMatcher.match(
+          path.get('typeAnnotation'),
+          matchSoFar,
+          options
+        )
       },
     }
   }

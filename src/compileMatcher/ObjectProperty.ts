@@ -1,5 +1,10 @@
 import { ObjectProperty, NodePath, NodeType } from '../types'
-import compileMatcher, { CompiledMatcher, CompileOptions, MatchResult } from '.'
+import compileMatcher, {
+  CompiledMatcher,
+  CompileOptions,
+  MatchOptions,
+  MatchResult,
+} from '.'
 import compilePlaceholderMatcher from './Placeholder'
 import indentDebug from './indentDebug'
 
@@ -27,7 +32,9 @@ export default function compileObjectPropertyMatcher(
         path,
         pattern.key.name,
         compileOptions,
-        { nodeType: 'ObjectMember' }
+        {
+          nodeType: 'ObjectMember',
+        }
       )
 
       if (placeholderMatcher) return placeholderMatcher
@@ -39,7 +46,11 @@ export default function compileObjectPropertyMatcher(
     return {
       pattern: path,
       nodeType: nodeTypes,
-      match: (_path: NodePath, matchSoFar: MatchResult): MatchResult => {
+      match: (
+        _path: NodePath,
+        matchSoFar: MatchResult,
+        options: MatchOptions
+      ): MatchResult => {
         const { value: node } = _path
         if (!nodeTypes.includes(node.type)) {
           debug(`wrong node type`)
@@ -47,10 +58,10 @@ export default function compileObjectPropertyMatcher(
         }
         const path: NodePath<ObjectProperty> = _path as NodePath<any>
         debug('key')
-        matchSoFar = keyMatcher.match(path.get('key'), matchSoFar)
+        matchSoFar = keyMatcher.match(path.get('key'), matchSoFar, options)
         if (!matchSoFar) return null
         debug('value')
-        return valueMatcher.match(path.get('value'), matchSoFar)
+        return valueMatcher.match(path.get('value'), matchSoFar, options)
       },
     }
   }

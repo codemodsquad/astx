@@ -1,5 +1,5 @@
 import { TSTypeParameter, NodePath, setAstxMatchInfo } from '../types'
-import { CompiledMatcher, CompileOptions, MatchResult } from '.'
+import { CompiledMatcher, CompileOptions, MatchOptions, MatchResult } from '.'
 import compilePlaceholderMatcher from './Placeholder'
 import compileGenericNodeMatcher from './GenericNodeMatcher'
 
@@ -13,7 +13,9 @@ export default function compileTSTypeParameterMatcher(
     path,
     pattern.name,
     compileOptions,
-    { nodeType: 'TSTypeParameter' }
+    {
+      nodeType: 'TSTypeParameter',
+    }
   )
 
   if (placeholderMatcher) {
@@ -24,14 +26,19 @@ export default function compileTSTypeParameterMatcher(
     const { placeholder } = placeholderMatcher
 
     const genericMatcher = compileGenericNodeMatcher(path, compileOptions, {
-      keyMatchers: { name: placeholderMatcher },
+      keyMatchers: {
+        name: placeholderMatcher,
+      },
     })
 
     return {
       ...genericMatcher,
-
-      match: (path: NodePath, matchSoFar: MatchResult): MatchResult => {
-        matchSoFar = genericMatcher.match(path, matchSoFar)
+      match: (
+        path: NodePath,
+        matchSoFar: MatchResult,
+        options: MatchOptions
+      ): MatchResult => {
+        matchSoFar = genericMatcher.match(path, matchSoFar, options)
 
         if (matchSoFar == null) return null
 

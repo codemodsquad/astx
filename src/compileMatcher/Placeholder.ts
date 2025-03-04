@@ -131,7 +131,11 @@ export default function compilePlaceholderMatcher(
           return null
         }
         debug('  captured as %s', placeholder)
-        return mergeCaptures(matchSoFar, { captures: { [placeholder]: path } })
+        return mergeCaptures(matchSoFar, {
+          captures: {
+            [placeholder]: path,
+          },
+        })
       },
     }
   }
@@ -181,8 +185,12 @@ export function compileStringPlaceholderMatcher<N extends Node>(
         }
         debug('  captured as %s', placeholder)
         return mergeCaptures(matchSoFar, {
-          captures: { [placeholder]: path },
-          stringCaptures: { [placeholder]: string },
+          captures: {
+            [placeholder]: path,
+          },
+          stringCaptures: {
+            [placeholder]: string,
+          },
         })
       },
     }

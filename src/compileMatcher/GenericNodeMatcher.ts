@@ -2,6 +2,7 @@ import { Node, NodePath, NodeType } from '../types'
 import compileMatcher, {
   CompiledMatcher,
   CompileOptions,
+  MatchOptions,
   MatchResult,
 } from './index'
 import indentDebug from './indentDebug'
@@ -11,7 +12,9 @@ const equivalenceClassesArray: {
   nodeTypes: Set<NodeType>
   baseType?: NodeType
 }[] = [
-  { nodeTypes: new Set(['ClassDeclaration', 'ClassExpression']) },
+  {
+    nodeTypes: new Set(['ClassDeclaration', 'ClassExpression']),
+  },
   {
     nodeTypes: new Set([
       'FunctionDeclaration',
@@ -29,7 +32,13 @@ const equivalenceClassesArray: {
 ]
 
 const equivalenceClasses: Partial<
-  Record<NodeType, { nodeTypes: Set<NodeType>; baseType?: NodeType }>
+  Record<
+    NodeType,
+    {
+      nodeTypes: Set<NodeType>
+      baseType?: NodeType
+    }
+  >
 > = {}
 for (const klass of equivalenceClassesArray) {
   for (const type of klass.nodeTypes) equivalenceClasses[type] = klass
@@ -133,7 +142,11 @@ export default function compileGenericNodeMatcher(
 
   return {
     pattern: path,
-    match: (path: NodePath, matchSoFar: MatchResult): MatchResult => {
+    match: (
+      path: NodePath,
+      matchSoFar: MatchResult,
+      options: MatchOptions
+    ): MatchResult => {
       debug('%s (generic)', pattern.type)
 
       if (Array.isArray(path.value)) return null
@@ -142,7 +155,7 @@ export default function compileGenericNodeMatcher(
         for (const key in keyMatchers) {
           debug('  .%s', key)
           const matcher = keyMatchers[key]
-          matchSoFar = matcher.match(path.get(key), matchSoFar)
+          matchSoFar = matcher.match(path.get(key), matchSoFar, options)
           if (!matchSoFar) return null
         }
 

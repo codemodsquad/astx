@@ -5,6 +5,7 @@ import { replaceAll } from '../src/replace'
 import { Node, NodePath, getAstxMatchInfo } from '../src/types'
 import { mapValues } from 'lodash'
 import prettier from 'prettier'
+import Path from 'path'
 import { jsParser, tsParser } from 'babel-parse-wild-code'
 import { ParserOptions } from '@babel/parser'
 import RecastBackend from '../src/recast/RecastBackend'
@@ -40,6 +41,7 @@ type Fixture = {
   skip?: boolean
   expectedError?: string
   format?: boolean
+  transformFile?: string
 }
 
 export function extractMatchSource(
@@ -130,7 +132,6 @@ export function findReplaceTestcase(fixture: Fixture): void {
     input,
     file,
     expectMatchesSelf,
-    findOptions,
     where,
     expectedFind,
     replace: _replace,
@@ -138,7 +139,15 @@ export function findReplaceTestcase(fixture: Fixture): void {
     expectedError,
     skip,
     format: _format,
+    transformFile = file,
   } = fixture
+
+  const findOptions = {
+    filename: file,
+    getResolveAgainstDir: () => Path.dirname(transformFile),
+    ...fixture.findOptions,
+  }
+
   const _find: string = (() => {
     if (expectMatchesSelf) return input
     if (!fixture.find)

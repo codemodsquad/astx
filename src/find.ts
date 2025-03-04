@@ -24,10 +24,12 @@ export type Match = {
 
 export type FindOptions = {
   backend: Backend
+  getResolveAgainstDir?: () => string
   where?: {
     [captureName: string]: (path: NodePath) => boolean
   }
   matchSoFar?: MatchResult
+  filename?: string
 }
 
 export function convertWithCaptures(matches: Match | Match[]): MatchResult {
@@ -104,8 +106,15 @@ export default function find(
 
   const nodeTypes: readonly NodeType[] = ensureArray(matcher.nodeType || 'Node')
 
+  const { filename } = options
+  const matchOptions = { filename }
+
   forEachNode(t, ensureArray(paths), nodeTypes, (path: NodePath) => {
-    const result = matcher.match(path, options?.matchSoFar ?? null)
+    const result = matcher.match(
+      path,
+      options?.matchSoFar ?? null,
+      matchOptions
+    )
     if (result) matches.push(createMatch(path, result))
   })
 
@@ -122,6 +131,9 @@ function findStatements(
   const matchers: CompiledMatcher[] = pattern.map((queryElem) =>
     compileMatcher(queryElem, options)
   )
+
+  const { filename } = options
+  const matchOptions = { filename }
 
   const firstNonArrayCaptureIndex = matchers.findIndex(
     (m) => !m.arrayPlaceholder
@@ -182,7 +194,7 @@ function findStatements(
           ? paths.length - remainingElements(matcherIndex + 1)
           : arrayIndex + 1
       for (let i = arrayIndex; i < end; i++) {
-        matchSoFar = matcher.match(paths[i], origMatchSoFar)
+        matchSoFar = matcher.match(paths[i], origMatchSoFar, matchOptions)
         if (!matchSoFar) continue
         if (prevArrayPlaceholder) {
           matchSoFar = mergeCaptures(matchSoFar, {

@@ -1,5 +1,10 @@
 import { NodePath, AssignmentPattern, pathIs } from '../types'
-import compileMatcher, { CompiledMatcher, CompileOptions, MatchResult } from '.'
+import compileMatcher, {
+  CompiledMatcher,
+  CompileOptions,
+  MatchOptions,
+  MatchResult,
+} from '.'
 import indentDebug from './indentDebug'
 import compileGenericNodeMatcher from './GenericNodeMatcher'
 
@@ -22,11 +27,15 @@ export default function compileAssignmentPatternMatcher(
     const wholeMatcher = compileGenericNodeMatcher(pattern, subCompileOptions)
     return {
       pattern,
-      match: (path: NodePath, matchSoFar: MatchResult): MatchResult => {
+      match: (
+        path: NodePath,
+        matchSoFar: MatchResult,
+        options: MatchOptions
+      ): MatchResult => {
         debug('AssignmentPattern (with optional right)')
         return (
           pathIs(path, n.AssignmentPattern) ? wholeMatcher : leftMatcher
-        ).match(path, matchSoFar)
+        ).match(path, matchSoFar, options)
       },
     }
   }

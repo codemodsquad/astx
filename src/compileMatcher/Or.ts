@@ -1,5 +1,10 @@
 import { Node, NodePath, NodeType } from '../types'
-import compileMatcher, { CompiledMatcher, CompileOptions, MatchResult } from '.'
+import compileMatcher, {
+  CompiledMatcher,
+  CompileOptions,
+  MatchOptions,
+  MatchResult,
+} from '.'
 
 export default function compileOrMatcher(
   path: NodePath,
@@ -15,9 +20,13 @@ export default function compileOrMatcher(
   return {
     pattern: path,
     nodeType: nodeType.size ? [...nodeType] : undefined,
-    match: (path: NodePath, matchSoFar: MatchResult): MatchResult => {
+    match: (
+      path: NodePath,
+      matchSoFar: MatchResult,
+      options: MatchOptions
+    ): MatchResult => {
       for (const matcher of matchers) {
-        const result = matcher.match(path, matchSoFar)
+        const result = matcher.match(path, matchSoFar, options)
         if (result) return result
       }
       return null

@@ -13,7 +13,6 @@
   "sideEffects": false,
   "scripts": {
     "cli": "babel-node --extensions .ts src/cli/index.ts",
-    "tsc:watch": "npm run tsc -- --watch",
     "tc": "toolchain",
     "toolchain": "toolchain",
     "test": "toolchain test",
@@ -55,12 +54,12 @@
     "@babel/node": "^7.13.13",
     "@babel/plugin-transform-react-jsx": "^7.14.9",
     "@jcoreio/eslint-plugin-implicit-dependencies": "^1.1.1",
-    "@jcoreio/toolchain": "^3.11.0",
-    "@jcoreio/toolchain-circle": "^3.11.0",
-    "@jcoreio/toolchain-esnext": "^3.11.0",
-    "@jcoreio/toolchain-mocha": "^3.11.0",
-    "@jcoreio/toolchain-semantic-release": "^3.11.0",
-    "@jcoreio/toolchain-typescript": "^3.11.0",
+    "@jcoreio/toolchain": "^4.12.4",
+    "@jcoreio/toolchain-circle": "^4.12.4",
+    "@jcoreio/toolchain-esnext": "^4.12.4",
+    "@jcoreio/toolchain-mocha": "^4.12.4",
+    "@jcoreio/toolchain-semantic-release": "^4.12.4",
+    "@jcoreio/toolchain-typescript": "^4.12.4",
     "@types/babel__code-frame": "^7.0.3",
     "@types/babel__generator": "^7.6.5",
     "@types/babel__parser": "^7.1.1",
@@ -107,6 +106,7 @@
     "ansi-escapes": "^4.3.2",
     "ast-types": "^0.14.2",
     "babel-parse-wild-code": "^2.1.5",
+    "callsites": "^4.2.0",
     "chalk": "^4.1.0",
     "cosmiconfig": "^7.0.1",
     "debug": "^4.3.1",
@@ -154,5 +154,8 @@
   "engines": {
     "node": ">=16"
   },
-  "packageManager": "pnpm@8.11.0"
+  "packageManager": "pnpm@8.11.0",
+  "@jcoreio/toolchain": {
+    "migratedVersion": "4.12.4"
+  }
 }

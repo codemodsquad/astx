@@ -506,7 +506,7 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
         this.paths.forEach((path) => {
           for (let p = path.parentPath; p; p = p.parentPath) {
             if (matchedParents.has(p)) return
-            const match = matcher(p, this.initialMatch)
+            const match = matcher(p, this.initialMatch, {})
             if (match) {
               matchedParents.add(p)
               matches.push(createMatch(p, match))
@@ -549,7 +549,7 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
       (matcher: CompiledMatcher['match']): Astx => {
         const matches: Match[] = []
         this.paths.forEach((path) => {
-          const match = matcher(path, this.initialMatch)
+          const match = matcher(path, this.initialMatch, {})
           if (match) matches.push(createMatch(path, match))
         })
         return new Astx(context, matches)
@@ -690,7 +690,7 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
     return this._execPattern(
       'addImports',
       (pattern: NodePath<Node, any> | readonly NodePath<Node, any>[]): Astx =>
-        addImports(this, Array.isArray(pattern) ? pattern : [pattern]),
+        addImports(this, Array.isArray(pattern) ? pattern : [pattern], {}),
       arg0,
       ...rest
     )
@@ -714,7 +714,7 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
     return this._execPattern(
       'findImports',
       (pattern: NodePath<Node, any> | readonly NodePath<Node, any>[]): Astx =>
-        findImports(this, Array.isArray(pattern) ? pattern : [pattern]),
+        findImports(this, Array.isArray(pattern) ? pattern : [pattern], {}),
       arg0,
       ...rest
     )
@@ -785,7 +785,7 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
             `pattern may not contain more than one import specifier`
           )
         }
-        const found = findImports(this, pattern)
+        const found = findImports(this, pattern, {})
         return new ImportReplacer(this, found, decl)
       },
       arg0,

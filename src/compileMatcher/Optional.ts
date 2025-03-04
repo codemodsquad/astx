@@ -1,5 +1,5 @@
 import { NodePath } from '../types'
-import { CompiledMatcher, CompileOptions } from '.'
+import { CompiledMatcher, CompileOptions, MatchOptions } from '.'
 import compileMatcher, { MatchResult } from '.'
 
 export default function compileOptionalMatcher(
@@ -13,11 +13,13 @@ export default function compileOptionalMatcher(
     ...matcher,
     pattern: path,
     optional: true,
-
-    match: (path: NodePath, matchSoFar: MatchResult): MatchResult => {
+    match: (
+      path: NodePath,
+      matchSoFar: MatchResult,
+      options: MatchOptions
+    ): MatchResult => {
       if (path.value == null) return matchSoFar || {}
-
-      return matcher.match(path, matchSoFar)
+      return matcher.match(path, matchSoFar, options)
     },
   }
 }

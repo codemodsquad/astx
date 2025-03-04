@@ -2,43 +2,58 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "test <file>",
       "type": "shell",
-      "options": { "shell": { "executable": "bash", "args": ["-c", "-l"] } },
+      "options": {
+        "shell": {
+          "executable": "bash",
+          "args": ["-c", "-l"]
+        }
+      },
       "command": "pnpm",
       "isBackground": false,
-      "args": ["tc", "test", "${file}"],
       "group": "test",
       "presentation": {
         "panel": "dedicated",
         "clear": true
-      }
+      },
+      "label": "test <file>",
+      "args": ["tc", "test", "${file}"]
     },
     {
+      "type": "shell",
+      "options": {
+        "shell": {
+          "executable": "bash",
+          "args": ["-c", "-l"]
+        }
+      },
+      "command": "pnpm",
+      "isBackground": false,
+      "group": "test",
+      "presentation": {
+        "panel": "dedicated",
+        "clear": true
+      },
       "label": "test:watch <file>",
-      "type": "shell",
-      "options": { "shell": { "executable": "bash", "args": ["-c", "-l"] } },
-      "command": "pnpm",
-      "isBackground": true,
-      "args": ["tc", "test", "--watch", "${file}"],
-      "group": "test",
-      "presentation": {
-        "panel": "dedicated",
-        "clear": true
-      }
+      "args": ["tc", "test", "--watch", "${file}"]
     },
     {
-      "label": "test:debug <file>",
       "type": "shell",
-      "options": { "shell": { "executable": "bash", "args": ["-c", "-l"] } },
+      "options": {
+        "shell": {
+          "executable": "bash",
+          "args": ["-c", "-l"]
+        }
+      },
       "command": "pnpm",
-      "isBackground": true,
-      "args": ["tc", "test", "-n", "inspect-brk", "${file}"],
+      "isBackground": false,
       "group": "test",
       "presentation": {
         "panel": "dedicated",
         "clear": true
-      }
+      },
+      "label": "test:debug <file>",
+      "args": ["tc", "test", "-n", "inspect-brk", "${file}"]
     }
   ]
 }

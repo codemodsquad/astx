@@ -3,6 +3,7 @@ import CompilePathError from '../util/CompilePathError'
 import compileMatcher, {
   CompiledMatcher,
   CompileOptions,
+  MatchOptions,
   MatchResult,
   mergeCaptures,
 } from '.'
@@ -165,7 +166,8 @@ function compileOrderedArrayMatcher(
     sliceStart: number,
     arrayIndex: number,
     matcherIndex: number,
-    matchSoFar: MatchResult
+    matchSoFar: MatchResult,
+    options: MatchOptions
   ): MatchResult {
     while (arrayIndex < paths.length && skipElement(paths[arrayIndex]))
       arrayIndex++
@@ -194,7 +196,8 @@ function compileOrderedArrayMatcher(
         sliceStart,
         arrayIndex,
         matcherIndex + 1,
-        matchSoFar
+        matchSoFar,
+        options
       )
     } else {
       const origMatchSoFar = matchSoFar
@@ -207,9 +210,7 @@ function compileOrderedArrayMatcher(
         const elemPath = paths[i]
 
         if (skipElement(elemPath)) continue
-
-        matchSoFar = matcher.match(elemPath, origMatchSoFar)
-
+        matchSoFar = matcher.match(elemPath, origMatchSoFar, options)
         if (!matchSoFar) continue
 
         if (prevArrayPlaceholder) {
@@ -225,7 +226,8 @@ function compileOrderedArrayMatcher(
           i + 1,
           i + 1,
           matcherIndex + 1,
-          matchSoFar
+          matchSoFar,
+          options
         )
 
         if (restMatch) return restMatch
@@ -237,16 +239,18 @@ function compileOrderedArrayMatcher(
 
   return {
     pattern: paths,
-    match: (path: NodePath, matchSoFar: MatchResult): MatchResult => {
+    match: (
+      path: NodePath,
+      matchSoFar: MatchResult,
+      options: MatchOptions
+    ): MatchResult => {
       debug('Array (ordered)')
 
       if (!Array.isArray(path.value)) return null
       const paths = (path as NodePath<Node, Node[]>).filter(() => true)
 
-      let result = matchElem(paths, 0, 0, 0, matchSoFar)
-      if (!result) return result
-
-      // make sure all * captures are present in results
+      let result = matchElem(paths, 0, 0, 0, matchSoFar, options)
+      if (!result) return result // make sure all * captures are present in results
       // (if there are more than one adjacent *, all captured paths will be in the
       // last one and the rest will be empty)
       for (const matcher of matchers) {
@@ -254,7 +258,9 @@ function compileOrderedArrayMatcher(
         if (!arrayPlaceholder) continue
         if (!result?.arrayCaptures?.[arrayPlaceholder])
           result = mergeCaptures(result, {
-            arrayCaptures: { [arrayPlaceholder]: [] },
+            arrayCaptures: {
+              [arrayPlaceholder]: [],
+            },
           })
       }
       return result
@@ -281,7 +287,11 @@ function compileUnorderedArrayMatcher(
 
   return {
     pattern: paths,
-    match: (path: NodePath, result: MatchResult): MatchResult => {
+    match: (
+      path: NodePath,
+      result: MatchResult,
+      options: MatchOptions
+    ): MatchResult => {
       debug('Array (unordered)')
 
       if (!Array.isArray(path.value)) return null
@@ -296,7 +306,7 @@ function compileUnorderedArrayMatcher(
             i++
             continue
           }
-          const match = m.match(paths[i], result)
+          const match = m.match(paths[i], result, options)
           if (!match) continue
           result = match
           paths.splice(i, 1)
@@ -309,7 +319,9 @@ function compileUnorderedArrayMatcher(
       }
       if (restPlaceholder) {
         return mergeCaptures(result, {
-          arrayCaptures: { [restPlaceholder]: paths },
+          arrayCaptures: {
+            [restPlaceholder]: paths,
+          },
         })
       } else {
         if (paths.length) {
@@ -335,7 +347,11 @@ function compileExactArrayMatcher(
   const { debug } = compileOptions
   return {
     pattern: paths,
-    match: (path: NodePath, matchSoFar: MatchResult): MatchResult => {
+    match: (
+      path: NodePath,
+      matchSoFar: MatchResult,
+      options: MatchOptions
+    ): MatchResult => {
       debug('Array (exact)')
 
       if (!Array.isArray(path.value)) return null
@@ -350,7 +366,7 @@ function compileExactArrayMatcher(
           debug('    length mismatch')
           return null
         }
-        matchSoFar = matchers[m].match(paths[i], matchSoFar)
+        matchSoFar = matchers[m].match(paths[i], matchSoFar, options)
         if (!matchSoFar) return null
         m++
         i++

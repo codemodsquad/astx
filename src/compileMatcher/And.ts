@@ -1,5 +1,10 @@
 import { Node, NodePath } from '../types'
-import compileMatcher, { CompiledMatcher, CompileOptions, MatchResult } from '.'
+import compileMatcher, {
+  CompiledMatcher,
+  CompileOptions,
+  MatchOptions,
+  MatchResult,
+} from '.'
 import { NodeType } from '../types'
 import indentDebug from './indentDebug'
 
@@ -22,10 +27,14 @@ export default function compileAndMatcher(
   return {
     pattern: path,
     nodeType: nodeType.size ? [...nodeType] : undefined,
-    match: (path: NodePath, matchSoFar: MatchResult): MatchResult => {
+    match: (
+      path: NodePath,
+      matchSoFar: MatchResult,
+      options: MatchOptions
+    ): MatchResult => {
       debug('$And')
       for (const matcher of matchers) {
-        matchSoFar = matcher.match(path, matchSoFar)
+        matchSoFar = matcher.match(path, matchSoFar, options)
         if (!matchSoFar) return null
       }
       return matchSoFar

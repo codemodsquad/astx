@@ -13,7 +13,8 @@ import compileMatcher from '../compileMatcher'
 
 export default function findImports(
   astx: Astx,
-  pattern: readonly NodePath<Node, any>[]
+  pattern: readonly NodePath<Node, any>[],
+  options: { filename?: string }
 ): Astx {
   for (const { node } of pattern) {
     if (node.type !== 'ImportDeclaration') {
@@ -49,7 +50,7 @@ export default function findImports(
     //   (a) => (a.node as ImportDeclaration).source.value === decl.source.value
     // ).matched
     const existing = allExisting.filter(
-      (a) => sourceMatcher.match(a.path.get('source'), null) != null
+      (a) => sourceMatcher.match(a.path.get('source'), null, options) != null
     )
     if (!existing) return new Astx(astx.context, [])
 

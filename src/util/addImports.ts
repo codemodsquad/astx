@@ -10,7 +10,8 @@ import {
 
 export default function addImports(
   astx: Astx,
-  pattern: readonly NodePath<Node, any>[]
+  pattern: readonly NodePath<Node, any>[],
+  options: { filename?: string }
 ): Astx {
   for (const { node } of pattern) {
     if (node.type !== 'ImportDeclaration') {
@@ -110,7 +111,7 @@ export default function addImports(
     }
   }
 
-  return findImports(astx, pattern)
+  return findImports(astx, pattern, options)
 }
 
 function addSpecifierToDeclaration(

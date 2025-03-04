@@ -43,6 +43,7 @@ const _debug = __debug('astx:match')
 export type RootCompileOptions = {
   where?: { [captureName: string]: (path: NodePath) => boolean }
   debug?: Debugger
+  getResolveAgainstDir?: () => string
   backend: Backend
 }
 
@@ -50,6 +51,7 @@ export type CompileOptions = {
   where?: { [captureName: string]: (path: NodePath) => boolean }
   debug: Debugger
   backend: Backend
+  getResolveAgainstDir?: () => string
 }
 
 export type Captures = Record<string, NodePath>
@@ -98,8 +100,16 @@ export function mergeCaptures(...results: MatchResult[]): MatchResult {
 }
 
 export type PredicateMatcher = {
-  match: (path: NodePath, matchSoFar: MatchResult) => boolean
+  match: (
+    path: NodePath,
+    matchSoFar: MatchResult,
+    options: MatchOptions
+  ) => boolean
   nodeType?: keyof typeof t.namedTypes | (keyof typeof t.namedTypes)[]
+}
+
+export type MatchOptions = {
+  filename?: string
 }
 
 export interface CompiledMatcher {
@@ -109,7 +119,11 @@ export interface CompiledMatcher {
   arrayPlaceholder?: string
   restPlaceholder?: string
   flag?: '$Ordered' | '$Unordered'
-  match: (path: NodePath, matchSoFar: MatchResult) => MatchResult
+  match: (
+    path: NodePath,
+    matchSoFar: MatchResult,
+    options: MatchOptions
+  ) => MatchResult
   nodeType?: NodeType | NodeType[]
 }
 
@@ -163,9 +177,13 @@ export function convertPredicateMatcher(
   return {
     pattern,
     nodeType: matcher.nodeType,
-    match: (path: NodePath, matchSoFar: MatchResult): MatchResult => {
+    match: (
+      path: NodePath,
+      matchSoFar: MatchResult,
+      options: MatchOptions
+    ): MatchResult => {
       debug('%s (specific)', pattern.value.type)
-      const result = matcher.match(path, matchSoFar)
+      const result = matcher.match(path, matchSoFar, options)
       if (result) {
         if (result === true) debug('  matched')
         return typeof result === 'object' ? result : matchSoFar || {}
