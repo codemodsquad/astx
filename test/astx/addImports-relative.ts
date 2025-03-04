@@ -5,7 +5,7 @@ import dedent from 'dedent-js'
 
 astxTestcase({
   file: __filename,
-  transformFile: Path.resolve(__dirname, 'foo/transform.ts'),
+  transformFile: Path.resolve(__filename, '..', 'foo/transform.ts'),
   input: dedent`
     import {a} from '../a'
     import {b} from 'b'

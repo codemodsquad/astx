@@ -4,7 +4,7 @@ import path from 'path'
 
 findReplaceTestcase({
   file: __filename,
-  transformFile: path.resolve(__dirname, 'test/transform.ts'),
+  transformFile: path.resolve(__filename, '..', 'test/transform.ts'),
   input: dedent`
     export * from '../foo' 
     export * from './foo' 

@@ -4,7 +4,7 @@ import path from 'path'
 
 findReplaceTestcase({
   file: __filename,
-  transformFile: path.resolve(__dirname, 'test/transform.ts'),
+  transformFile: path.resolve(__filename, '..', 'test/transform.ts'),
   input: dedent`
     export { a } from '../foo' 
     export { b } from './foo' 
@@ -17,7 +17,9 @@ findReplaceTestcase({
   `,
   expectedFind: [
     {
-      arrayCaptures: { $$a: ['a'] },
+      arrayCaptures: {
+        $$a: ['a'],
+      },
       node: `export { a } from '../foo'`,
     },
   ],
