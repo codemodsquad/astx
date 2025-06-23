@@ -138,6 +138,7 @@ export default async function runTransformOnFile({
         if (!result.size) return null
       }
     }
+    const createFiles: NonNullable<TransformResult['create']> = []
     if (typeof transformFn === 'function') {
       let ast, root
       try {
@@ -181,6 +182,26 @@ export default async function runTransformOnFile({
           },
           [root]
         ),
+        createFile: (
+          otherFile: string,
+          content: string | Node | (string | Node)[]
+        ) => {
+          createFiles.push({
+            file: Path.resolve(getResolveAgainstDir(), otherFile),
+            transformed:
+              typeof content === 'string'
+                ? content
+                : Array.isArray(content)
+                ? content
+                    .map((node) =>
+                      typeof node === 'string'
+                        ? node
+                        : backend.generate(node).code
+                    )
+                    .join('\n')
+                : backend.generate(content).code,
+          })
+        },
         mark,
       }
       const [_result, prettier] = await Promise.all([
@@ -205,13 +226,21 @@ export default async function runTransformOnFile({
         if (transformed === null) transformed = undefined
         if (
           prettier &&
-          typeof transformed === 'string' &&
-          transformed !== source
+          (createFiles.length ||
+            (typeof transformed === 'string' && transformed !== source))
         ) {
           const prettierConfig = (await prettier.resolveConfig(file)) || {}
           prettierConfig.filepath = file
           if (/\.tsx?$/.test(file)) prettierConfig.parser = 'typescript'
-          transformed = await prettier.format(transformed, prettierConfig)
+          if (typeof transformed === 'string' && transformed !== source) {
+            transformed = await prettier.format(transformed, prettierConfig)
+          }
+          for (const create of createFiles) {
+            create.transformed = await prettier.format(
+              create.transformed,
+              prettierConfig
+            )
+          }
         }
         if (transformed != null) {
           transformed = omitBlankLineChanges(source, transformed)
@@ -233,6 +262,7 @@ export default async function runTransformOnFile({
       reports,
       matches: matches.length ? matches : undefined,
       backend,
+      ...(createFiles.length && { create: createFiles }),
     }
   } catch (error) {
     return {

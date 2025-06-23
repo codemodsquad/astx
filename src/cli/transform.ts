@@ -287,7 +287,11 @@ const transform: CommandModule<Options> = {
           } else {
             console.error(chalk.red(error.stack))
           }
-        } else if (source && transformed && source !== transformed) {
+        } else if (
+          source != null &&
+          transformed != null &&
+          source !== transformed
+        ) {
           changedCount++
           results[file] = transformed
           if (!argv.yes) {
@@ -296,7 +300,7 @@ const transform: CommandModule<Options> = {
           }
         } else if (
           matches?.length &&
-          source &&
+          source != null &&
           transform.find &&
           !transform.replace &&
           !transform.astx
@@ -368,9 +372,20 @@ const transform: CommandModule<Options> = {
             ])
           ).apply
       if (apply) {
+        const dirs = new Set(
+          Object.keys(results).map((file) => path.dirname(file))
+        )
+        for (const dir of dirs) {
+          await fs.mkdirs(dir)
+        }
         for (const file in results) {
-          await fs.writeFile(file, results[file], 'utf8')
-          console.error(`Wrote ${file}`)
+          if (!results[file].trim()) {
+            await fs.remove(file)
+            console.error(`Removed ${file}`)
+          } else {
+            await fs.writeFile(file, results[file], 'utf8')
+            console.error(`Wrote ${file}`)
+          }
         }
       }
       if (process.send)

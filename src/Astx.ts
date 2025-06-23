@@ -41,6 +41,14 @@ export type TransformOptions = {
   statements(strings: TemplateStringsArray, ...quasis: any[]): Statement[]
   t: typeof AstTypes
   report: (msg: unknown) => void
+  /**
+   * Instructs astx to create a new file with the given content.  (Astx will display
+   * the new file in the preview of transform results, but won't actually create it
+   * until the user elects to apply the transform)
+   * @param file - the file (absolute or relative to the transform file directory)
+   * @param content - the content, as string(s) or AST node(s)
+   */
+  createFile: (file: string, content: string | Node | (string | Node)[]) => void
 }
 
 export type TransformFunction = (
@@ -69,6 +77,7 @@ export type TransformResult = {
   error?: Error
   matches?: readonly Match[]
   backend: Backend
+  create?: { file: string; transformed: string; reports?: unknown[] }[]
 }
 
 export type ParsePattern = (

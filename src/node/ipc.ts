@@ -108,6 +108,7 @@ export type IpcTransformResult = {
   reports?: any[]
   error?: IpcError
   matches?: readonly IpcMatch[]
+  create?: { file: string; transformed: string; reports?: any[] }[]
 }
 
 export function makeIpcTransformResult({
@@ -118,8 +119,23 @@ export function makeIpcTransformResult({
   error,
   matches,
   backend,
+  create,
 }: TransformResult): IpcTransformResult {
-  const result: IpcTransformResult = { file, source, transformed, reports }
+  const result: IpcTransformResult = {
+    file,
+    source,
+    transformed,
+    reports,
+    ...(create && {
+      create: create.map(({ transformed, ...result }) => ({
+        ...result,
+        transformed:
+          typeof transformed === 'string'
+            ? transformed
+            : backend.generate(transformed).code,
+      })),
+    }),
+  }
   if (error) {
     if (error instanceof CodeFrameError) {
       const { message, stack, filename, source, path, loc } = error

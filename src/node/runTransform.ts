@@ -81,7 +81,7 @@ export default async function* runTransform({
       total++
       yield progress()
       if (signal?.aborted) return
-      let transformed
+      let transformed: TransformResult
       try {
         transformed = await runTransformOnFile({
           file,
@@ -100,7 +100,15 @@ export default async function* runTransform({
         throw error
       }
       if (signal?.aborted) return
-      yield { type: 'result', result: transformed }
+      const { create, ...result } = transformed
+      yield { type: 'result', result }
+      const { backend } = result
+      if (create) {
+        yield* create.map((result) => ({
+          type: 'result' as const,
+          result: { ...result, source: '', backend },
+        }))
+      }
     }
   }
   if (signal?.aborted) return

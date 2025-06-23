@@ -120,13 +120,24 @@ export default class AstxWorkerPool {
               config,
               signal,
             })
-              .then(async (result) => {
+              .then(async ({ create, ...result }) => {
                 if (signal?.aborted) return
                 completed++
                 await emit({
                   type: 'result',
                   result,
                 })
+                if (create) {
+                  for (const result of create) {
+                    await emit({
+                      type: 'result',
+                      result: {
+                        ...result,
+                        source: '',
+                      },
+                    })
+                  }
+                }
                 if (signal?.aborted) return
                 await emit(progress())
                 if (signal?.aborted) return
