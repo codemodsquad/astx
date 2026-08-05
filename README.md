@@ -6,7 +6,7 @@
 [![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
 [![npm version](https://badge.fury.io/js/astx.svg)](https://badge.fury.io/js/astx)
 
-Super powerful structural search and replace for JavaScript and TypeScript to automate your refactoring
+Super powerful (but not very actively maintained) structural search and replace for JavaScript and TypeScript to automate your refactoring
 
 # Table of Contents
 
