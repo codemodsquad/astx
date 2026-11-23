@@ -1,5 +1,5 @@
 import Astx from '../Astx'
-import { Node, NodePath } from '../types'
+import { NodePath } from '../types'
 import Path from 'path'
 import * as t from '@babel/types'
 import findImports from './findImports'
@@ -11,7 +11,7 @@ import {
 
 export default function addImports(
   astx: Astx,
-  pattern: readonly NodePath<Node, any>[]
+  pattern: readonly NodePath[]
 ): Astx {
   const { getResolveAgainstDir, filename } = astx.context
 
@@ -51,6 +51,7 @@ export default function addImports(
         after.paths[0].insertBefore(decl)
       } else {
         const program = astx.find((a) => a.node.type === 'Program').paths[0]
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         if (program) {
           program.get('body').unshift(decl)
         }
@@ -61,6 +62,7 @@ export default function addImports(
   for (const { node } of pattern) {
     const decl: t.ImportDeclaration = node as any
 
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (!decl.specifiers?.length) {
       if (
         astx.find({
@@ -148,6 +150,7 @@ function addSpecifierToDeclaration(
   if (decl.importKind === 'type' || decl.importKind === 'typeof') {
     specifier = stripImportKind(specifier)
   }
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   if (!decl.specifiers?.length) {
     decl.specifiers = [specifier]
   } else if (specifier.type === 'ImportDefaultSpecifier') {

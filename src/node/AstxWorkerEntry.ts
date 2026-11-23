@@ -10,6 +10,7 @@ const parentPort = _parentPort
 if (!parentPort) process.exit(1)
 
 const abortControllers: Map<number, AbortController> = new Map()
+// eslint-disable-next-line @typescript-eslint/no-misused-promises
 parentPort.on('message', async (message: any) => {
   switch (message.type) {
     case 'abort': {

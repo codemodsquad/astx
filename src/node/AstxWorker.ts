@@ -30,6 +30,7 @@ export default class AstxWorker {
     if (this.ended) return
     const worker = new Worker(AstxWorkerFile)
     this.worker = worker
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
     worker.once('exit', async () => {
       this.worker = undefined
       if (this.ended) return
@@ -46,8 +47,7 @@ export default class AstxWorker {
     while (!this.worker) {
       await new Promise((r) => setTimeout(r, 1000))
     }
-    if (this.worker) return this.worker
-    throw new Error('unexpected')
+    return this.worker
   }
 
   async runTransformOnFile({
@@ -75,7 +75,7 @@ export default class AstxWorker {
         emitted(worker, 'message', {
           filter: (event: any) => event.seq === seq,
           rejectionEvents: ['error', 'exit'],
-        }).catch((reason) => {
+        }).catch((reason: unknown) => {
           throw typeof reason === 'number'
             ? new Error(`worker exited with code ${reason}`)
             : reason

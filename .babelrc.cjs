@@ -1,5 +1,3 @@
-/* eslint-env node, es2018 */
-
 const filenamePlugin = ({ types: t }) => ({
   visitor: {
     Identifier(path) {

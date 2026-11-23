@@ -9,7 +9,8 @@ astxTestcase({
     import bar from 'bar'
   `,
   astx: ({ astx }: TransformOptions): void => {
-    astx.replaceImport`import foo from 'foo'`.with`import { blah } from 'foo'`
+    void astx.replaceImport`import foo from 'foo'`
+      .with`import { blah } from 'foo'`
   },
   expected: dedent`
     import { foob, blah } from 'foo'

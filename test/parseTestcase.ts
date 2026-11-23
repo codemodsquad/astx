@@ -54,7 +54,6 @@ export function parseTestcase(testcase: Fixture): void {
             })
           : babelBackend
 
-      // eslint-disable-next-line no-only-tests/no-only-tests
       ;(skip ? it.skip : only ? it.only : it)(`<parse> ${parser}`, function () {
         if (expected) {
           expect(

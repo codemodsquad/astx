@@ -7,17 +7,14 @@ import { getParserAsync } from 'babel-parse-wild-code'
 import { promisify } from 'util'
 import babelInterop from './babelInterop'
 
-const resolve: (
-  id: string,
-  opts: _resolve.AsyncOpts
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-) => Promise<string> = promisify(_resolve as any)
+const resolve: (id: string, opts: _resolve.AsyncOpts) => Promise<string> =
+  promisify(_resolve as any)
 
 async function importLocal<T>(pkg: string, basedir: string): Promise<T> {
   const resolved = await resolve(pkg, {
     basedir,
   })
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
+
   return await import(/* webpackIgnore: true */ resolved)
 }
 
@@ -41,7 +38,7 @@ export default async function getBabelAutoBackend(
       : _parser.bindParserOpts({ sourceType: 'unambiguous' })
   ).forExtension(file)
   return new BabelBackend({
-    parser: parser as any,
+    parser,
     parserOptions: options,
     preserveFormat,
     generator: babelInterop(generator),

@@ -1,6 +1,7 @@
 import { CodeGenerator, default as generate } from '@babel/generator'
 // @ts-expect-error no type defs
-import { default as Printer } from '@babel/generator/lib/printer.js'
+import { default as _Printer } from '@babel/generator/lib/printer.js'
+const Printer: any = 'default' in _Printer ? _Printer.default : _Printer
 import { Comment, Node } from '../types'
 import { original, rangeWithWhitespace, source } from '../util/symbols'
 
@@ -23,7 +24,9 @@ export default function reprint(node: Node): { code: string } {
         return printer.generate((this as any)._ast)
       }
     }
-    class Reprinter extends (Printer as any) {
+    class Reprinter extends Printer {
+      // needs type def
+      // eslint-disable-next-line @typescript-eslint/no-useless-constructor
       constructor(format: any, map: any) {
         super(format, map)
       }
@@ -100,7 +103,7 @@ export default function reprint(node: Node): { code: string } {
         // const isBlockComment = comment.type === "CommentBlock";
         // const printNewLines = isBlockComment && skipNewLines !== 1 && !noLineTerminator;
         const orig = (comment as any)[original]
-        const src = (comment as any)[source]
+        const src: string = (comment as any)[source]
         if (orig && src) {
           const loc = (comment as any)[rangeWithWhitespace] || orig
           let { start } = loc
@@ -115,8 +118,9 @@ export default function reprint(node: Node): { code: string } {
           lastPrintedRange.end = end
 
           let commentStr = src.substring(start, end)
-          if (comment.type === 'CommentLine' && !/\n\s*$/.test(commentStr))
+          if (comment.type === 'CommentLine' && !/\n\s*$/.test(commentStr)) {
             commentStr += '\n'
+          }
 
           this._append(
             commentStr,

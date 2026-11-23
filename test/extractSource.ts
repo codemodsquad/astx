@@ -1,18 +1,18 @@
 import { Backend } from '../src/backend/Backend'
-import { Node, NodePath, getAstxMatchInfo } from '../src/types'
+import { NodePath, getAstxMatchInfo } from '../src/types'
 
 export function extractSource(
-  path: NodePath<Node, any>,
+  path: NodePath,
   source: string,
   backend: Backend
 ): string
 export function extractSource(
-  path: NodePath<Node, any>[],
+  path: NodePath[],
   source: string,
   backend: Backend
 ): string[]
 export function extractSource(
-  path: NodePath<Node, any> | NodePath<Node, any>[],
+  path: NodePath | NodePath[],
   source: string,
   backend: Backend
 ): string | string[] {

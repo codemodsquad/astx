@@ -35,10 +35,10 @@ export type TransformOptions = {
   /**
    * Marks the given matches to be displayed in the matches list of vscode-astx etc.
    */
-  mark(...matches: (Match | Match[] | Astx | Astx[])[]): void
-  expression(strings: TemplateStringsArray, ...quasis: any[]): Expression
-  statement(strings: TemplateStringsArray, ...quasis: any[]): Statement
-  statements(strings: TemplateStringsArray, ...quasis: any[]): Statement[]
+  mark: (...matches: (Match | Match[] | Astx | Astx[])[]) => void
+  expression: (strings: TemplateStringsArray, ...quasis: any[]) => Expression
+  statement: (strings: TemplateStringsArray, ...quasis: any[]) => Statement
+  statements: (strings: TemplateStringsArray, ...quasis: any[]) => Statement[]
   t: typeof AstTypes
   report: (msg: unknown) => void
   /**
@@ -120,6 +120,7 @@ export type AstxContext = {
   getResolveAgainstDir?: () => string
 }
 
+// eslint-disable-next-line @typescript-eslint/no-extraneous-class
 class ExtendableProxy {
   constructor(handler: ProxyHandler<any>) {
     return new Proxy(this, handler)
@@ -131,7 +132,7 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
   private readonly _matches: Match[]
   private readonly _withCaptures: Match[]
   private readonly _placeholder: string | undefined
-  private _lazyPaths: NodePath<Node, any>[] | undefined
+  private _lazyPaths: NodePath[] | undefined
   private _lazyNodes: Node[] | undefined
   private _lazyInitialMatch: MatchResult | undefined
 
@@ -214,6 +215,7 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
 
   get match(): Match {
     const [match] = this._matches
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (!match) {
       throw new Error(`you can't call match() when there are no matches`)
     }
@@ -391,9 +393,7 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
 
   private _execPattern<Return>(
     name: string,
-    exec: (
-      pattern: NodePath<Node, any> | readonly NodePath<Node, any>[]
-    ) => Return,
+    exec: (pattern: NodePath | readonly NodePath[]) => Return,
     arg0:
       | string
       | Node
@@ -408,7 +408,7 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
     const { parsePattern } = backend
     const { NodePath } = backend.t
     try {
-      let pattern: NodePath<Node, any> | readonly NodePath<Node, any>[]
+      let pattern: NodePath | readonly NodePath[]
       if (typeof arg0 === 'string') {
         pattern = parsePattern(arg0)
       } else if (
@@ -473,7 +473,7 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
     } else {
       return this._execPattern(
         name,
-        (pattern: NodePath<Node, any> | readonly NodePath<Node, any>[]) => {
+        (pattern: NodePath | readonly NodePath[]) => {
           pattern = ensureArray(pattern)
           if (pattern.length !== 1) {
             throw new Error(`must be a single node`)
@@ -616,10 +616,7 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
     }
     return this._execPattern(
       'find',
-      (
-        pattern: NodePath<Node, any> | readonly NodePath<Node, any>[],
-        options?: FindOptions
-      ): Astx =>
+      (pattern: NodePath | readonly NodePath[], options?: FindOptions): Astx =>
         new Astx(
           context,
           find(this.paths, pattern, {
@@ -709,7 +706,7 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
   ): Astx {
     return this._execPattern(
       'addImports',
-      (pattern: NodePath<Node, any> | readonly NodePath<Node, any>[]): Astx =>
+      (pattern: NodePath | readonly NodePath[]): Astx =>
         addImports(this, Array.isArray(pattern) ? pattern : [pattern]),
       arg0,
       ...rest
@@ -733,7 +730,7 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
   ): Astx {
     return this._execPattern(
       'findImports',
-      (pattern: NodePath<Node, any> | readonly NodePath<Node, any>[]): Astx =>
+      (pattern: NodePath | readonly NodePath[]): Astx =>
         findImports(this, Array.isArray(pattern) ? pattern : [pattern]),
       arg0,
       ...rest
@@ -760,9 +757,7 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
   ): boolean {
     return this._execPattern(
       'removeImports',
-      (
-        pattern: NodePath<Node, any> | readonly NodePath<Node, any>[]
-      ): boolean =>
+      (pattern: NodePath | readonly NodePath[]): boolean =>
         removeImports(this, Array.isArray(pattern) ? pattern : [pattern]),
       arg0,
       ...rest
@@ -789,9 +784,7 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
   ): ImportReplacer {
     return this._execPattern(
       'replaceImport',
-      (
-        _pattern: NodePath<Node, any> | readonly NodePath<Node, any>[]
-      ): ImportReplacer => {
+      (_pattern: NodePath | readonly NodePath[]): ImportReplacer => {
         const pattern = Array.isArray(_pattern) ? _pattern : [_pattern]
         if (
           pattern.length !== 1 ||
@@ -799,7 +792,7 @@ export default class Astx extends ExtendableProxy implements Iterable<Astx> {
         ) {
           throw new Error(`pattern must contain exactly one import declaration`)
         }
-        const decl: ImportDeclaration = pattern[0]?.node as any
+        const decl: ImportDeclaration = pattern[0]?.node
         if (decl.specifiers && decl.specifiers.length > 1) {
           throw new Error(
             `pattern may not contain more than one import specifier`
@@ -850,13 +843,14 @@ class ImportReplacer {
       if (!this.found.matched) return false
       const match = this.found.match
       const path =
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         match.path.parentPath?.node?.type === 'ExpressionStatement'
           ? match.path.parentPath
           : match.path
       const converter = createReplacementConverter(path)
       const generated = (
         rawReplacement instanceof Object &&
-        typeof (rawReplacement as any).generate === 'function'
+        typeof rawReplacement.generate === 'function'
           ? (rawReplacement as CompiledReplacement)
           : compileReplacement(
               Array.isArray(rawReplacement)

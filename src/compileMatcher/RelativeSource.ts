@@ -3,7 +3,7 @@ import { NodePath } from '../types'
 import Path from 'path'
 
 export function compileRelativeSourceMatcher(
-  pattern: NodePath<any, any>,
+  pattern: NodePath<any>,
   compileOptions: Omit<CompileOptions, 'rootPath'>
 ): CompiledMatcher | void {
   const source = pattern.value
@@ -17,7 +17,7 @@ export function compileRelativeSourceMatcher(
     return {
       pattern,
       match: (
-        path: NodePath<any, any>,
+        path: NodePath<any>,
         matchSoFar: MatchResult,
         { filename }: MatchOptions
       ): MatchResult => {

@@ -30,7 +30,7 @@ export function isCapturePlaceholder(identifier: string): boolean {
 export function compileArrayPlaceholderMatcher(
   pattern: NodePath,
   identifier: string,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
   compileOptions: CompileOptions,
   otherOptions?: {
     nodeType?: NodeType | NodeType[]
@@ -55,7 +55,7 @@ export function compileArrayPlaceholderMatcher(
 export function compileRestPlaceholderMatcher(
   pattern: NodePath,
   identifier: string,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
   compileOptions: CompileOptions,
   otherOptions?: {
     nodeType?: NodeType | NodeType[]
@@ -101,7 +101,7 @@ export default function compilePlaceholderMatcher(
   const placeholder = getPlaceholder(identifier)
   if (placeholder) {
     const whereCondition =
-      placeholder === '$' ? undefined : compileOptions?.where?.[placeholder]
+      placeholder === '$' ? undefined : compileOptions.where?.[placeholder]
     const condition = otherOptions?.getCondition?.() || (() => true)
     const nodeType = otherOptions?.nodeType
     return {

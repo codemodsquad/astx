@@ -54,7 +54,7 @@ function pipeline<T0, T1, T2, T3, T4, T5, T6, T7, T8>(
   t6: (t: T6) => T7,
   t7: (t: T7) => T8
 ): T8
-// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+
 function pipeline(input: any, ...args: any[]): any {
   return flow(...args)(input)
 }

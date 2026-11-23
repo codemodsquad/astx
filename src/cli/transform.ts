@@ -110,7 +110,7 @@ const transform: CommandModule<Options> = {
 
     const paths = (argv.filesAndDirectories || []).filter(
       (x) => typeof x === 'string'
-    ) as string[]
+    )
 
     const { transform, transformFile } = await (async (): Promise<{
       transform: Transform
@@ -319,7 +319,7 @@ const transform: CommandModule<Options> = {
             -------
           `)
           )
-          reports?.forEach((r: any) => console.error(r))
+          reports.forEach((r: any) => console.error(r))
         }
       }
     } catch (error) {

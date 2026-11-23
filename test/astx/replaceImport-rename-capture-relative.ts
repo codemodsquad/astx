@@ -11,7 +11,7 @@ astxTestcase({
     import bar from 'bar'
   `,
   astx: ({ astx }: TransformOptions): void => {
-    astx.replaceImport`import { foo as $foo } from '../../foo'`
+    void astx.replaceImport`import { foo as $foo } from '../../foo'`
       .with`import { renamed as $foo } from '../renamed/foo'`
   },
   expected: dedent`

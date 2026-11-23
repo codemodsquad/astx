@@ -68,7 +68,6 @@ export function astxTestcase(testcase: Fixture): void {
             })
           : babelBackend
 
-      // eslint-disable-next-line no-only-tests/no-only-tests
       ;(skip ? it.skip : only ? it.only : it)(parser, async function () {
         const root = new backend.t.NodePath(backend.parse(input))
         const simpleReplacements = preferSimpleReplacement
@@ -117,7 +116,8 @@ export function astxTestcase(testcase: Fixture): void {
           const format = async (code: string) =>
             _format === false
               ? code
-              : (await prettier.format(code, prettierOptions))
+              : prettier
+                  .format(code, prettierOptions)
                   .trim()
                   .replace(/\n{2,}/gm, '\n')
 

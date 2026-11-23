@@ -1,13 +1,14 @@
 import BabelBackend from './BabelBackend'
 import { jsParser } from 'babel-parse-wild-code'
+import isEmpty from 'lodash/isEmpty.js'
 
 export default async function getBabelDefaultsBackend(
   file: string,
   { preserveFormat, ...options }: { [k in string]?: any } = {}
 ): Promise<BabelBackend> {
-  const parser = options ? jsParser.bindParserOpts(options) : jsParser
+  const parser = !isEmpty(options) ? jsParser.bindParserOpts(options) : jsParser
   return new BabelBackend({
-    parser: parser.forExtension(file) as any,
+    parser: parser.forExtension(file),
     parserOptions: options,
     preserveFormat,
   })

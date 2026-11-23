@@ -10,6 +10,7 @@ export default function convertToExpression(value: Node): Expression | void {
       return { ...value, type: 'FunctionExpression' }
     case 'ExpressionStatement':
     case 'JSXExpressionContainer':
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       if (value.expression?.type !== 'JSXEmptyExpression')
         return value.expression
   }

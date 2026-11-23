@@ -51,6 +51,7 @@ export default function compileGenericNodeReplacement(
       for (const [key, replacement] of childReplacements) {
         const value = replacement.generate(match, options)
 
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         if (value !== undefined) result[key] = value
       }
 

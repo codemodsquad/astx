@@ -77,9 +77,13 @@ export default class BabelBackend extends Backend<Node> {
     this.location = (node: Node) => ({
       start: node.start,
       end: node.end,
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       startLine: node.loc?.start?.line,
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       startColumn: node.loc?.start?.column,
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       endLine: node.loc?.end?.line,
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       endColumn: node.loc?.end?.column,
     })
     this.comments = function* comments(

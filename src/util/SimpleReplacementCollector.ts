@@ -21,7 +21,9 @@ export class SimpleReplacementCollector implements SimpleReplacementInterface {
   replace(target: Node, replacement: Node): void {
     if (this.bailed) return
     const loc = this.backend.location(target)
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     const start = loc?.start
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     const end = loc?.end
     if (start == null || end == null) return this.bail()
     this.replacements.push([[start, end], replacement])

@@ -43,7 +43,7 @@ export default function compileIdentifierMatcher(
           ].map(
             ([type, field]) =>
               (path: NodePath) =>
-                (type as any).check(path.parent?.value) && path.name === field
+                type.check(path.parent?.value) && path.name === field
           ),
           ...[[n.TSFunctionType, 'parameters']].map(
             ([type, field]) =>
@@ -58,6 +58,7 @@ export default function compileIdentifierMatcher(
   if (placeholderMatcher) {
     const { placeholder } = placeholderMatcher
 
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (typeAnnotation && typeAnnotation.value) {
       const typeAnnotationMatcher = compileMatcher(
         typeAnnotation,

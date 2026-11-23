@@ -76,11 +76,12 @@ function hasCapturePlaceholder(captures?: Captures | ArrayCaptures): boolean {
 }
 
 export function mergeCaptures(...results: MatchResult[]): MatchResult {
-  let current: MatchResult = null
+  let current: MatchResult | null = null
   for (const result of results) {
     if (!result) continue
     if (!current) current = {}
     if (result.captures && hasCapturePlaceholder(result.captures)) {
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       if (!current) current = {}
       if (!current.captures) current.captures = {}
       for (const [key, value] of Object.entries(result.captures)) {
@@ -88,6 +89,7 @@ export function mergeCaptures(...results: MatchResult[]): MatchResult {
       }
     }
     if (result.arrayCaptures && hasCapturePlaceholder(result.arrayCaptures)) {
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       if (!current) current = {}
       if (!current.arrayCaptures) current.arrayCaptures = {}
       for (const [key, value] of Object.entries(result.arrayCaptures)) {
@@ -95,6 +97,7 @@ export function mergeCaptures(...results: MatchResult[]): MatchResult {
       }
     }
     if (result.stringCaptures) {
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       if (!current) current = {}
       if (!current.stringCaptures) current.stringCaptures = {}
       Object.assign(current.stringCaptures, result.stringCaptures)
@@ -131,13 +134,12 @@ export interface CompiledMatcher {
   nodeType?: NodeType | NodeType[]
 }
 
-const nodeMatchers: Record<
-  string,
-  (
-    path: NodePath<any, any>,
+const nodeMatchers: {
+  [Type in string]?: (
+    path: NodePath<any>,
     options: CompileOptions
   ) => CompiledMatcher | undefined | void
-> = {
+} = {
   AssignmentPattern,
   BooleanLiteral,
   CallExpression,
@@ -192,10 +194,10 @@ export function convertPredicateMatcher(
       debug('%s (specific)', pattern.value.type)
       const result = matcher.match(path, matchSoFar, options)
       if (result) {
-        if (result === true) debug('  matched')
-        return typeof result === 'object' ? result : matchSoFar || {}
+        debug('  matched')
+        return matchSoFar || {}
       } else {
-        if (result === false) debug(`  didn't match`)
+        debug(`  didn't match`)
         return null
       }
     },
@@ -215,7 +217,7 @@ export default function compileMatcher(
   if (Array.isArray(path.value)) {
     return compileGenericArrayMatcher(path, compileOptions)
   } else if (nodeMatchers[path.value.type]) {
-    const matcher = nodeMatchers[path.value.type](path, compileOptions)
+    const matcher = nodeMatchers[path.value.type]?.(path, compileOptions)
     if (matcher) return matcher
   }
   return compileGenericNodeMatcher(path, compileOptions)

@@ -46,6 +46,7 @@ function getDefaultUnordered(
     if (!parent) return false
     return getDefaultUnordered(parent)
   }
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   if (!path.node || !path.name) return false
   return Boolean(defaultUnorderedFields[path.node.type]?.[path.name])
 }

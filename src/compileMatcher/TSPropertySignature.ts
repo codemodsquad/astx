@@ -14,6 +14,7 @@ export default function compileTSPropertySignatureMatcher(
       !pattern.optional &&
       !pattern.computed &&
       (pattern.typeAnnotation == null ||
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         (n.TSTypeReference.check(pattern.typeAnnotation?.typeAnnotation) &&
           n.Identifier.check(pattern.typeAnnotation.typeAnnotation.typeName) &&
           pattern.typeAnnotation.typeAnnotation.typeName.name === '$'))

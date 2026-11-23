@@ -36,6 +36,7 @@ export default class RecastBackend extends Backend<Node> {
     this.parseStatements = (code: string): Statement[] => {
       const ast: File = recast.parse(code, parseOptions)
       const errors =
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         ast.type === 'File' ? (ast.program as any).errors : (ast as any).errors
       if (errors?.length) {
         // Flow parser returns a bogus AST instead of throwing when the grammar is invalid,
@@ -61,14 +62,14 @@ export default class RecastBackend extends Backend<Node> {
 
       return expression
     }
-    this.generate = (node: Node): { code: string } => recast.print(node as any)
+    this.generate = (node: Node): { code: string } => recast.print(node)
     this.location = wrapped.location
     this.comments = function* comments(
       node: Node,
       kind?: 'leading' | 'inner' | 'trailing'
     ): Iterable<Comment> {
       if (!node.comments) return
-      yield* node.comments?.filter(
+      yield* node.comments.filter(
         (comment) =>
           !kind ||
           (kind === 'inner'

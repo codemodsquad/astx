@@ -110,11 +110,7 @@ export default function find(
   const matchOptions = { filename }
 
   forEachNode(t, ensureArray(paths), nodeTypes, (path: NodePath) => {
-    const result = matcher.match(
-      path,
-      options?.matchSoFar ?? null,
-      matchOptions
-    )
+    const result = matcher.match(path, options.matchSoFar ?? null, matchOptions)
     if (result) matches.push(createMatch(path, result))
   })
 
@@ -225,7 +221,7 @@ function findStatements(
 
   const matches: Match[] = []
 
-  const initialMatch = options?.matchSoFar ?? null
+  const initialMatch = options.matchSoFar ?? null
 
   for (const block of blocks) {
     const body: NodePath<Statement>[] = block.get('body').filter(() => true)

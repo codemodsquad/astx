@@ -18,7 +18,6 @@ const resolve = promisify(_resolve) as any
 
 const getPrettier = memoize(async (path: string): Promise<any> => {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     let prettier = await import(
       /* webpackIgnore: true */
       await resolve('prettier', {
@@ -34,7 +33,7 @@ const getPrettier = memoize(async (path: string): Promise<any> => {
     ) {
       return prettier
     }
-  } catch (error) {
+  } catch {
     // ignore
   }
   return await import('prettier')
@@ -130,7 +129,7 @@ export default async function runTransformOnFile({
     const { find, replace } = transform
     if (typeof transformFn !== 'function' && find) {
       transformFn = ({ astx, mark }: TransformOptions): any => {
-        const result = astx.find(find as string | Node | Node[], {
+        const result = astx.find(find, {
           where: transform.where,
         })
         if (replace) result.replace(replace)
@@ -206,7 +205,7 @@ export default async function runTransformOnFile({
       }
       const [_result, prettier] = await Promise.all([
         transformFn(options),
-        config?.prettier !== false ? getPrettier(Path.dirname(file)) : null,
+        config.prettier !== false ? getPrettier(Path.dirname(file)) : null,
       ])
       if (signal?.aborted) throw new Error('aborted')
       if (transform.astx || transform.replace) {
@@ -215,7 +214,7 @@ export default async function runTransformOnFile({
           if (simpleReplacements) {
             try {
               transformed = simpleReplacements.applyReplacements()
-            } catch (error) {
+            } catch {
               // ignore
             }
           }

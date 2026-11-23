@@ -38,10 +38,7 @@ export default function compileImportSpecifierMatcher(
     keyMatchers: {
       importKind: {
         pattern: path.get('importKind'),
-        match: (
-          path: NodePath<any, any>,
-          matchSoFar: MatchResult
-        ): MatchResult => {
+        match: (path: NodePath<any>, matchSoFar: MatchResult): MatchResult => {
           return (path.value || 'value') === importKind
             ? matchSoFar || {}
             : null

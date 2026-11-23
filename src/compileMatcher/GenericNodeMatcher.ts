@@ -65,17 +65,15 @@ export default function compileGenericNodeMatcher(
     equivalenceClasses[pattern.type as NodeType] || {}
 
   const nodeType =
-    baseType ||
-    (nodeTypes ? [...nodeTypes] : null) ||
-    (pattern.type as NodeType)
+    baseType || (nodeTypes ? [...nodeTypes] : null) || pattern.type
   const isType = baseType
     ? (node: any) => (t.namedTypes as any)[baseType]?.check(node)
     : null
   const isCorrectType = isType
-    ? (node: Node) => isType(node)
+    ? (node?: Node) => isType(node)
     : nodeTypes
-    ? (node: Node) => nodeTypes.has(node?.type as NodeType)
-    : (node: Node) => node?.type === pattern.type
+    ? (node?: Node) => (node ? nodeTypes.has(node.type) : false)
+    : (node?: Node) => node?.type === pattern.type
 
   const { debug } = compileOptions
 
@@ -127,7 +125,7 @@ export default function compileGenericNodeMatcher(
                 (value === null && nodeValue === false) ||
                 (value === false && nodeValue === null) ||
                 (value === null && isEmptyArray(nodeValue)) ||
-                (isEmptyArray(nodeValue) && nodeValue === null)
+                (isEmptyArray(value) && nodeValue === null)
               ) {
                 debug('    %s === %s', value, nodeValue)
                 return matchSoFar || {}
@@ -153,6 +151,7 @@ export default function compileGenericNodeMatcher(
 
       if (Array.isArray(path.value)) return null
 
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       if (isCorrectType(path?.value)) {
         for (const key in keyMatchers) {
           debug('  .%s', key)
@@ -165,6 +164,7 @@ export default function compileGenericNodeMatcher(
       } else {
         debug(
           '  path?.value?.type (%s) is not compatible with pattern.type (%s)',
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
           path?.value?.type,
           pattern.type
         )

@@ -53,10 +53,13 @@ export default function convertToJSXIdentifierName(node: Node): string | void {
       return node.local?.name
     case 'ImportSpecifier':
       if (
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         node.imported?.type !== 'Identifier' ||
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         node.imported?.name !== node.local?.name
       )
         return
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       return node.local?.name
     case 'TypeParameter':
     case 'TSTypeParameter':

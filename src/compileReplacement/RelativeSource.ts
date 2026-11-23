@@ -4,7 +4,7 @@ import * as t from '@babel/types'
 import Path from 'path'
 
 export default function compileRelativeSourceReplacement(
-  pattern: NodePath<any, any>,
+  pattern: NodePath<any>,
   compileReplacementOptions: CompileReplacementOptions
 ): CompiledReplacement | void {
   const source = pattern.value

@@ -14,7 +14,7 @@ import { compileRelativeSourceMatcher } from '../compileMatcher/RelativeSource'
 
 export default function findImports(
   astx: Astx,
-  pattern: readonly NodePath<Node, any>[]
+  pattern: readonly NodePath[]
 ): Astx {
   for (const { node } of pattern) {
     if (node.type !== 'ImportDeclaration') {
@@ -56,8 +56,9 @@ export default function findImports(
       (a) =>
         sourceMatcher.match(a.path.get('source'), null, astx.context) != null
     )
-    if (!existing) return new Astx(astx.context, [])
+    if (!existing.matched) return new Astx(astx.context, [])
 
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (!decl.specifiers?.length) {
       const match =
         existing.find(decl).matched ||

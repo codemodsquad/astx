@@ -95,7 +95,7 @@ export default class AstxWorkerPool {
       }
     }
 
-    ;(async () => {
+    void (async () => {
       try {
         await emit(progress())
         for (const include of paths?.length ? paths : [cwd]) {
@@ -143,7 +143,7 @@ export default class AstxWorkerPool {
                 if (signal?.aborted) return
                 await checkDone()
               })
-              .catch((error) => {
+              .catch((error: unknown) => {
                 if (error instanceof AbortedError) return
                 events.throw(error)
               })

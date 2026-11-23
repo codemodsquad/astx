@@ -15,6 +15,6 @@ export default function compileSpreadElementReplacement(
       argument.name,
       compileOptions
     )
-    if (placeholderReplacement) return placeholderReplacement as any
+    if (placeholderReplacement) return placeholderReplacement
   }
 }

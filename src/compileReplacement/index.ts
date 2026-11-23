@@ -64,13 +64,12 @@ export type CompileReplacementOptions = {
   getResolveAgainstDir?: () => string
 }
 
-const nodeCompilers: Record<
-  string,
-  (
+const nodeCompilers: {
+  [Type in string]?: (
     pattern: NodePath<any>,
     options: CompileReplacementOptions
   ) => CompiledReplacement | undefined | void
-> = {
+} = {
   CallExpression,
   ClassImplements,
   ClassProperty,
@@ -109,10 +108,10 @@ export default function compileReplacement(
   const { debug = _debug } = rootCompileReplacementOptions
   const compileOptions = { ...rootCompileReplacementOptions, debug }
   if (Array.isArray(pattern) || Array.isArray(pattern.value)) {
-    return compileGenericArrayReplacement(pattern, compileOptions) as any
+    return compileGenericArrayReplacement(pattern, compileOptions)
   }
   if (nodeCompilers[pattern.value.type]) {
-    const replacement = nodeCompilers[pattern.value.type](
+    const replacement = nodeCompilers[pattern.value.type]?.(
       pattern,
       compileOptions
     )

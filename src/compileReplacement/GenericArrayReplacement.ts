@@ -12,6 +12,8 @@ export default function compileGenericArrayReplacement(
   compileOptions: CompileReplacementOptions
 ): CompiledReplacement {
   const { debug } = compileOptions
+  // .filter(() => true) to clone array
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   const paths = path.filter(() => true)
 
   const elemOptions = {

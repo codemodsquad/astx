@@ -32,9 +32,10 @@ export interface SourceLocation {
 }
 
 function formatSource(path: NodePath | null | undefined): string | undefined {
-  while (path?.parentPath) path = path?.parentPath
+  while (path?.parentPath) path = path.parentPath
   const node = path?.node
   if (!node) return undefined
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   return generate(node as any, { retainLines: true })?.code
 }
 
@@ -123,7 +124,8 @@ export default class CodeFrameError extends Error {
       ${red(`Error in ${filename} (${start.line}:${start.column})`)}
       ${codeFrameColumns(source, { start, end }, { message, ...options })}${
       options.stack && stack
-        ? '\n' + red(stack?.replace(/^.*?(\r\n?|\n)/, ''))
+        ? // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+          '\n' + red(stack?.replace(/^.*?(\r\n?|\n)/, ''))
         : ''
     }
     `

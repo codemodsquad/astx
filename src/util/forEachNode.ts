@@ -1,8 +1,6 @@
 import * as AstTypes from 'ast-types'
 import { NodeType, NodePath } from '../types'
 
-AstTypes.PathVisitor
-
 export default function forEachNode(
   t: typeof AstTypes,
   paths: readonly NodePath[],

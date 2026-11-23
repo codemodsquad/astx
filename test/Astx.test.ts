@@ -9,20 +9,19 @@ import * as t from '@babel/types'
 import { Backend } from '../src/backend/Backend'
 import { CodeFrameError } from '../src'
 
-/* eslint-disable @typescript-eslint/explicit-function-return-type */
-
 describe(`Astx`, function () {
   for (const backend of [
     new RecastBackend({
       wrapped: new BabelBackend(),
     }),
     new BabelBackend(),
-  ] as Backend<any>[]) {
+  ] as Backend[]) {
     const prettierOptions = {
       parser: 'babel-ts',
     }
     const format = async (code: string) =>
-      (await prettier.format(code, prettierOptions))
+      prettier
+        .format(code, prettierOptions)
         .trim()
         .replace(/\n{2,}/gm, '\n')
     const reformat = async (code: string) =>
@@ -444,6 +443,7 @@ describe(`Astx`, function () {
         expect(
           {
             ...error,
+            // eslint-disable-next-line @typescript-eslint/no-base-to-string
             message: error instanceof Error ? error.message : String(error),
           },
           `error thrown by ${callee}`

@@ -20,7 +20,7 @@ function getFieldNames(t: typeof AstTypes, node: Node | Comment): string[] {
 
 export default function detectChangedNodes(
   t: typeof AstTypes,
-  path: NodePath<Node>
+  path: NodePath
 ): void {
   const isNode = t.namedTypes.Node.check(path.value)
   if (isNode) {
@@ -44,15 +44,16 @@ export default function detectChangedNodes(
   } else if (!t.namedTypes.Comment.check(path.value)) {
     return
   }
-  const orig = (path.value as any)[original]
+  const orig = path.value[original]
   if (
     orig &&
     (!t.astNodesAreEquivalent(path.value, orig) ||
       (isNode && !nodesHaveEquivalentComments(t, path.value, orig)))
   ) {
-    let parent: NodePath<Node> | NodePath<Comment> | null = path
+    let parent: NodePath | NodePath<Comment> | null = path
     while (parent) {
-      if (parent.value) delete (parent.value as any)[original]
+      // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+      if (parent.value) delete parent.value[original]
       parent = parent.parent
     }
   }

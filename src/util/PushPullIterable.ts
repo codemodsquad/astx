@@ -104,7 +104,6 @@ export default class PushPullIterable<T> implements AsyncIterable<T> {
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
   throw(error?: any): void {
     if (!this.producing) return
     this.producing = false

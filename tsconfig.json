@@ -1,6 +1,6 @@
 {
   "extends": "./node_modules/@jcoreio/toolchain-typescript/tsconfig.json",
-  "include": ["./src", "./test"],
+  "include": ["./src", "./test", "./smoke-test"],
   "exclude": ["node_modules"],
   "compilerOptions": {
     "lib": ["es2019"]

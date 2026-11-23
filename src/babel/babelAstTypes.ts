@@ -11,6 +11,7 @@ const babelAstTypes: (t?: typeof defaultTypes) => ReturnType<typeof fork> =
     function babel(fork: Fork) {
       const types = fork.use(typesPlugin)
       const { builtInTypes, Type } = types
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       const { def, or } = Type
 
       def('Node').field('type', builtInTypes.string)

@@ -1,12 +1,12 @@
 import { ImportDeclaration } from '@babel/types'
 import Astx from '../Astx'
-import { Node, NodePath } from '../types'
+import { NodePath } from '../types'
 import * as t from '@babel/types'
 import { stripImportKind } from './imports'
 
 export default function removeImports(
   astx: Astx,
-  pattern: readonly NodePath<Node, any>[]
+  pattern: readonly NodePath[]
 ): boolean {
   for (const { node } of pattern) {
     if (node.type !== 'ImportDeclaration') {
@@ -20,6 +20,7 @@ export default function removeImports(
   let result = false
   for (const { node } of pattern) {
     const decl: ImportDeclaration = node as any
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (decl.specifiers?.length) {
       for (const specifier of decl.specifiers) {
         const found = astx.findImports({
@@ -50,6 +51,7 @@ export function removeFoundImport(
   decl: ImportDeclaration,
   found: Astx
 ) {
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   if (decl.specifiers?.length) {
     if (decl.specifiers.length > 1) {
       throw new Error(`decl must have a single specifier`)

@@ -3,7 +3,7 @@ import { expect } from 'chai'
 import find, { FindOptions, Match } from '../src/find'
 import { replaceAll } from '../src/replace'
 import { Node, NodePath, getAstxMatchInfo } from '../src/types'
-import { mapValues } from 'lodash'
+import mapValues from 'lodash/mapValues.js'
 import prettier from 'prettier'
 import Path from 'path'
 import { jsParser, tsParser } from 'babel-parse-wild-code'
@@ -78,9 +78,11 @@ export function extractMatchSource(
     }: {
       path?: NodePath
       paths?: NodePath[]
-    } = _match as any
+    } = _match
     const match: ExpectedMatch = {}
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (type === 'node' && path) match.node = toSource(path)
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (type === 'nodes' && paths) match.nodes = paths.map(toSource)
     if (pathCaptures) match.captures = mapValues(pathCaptures, toSource)
     if (arrayPathCaptures)
@@ -111,9 +113,11 @@ export function formatMatches(
     }: {
       path?: NodePath
       paths?: NodePath[]
-    } = _match as any
+    } = _match
     const match: ExpectedMatch = {}
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (type === 'node' && path) match.node = toSource(path)
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (type === 'nodes' && paths) match.nodes = paths.map(toSource)
     if (pathCaptures) match.captures = mapValues(pathCaptures, toSource)
     if (arrayPathCaptures)
@@ -195,7 +199,8 @@ export function findReplaceTestcase(fixture: Fixture): void {
       const format = async (code: string) =>
         _format === false
           ? code
-          : (await prettier.format(code, prettierOptions))
+          : prettier
+              .format(code, prettierOptions)
               .trim()
               .replace(/\n{2,}/gm, '\n')
 

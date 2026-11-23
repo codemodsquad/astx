@@ -17,11 +17,13 @@ export default function compileClassPropertyReplacement(
       (pattern.typeAnnotation == null ||
         (n.TypeAnnotation.check(pattern.typeAnnotation) &&
           n.GenericTypeAnnotation.check(
+            // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
             pattern.typeAnnotation?.typeAnnotation
           ) &&
           n.Identifier.check(pattern.typeAnnotation.typeAnnotation.id) &&
           pattern.typeAnnotation.typeAnnotation.id.name === '$') ||
         (n.TSTypeAnnotation.check(pattern.typeAnnotation) &&
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
           n.TSTypeReference.check(pattern.typeAnnotation?.typeAnnotation) &&
           n.Identifier.check(pattern.typeAnnotation.typeAnnotation.typeName) &&
           pattern.typeAnnotation.typeAnnotation.typeName.name === '$'))

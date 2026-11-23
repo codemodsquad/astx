@@ -8,6 +8,7 @@ export default function compileExportDefaultSpecifierReplacement(
 ): CompiledReplacement | void {
   const pattern = path.value
   const { exported } = pattern
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   if (exported != null) {
     const { exportKind } = (path.parentPath as NodePath<ExportDeclaration>)
       .node as any

@@ -26,6 +26,7 @@ export default function replace(
   }: ReplaceOptions
 ): void {
   const path =
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     match.path.parentPath?.node?.type === 'ExpressionStatement'
       ? match.path.parentPath
       : match.path
@@ -113,6 +114,7 @@ export function replaceAll(
 
 function doReplace(match: Match, replacements: Node[]) {
   const replacedPaths = match.paths.map((p) =>
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     p.parentPath?.node?.type === 'ExpressionStatement' ? p.parentPath : p
   )
 

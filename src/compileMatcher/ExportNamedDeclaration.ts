@@ -11,19 +11,15 @@ export default function compileImportSpecifierMatcher(
 
   const importKind = (pattern as any).importKind || 'value'
 
-  const sourceMatcher = compileRelativeSourceMatcher(
-    path.get('source'),
-    compileOptions
-  )
+  const sourceMatcher = pattern.source
+    ? compileRelativeSourceMatcher(path.get('source'), compileOptions)
+    : undefined
 
   return compileGenericNodeMatcher(path, compileOptions, {
     keyMatchers: {
       importKind: {
         pattern: path.get('importKind') as any,
-        match: (
-          path: NodePath<any, any>,
-          matchSoFar: MatchResult
-        ): MatchResult => {
+        match: (path: NodePath<any>, matchSoFar: MatchResult): MatchResult => {
           return (path.value || 'value') === importKind
             ? matchSoFar || {}
             : null

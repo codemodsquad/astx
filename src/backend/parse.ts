@@ -20,7 +20,7 @@ function parse0(
       return node.expression
     }
     return node
-  } catch (error) {
+  } catch {
     // fallthrough
   }
   return backend.template.expression(strings, ...quasis)
@@ -52,7 +52,7 @@ export function parsePattern(
       if (start != null && start > to) to = start
       if (end != null && end < from) from = end
     }
-    if (from != null && to != null && from < to) {
+    if (from < to) {
       const pathInRange = (path: NodePath) => {
         const { start, end } = this.location(path.node)
         return start != null && end != null && start >= from && end <= to
@@ -66,6 +66,7 @@ export function parsePattern(
           done = true
         }
       })
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       if (done) return result
     }
   }
