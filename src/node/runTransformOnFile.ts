@@ -24,7 +24,7 @@ const getPrettier = memoize(async (path: string): Promise<any> => {
         basedir: path,
       })
     )
-    if (prettier.default instanceof Object) {
+    if (prettier.default != null && typeof prettier.default === 'object') {
       prettier = prettier.default
     }
     if (
