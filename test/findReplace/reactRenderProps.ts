@@ -14,7 +14,7 @@ export const find = `
 export const expectedFind = [
   {
     captures: {
-      $max: '{NARROW_WIDTH}',
+      $max: 'NARROW_WIDTH',
     },
     arrayCaptures: {
       $$children: ['\n      ', '{(matches) => <div />}', '\n    '],

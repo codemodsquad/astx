@@ -9,7 +9,11 @@ export default function compileJSXExpressionContainerMatcher(
   const pattern: JSXExpressionContainer = path.value
   const n = compileOptions.backend.t.namedTypes
 
-  if (n.Identifier.check(pattern.expression)) {
+  if (
+    n.Identifier.check(pattern.expression) &&
+    (path === compileOptions.rootPath ||
+      !(n.JSXAttribute.check(path.parent?.value) && path.name === 'value'))
+  ) {
     const placeholderMatcher = compilePlaceholderMatcher(
       path,
       pattern.expression.name,

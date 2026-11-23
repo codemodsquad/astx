@@ -4,7 +4,7 @@ import Path from 'path'
 
 export function compileRelativeSourceMatcher(
   pattern: NodePath<any, any>,
-  compileOptions: CompileOptions
+  compileOptions: Omit<CompileOptions, 'rootPath'>
 ): CompiledMatcher | void {
   const source = pattern.value
   const { getResolveAgainstDir } = compileOptions

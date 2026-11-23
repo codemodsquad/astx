@@ -54,6 +54,7 @@ export type CompileOptions = {
   where?: { [captureName: string]: (path: NodePath) => boolean }
   debug: Debugger
   backend: Backend
+  rootPath: NodePath
   getResolveAgainstDir?: () => string
 }
 
@@ -203,10 +204,14 @@ export function convertPredicateMatcher(
 
 export default function compileMatcher(
   path: NodePath,
-  rootCompileOptions: RootCompileOptions
+  rootCompileOptions: RootCompileOptions & { rootPath?: NodePath }
 ): CompiledMatcher {
   const { debug = _debug } = rootCompileOptions
-  const compileOptions = { ...rootCompileOptions, debug }
+  const compileOptions = {
+    ...rootCompileOptions,
+    debug,
+    rootPath: rootCompileOptions.rootPath ?? path,
+  }
   if (Array.isArray(path.value)) {
     return compileGenericArrayMatcher(path, compileOptions)
   } else if (nodeMatchers[path.value.type]) {

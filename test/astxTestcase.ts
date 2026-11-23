@@ -102,6 +102,9 @@ export function astxTestcase(testcase: Fixture): void {
               }
             }
           },
+          createFile: () => {
+            throw new Error(`not supported by astxTestcase yet`)
+          },
           ...backend.template,
         }
         if (expectedError) {
