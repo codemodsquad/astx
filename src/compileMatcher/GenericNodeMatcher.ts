@@ -125,7 +125,9 @@ export default function compileGenericNodeMatcher(
               if (
                 value === nodeValue ||
                 (value === null && nodeValue === false) ||
-                (value === false && nodeValue === null)
+                (value === false && nodeValue === null) ||
+                (value === null && isEmptyArray(nodeValue)) ||
+                (isEmptyArray(nodeValue) && nodeValue === null)
               ) {
                 debug('    %s === %s', value, nodeValue)
                 return matchSoFar || {}
@@ -173,4 +175,8 @@ export default function compileGenericNodeMatcher(
 
     nodeType,
   }
+}
+
+function isEmptyArray(value: unknown): value is never[] {
+  return Array.isArray(value) && !value.length
 }

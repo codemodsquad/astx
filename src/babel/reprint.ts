@@ -1,4 +1,6 @@
 import { CodeGenerator, default as generate } from '@babel/generator'
+// @ts-expect-error no type defs
+import { default as Printer } from '@babel/generator/lib/printer.js'
 import { Comment, Node } from '../types'
 import { original, rangeWithWhitespace, source } from '../util/symbols'
 
@@ -9,17 +11,21 @@ const excludedNodeTypes = new Set([
 ])
 
 export default function reprint(node: Node): { code: string } {
-  const gen: any = new CodeGenerator(node as any)
+  // const gen: any = new CodeGenerator(node as any)
   const lastPrintedRange = { start: 0, end: 0 }
-  if (gen._generator instanceof Object) {
-    const Generator = gen._generator.constructor
-    class Reprinter extends Generator {
-      constructor(
-        ast: Node,
-        opts: any = {},
-        code?: string | { [filename: string]: string }
-      ) {
-        super(ast, opts, code)
+  if (Printer) {
+    class ReprinterGenerator extends CodeGenerator {
+      constructor(ast: Node, opts: any = {}, code?: string) {
+        super(ast as any, opts, code)
+      }
+      generate() {
+        const printer = new Reprinter((this as any)._format, (this as any)._map)
+        return printer.generate((this as any)._ast)
+      }
+    }
+    class Reprinter extends (Printer as any) {
+      constructor(format: any, map: any) {
+        super(format, map)
       }
       print(
         node: Node | null,
@@ -89,7 +95,10 @@ export default function reprint(node: Node): { code: string } {
           forceParens
         )
       }
-      _printComment(comment: Comment, skipNewLines?: boolean) {
+      _printComment(comment: Comment, skipNewLines?: number) {
+        // const noLineTerminator = this._noLineTerminator;
+        // const isBlockComment = comment.type === "CommentBlock";
+        // const printNewLines = isBlockComment && skipNewLines !== 1 && !noLineTerminator;
         const orig = (comment as any)[original]
         const src = (comment as any)[source]
         if (orig && src) {
@@ -119,7 +128,7 @@ export default function reprint(node: Node): { code: string } {
         return super._printComment(comment, skipNewLines)
       }
     }
-    return new Reprinter(node).generate(node)
+    return new ReprinterGenerator(node).generate()
   }
   return generate(node as any)
 }
